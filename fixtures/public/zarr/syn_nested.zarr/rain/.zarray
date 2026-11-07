@@ -1,0 +1,22 @@
+{
+  "shape": [
+    4,
+    5,
+    9
+  ],
+  "chunks": [
+    3,
+    2,
+    4
+  ],
+  "dtype": "<i2",
+  "fill_value": -1,
+  "order": "C",
+  "filters": null,
+  "dimension_separator": "/",
+  "compressor": {
+    "id": "zstd",
+    "level": 3
+  },
+  "zarr_format": 2
+}

@@ -1,0 +1,157 @@
+# ras-commander-fast-dss
+
+A native HEC-DSS engine for Python, written in Rust. It reads and writes DSS version 6 and
+version 7 files (catalogs, regular and irregular time series, paired data, grids, profiles and
+location records) without Java, HEC Monolith or any HEC native library. It also imports gridded
+data (GRIB2, NetCDF, GeoTIFF/ASCII rasters and Zarr v2) into DSS grids, the job HEC-Vortex does
+for HEC-HMS and HEC-RAS.
+
+`ras-commander-fast-dss` is the DSS backend of
+[RAS Commander](https://github.com/gpt-cmdr/ras-commander) and hms-commander. It is called
+FAST-DSS on the [RAS Commander website](https://rascommander.info/ras/native-engine/).
+
+```bash
+pip install ras-commander-fast-dss
+```
+
+Wheels are abi3 (one wheel covers CPython 3.10 and later) for Windows x86_64, Linux x86_64 and
+aarch64 (manylinux), Linux x86_64 (musllinux), and macOS arm64 and x86_64. Other platforms can
+build the source distribution with a Rust toolchain; the build has no C dependencies.
+
+## Quick example
+
+```python
+import numpy as np
+import ras_commander_fast_dss as dss
+
+with dss.open("model.dss") as f:
+    print(f.version, f.version_string)        # 7 '7-IU'
+    catalog = f.catalog()                     # DataFrame, one row per record
+    flow = f.read_timeseries("/BASIN/LOC/FLOW//1HOUR/OBS/")
+
+rating = dss.read_paired_data("model.dss", "/BASIN/LOC/STAGE-FLOW///RATING/")
+grid = dss.read_grid("model.dss", "/SHG/BASIN/PRECIP/01JAN2020:0000/01JAN2020:0100/RADAR/")
+
+# Write a regular time series into a new DSS7 file.
+dss.create("out.dss", version=7)
+dss.write_timeseries(
+    "out.dss",
+    "/BASIN/LOC/FLOW/01JAN2020/1HOUR/SIM/",
+    np.array([10.0, 12.5, 15.0]),
+    start="2020-01-01 01:00",
+    units="CFS",
+    data_type="INST-VAL",
+)
+```
+
+Time series come back as pandas DataFrames with HEC missing markers mapped to NaN; paired data
+and grids come back as NumPy arrays with their metadata. Errors are typed
+(`ras_commander_fast_dss.exceptions`), and a file that HEC software holds open for writing is
+refused rather than written (`DssLockedError`). The gridded importer and tools are in
+`ras_commander_fast_dss.gridded`.
+
+## With ras-commander and hms-commander
+
+RAS Commander reads DSS boundary data through `RasDss`. With this package installed, select the
+native backend:
+
+```python
+from ras_commander import RasDss
+
+RasDss.backend = "native"     # or set RAS_COMMANDER_DSS_BACKEND=native
+catalog = RasDss.get_catalog("model.dss")
+```
+
+hms-commander uses the same package for its DSS reads. See the
+[native engine documentation](https://rascommander.info/ras/native-engine/) for the backend
+options and the differences from the Java path.
+
+## Qualification
+
+The engine is a clean-room implementation of the DSS formats, written from HEC's
+MIT-licensed [hec-dss](https://github.com/HydrologicEngineeringCenter/hec-dss) source and
+the format notes in [`docs/format/`](docs/format/), which cite the `heclib` file and function
+behind every rule. HEC software is used only as a test oracle; none of its code is copied,
+linked or shipped.
+
+- **Reads** were compared with HEC Monolith through ras-commander's Java path on the 53 public
+  RasExamples DSS files (11,045 comparisons): every non-missing value is bit-identical and
+  every missing position agrees; the remaining differences are documented corrections.
+- **Writers** are checked in this repository's tests against files written by HEC's own C
+  library and by HEC Monolith (`fixtures/public/`): the native writer, given the same input,
+  produces word-identical records apart from write times and the program name.
+- **Gridded import** is checked against HEC-Vortex 1.1.0 output on public NOAA products and
+  Vortex's own test resources, bit for bit where the fixtures say so.
+- **Hostile input:** parsers bounds-check every offset and length and return errors; `dss-core`
+  forbids `unsafe` code; fuzz and allocation-limit tests run in CI.
+
+This is qualification for the files and versions named, not a claim that every possible DSS
+record is covered. Comparison with HEC software does not imply HEC or USACE endorsement.
+
+## Repository layout
+
+| Path | Contents |
+|---|---|
+| `crates/dss-core` | The format engine: DSS6 and DSS7 readers and writers (`#![forbid(unsafe_code)]`) |
+| `crates/dss-vortex` | Gridded import and grid tools |
+| `crates/dss-py` | PyO3 binding, built with maturin into `ras_commander_fast_dss._native` |
+| `crates/dss-wasm` | Read-only WebAssembly binding |
+| `python/ras_commander_fast_dss` | The Python API |
+| `vendor/` | `hdf5-reader` and `netcdf-reader` 0.12.1 with local patches ([PATCHES.md](vendor/PATCHES.md)) |
+| `fixtures/public/` | Public and synthetic test files, each with its provenance in [README.md](fixtures/public/README.md) |
+| `docs/format/` | DSS6 and DSS7 format specifications |
+
+Comments and test docstrings name development packets (`P20`, `P46`, ...) and paths under
+`packets/` and `evidence/`. Those are the engine's private development records (task
+specifications and qualification evidence); they are not part of this repository.
+
+## Build from source
+
+```bash
+cargo test --locked                                   # dss-core
+cargo test --locked --workspace --exclude dss-py
+python -m pip install maturin
+python -m maturin build --release --locked --out dist
+python -m pip install dist/*.whl pytest
+python -I -m pytest                                   # tests/python against the installed wheel
+```
+
+`dss-vortex` needs Rust 1.92 or later; the other crates build with 1.80.
+
+## Attributions and acknowledgments
+
+FAST-DSS (`ras-commander-fast-dss`) is an independent, pure-Rust implementation of the HEC-DSS file format, versions 6 and 7. It could not have been built without the open-source software and data published by the U.S. Army Corps of Engineers Hydrologic Engineering Center (HEC), and by the wider water-resources community.
+
+### How it was developed
+
+The engine was written from HEC's published `hec-dss` C and Fortran source, which is MIT licensed. Every format rule in the code cites the HEC source file and routine it was derived from. No HEC code is copied into the engine, and no HEC library is linked or bundled: the engine has no C dependencies at build or run time.
+
+HEC's own software served as the reference ("oracle") throughout development. Each reader and writer was compared against it on public example files, synthetic files, and a private corpus of real project files. Files written by the engine were also read back with HEC software:
+
+- **HEC-DSS C library** (`hec-dss`, through HEC's `hecdss` Python package): the reference for DSS7 reads and writes, and for file checks such as `zcheckFile`.
+- **HEC Monolith**, the Java DSS library used by HEC-RAS, HEC-HMS and HEC-DSSVue: the reference for DSS6, paired data, grids, and Java-path parity in ras-commander and hms-commander.
+- **HEC-Vortex** (MIT), versions 1.1.0 and 0.13.3: the reference for the gridded importer and grid tools. Its bundled PROJ 7.2.0 and GDAL 3.2.1 were the reference for projections and resampling.
+- **HEC-DSSVue, HEC-RAS and HEC-HMS example data** (public USACE data): the source of the real-data test fixtures.
+- **HEC-RAS and HEC-HMS:** model runs through ras-commander and hms-commander confirmed that the software reads DSS files written by the engine.
+
+### Independent validation with pydsstools
+
+As a final check, outputs were validated with **pydsstools** (MIT, https://github.com/gyanz/pydsstools), a widely used third-party Python library for HEC-DSS. The comparison covered 4,727 records (21.6 million values) from 122 DSS6 and DSS7 files, covering regular and irregular time series, patterns, paired data, and HRAP, Albers and specified grids. 4,080 records were identical bit for bit and 182 more under a documented rule (for example, pydsstools returns paired data as float32). Of the 196 records that differed, 183 differed only in metadata. pydsstools could not read 209 records that the engine read, the engine could not read 1 record type that is out of its scope (irregular profiles), and 32 corrupt or zeroed records were unreadable by both. Every difference was traced to pydsstools, to behaviour HEC's own readers share, or to a documented engine convention, with HEC Monolith used to break ties. In the write tests, each library read back exactly every time-series and paired-data value the other wrote. The check found three minor engine issues, all in edge cases of files not written by HEC software and none changing a value read from a HEC-written file; all three were fixed before this release to follow HEC's behaviour (DSS6 units and type text, DSS6 specified-grid header byte counts, and the record types used for time-invariant grids).
+
+### Thanks
+
+Thanks to the HEC developers for publishing `hec-dss`, HEC-Vortex and their example data as open source, and to the pydsstools maintainers for a library the industry relies on.
+
+FAST-DSS is an independent open-source project. It is not affiliated with, endorsed by or supported by HEC or USACE. HEC-DSS, HEC-RAS, HEC-HMS, HEC-DSSVue and HEC-Vortex are products of the U.S. Army Corps of Engineers.
+
+## License
+
+MIT; see [LICENSE](LICENSE). Some modules port code under other permissive licences
+(BSD-3-Clause, MIT): [NOTICE](NOTICE) names each one and carries its notice, and
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) covers the Rust dependencies.
+
+HEC-DSS, HEC-RAS, HEC-HMS, HEC-DSSVue and HEC-Vortex are products of the US Army Corps of
+Engineers Hydrologic Engineering Center. This project is independent of HEC and USACE.
+
+If you use this package in published work, please consider citing RAS Commander:
+<https://rascommander.info/ras/cite/>.

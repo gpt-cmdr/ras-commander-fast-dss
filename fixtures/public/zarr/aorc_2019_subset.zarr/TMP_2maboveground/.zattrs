@@ -1,0 +1,17 @@
+{
+    "AORC_Contact": "aorc.info@noaa.gov",
+    "_ARRAY_DIMENSIONS": [
+        "time",
+        "latitude",
+        "longitude"
+    ],
+    "_FillValue": -32767,
+    "aorc_version": "v1.1",
+    "crs": "EPSG:4326",
+    "level": "2 m above ground",
+    "long_name": "Temperature",
+    "missing_value": -32767,
+    "scale_factor": 0.10000000149011612,
+    "short_name": "TMP_2maboveground",
+    "units": "K"
+}

@@ -1,0 +1,79 @@
+name: Wheels
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wheels:
+    name: Wheel ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            manylinux: 'off'
+            platform: windows-x86_64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            manylinux: '2_17'
+            platform: manylinux-x86_64
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            manylinux: '2_17'
+            platform: manylinux-aarch64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            manylinux: musllinux_1_2
+            platform: musllinux-x86_64
+            container_smoke: python:3.13-alpine
+          - os: macos-15
+            target: aarch64-apple-darwin
+            manylinux: 'off'
+            platform: macos-arm64
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            manylinux: 'off'
+            platform: macos-x86_64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      # The engine has no C dependencies; maturin builds one abi3 (CPython 3.10+) wheel per target.
+      - uses: PyO3/maturin-action@v1
+        with:
+          maturin-version: '1.15.0'
+          rust-toolchain: '1.99.1'
+          target: ${{ matrix.target }}
+          manylinux: ${{ matrix.manylinux }}
+          args: --release --locked --out dist
+      # Install the wheel just built, by its file path, so the index can supply only its
+      # dependencies and never a published ras-commander-fast-dss. smoke_wheel.py then checks
+      # the installed version against Cargo.toml and, on a tag, against the tag.
+      - name: Installed-wheel smoke test
+        if: ${{ !matrix.container_smoke }}
+        shell: bash
+        run: |
+          shopt -s nullglob
+          wheels=(dist/*.whl)
+          [ "${#wheels[@]}" -eq 1 ] || { echo "expected one wheel in dist/, found ${#wheels[@]}"; exit 1; }
+          python -m venv smoke-venv
+          if [ -x smoke-venv/bin/python ]; then py=smoke-venv/bin/python; else py=smoke-venv/Scripts/python.exe; fi
+          "$py" -m pip install "${wheels[0]}"
+          "$py" -I tests/smoke_wheel.py
+      - name: Installed-wheel smoke test (${{ matrix.container_smoke }})
+        if: ${{ matrix.container_smoke }}
+        run: |
+          docker run --rm -e GITHUB_REF_TYPE -e GITHUB_REF_NAME -v "$PWD:/io" -w /io ${{ matrix.container_smoke }} sh -c \
+            'set -e; set -- dist/*.whl; [ "$#" -eq 1 ] && [ -f "$1" ] || { echo "expected one wheel in dist/"; exit 1; }; python -m venv /tmp/v && /tmp/v/bin/python -m pip install "$1" && /tmp/v/bin/python -I tests/smoke_wheel.py'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.platform }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 90

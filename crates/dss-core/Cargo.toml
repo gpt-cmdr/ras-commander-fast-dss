@@ -1,0 +1,20 @@
+[package]
+name = "dss-core"
+description = "Pure-Rust reader and writer for HEC-DSS version 6 and 7 files"
+version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+miniz_oxide = "0.8"
+
+# P19a lock detection: safe fcntl(F_GETLK / F_OFD_GETLK) wrapper, so dss-core keeps
+# #![forbid(unsafe_code)]. libc (its only runtime dependency besides bitflags/cfg-if)
+# is already in the workspace through pyo3/numpy. Windows needs no dependency.
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.31", default-features = false, features = ["fs"] }

@@ -1,0 +1,114 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      publish_existing:
+        description: Publish verified assets from an existing tagged GitHub Release
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    name: Tag and synchronised versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Check the tag against Cargo.toml and pyproject.toml
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          python - <<'PY'
+          import os, pathlib, tomllib
+          crate = tomllib.loads(pathlib.Path('Cargo.toml').read_text())['workspace']['package']['version']
+          wheel = tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version']
+          assert crate == wheel, (crate, wheel)
+          assert os.environ['REF_TYPE'] == 'tag', os.environ['REF_TYPE']
+          assert os.environ['TAG_NAME'] == 'v' + crate, (os.environ['TAG_NAME'], crate)
+          PY
+      - run: python scripts/verify_sources.py
+
+  wheels:
+    if: ${{ !inputs.publish_existing }}
+    needs: version
+    uses: ./.github/workflows/build.yml
+
+  sdist:
+    name: Source distribution
+    if: ${{ !inputs.publish_existing }}
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@1.99.1
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - run: python -m pip install maturin==1.15.0
+      - run: python -m maturin sdist --out dist
+      - name: Build from the sdist in a fresh venv and smoke-test it
+        run: |
+          python -m venv /tmp/sdist-venv
+          /tmp/sdist-venv/bin/python -m pip install dist/*.tar.gz
+          /tmp/sdist-venv/bin/python -I tests/smoke_wheel.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-source
+          path: dist/*
+          if-no-files-found: error
+
+  github-release:
+    name: GitHub Release
+    if: ${{ !inputs.publish_existing }}
+    needs: [wheels, sdist]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+      - name: Checksums
+        run: cd dist && sha256sum *.whl *.tar.gz > SHA256SUMS
+      - name: Attach release artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release create "$RELEASE_TAG" dist/* --verify-tag --title "$RELEASE_TAG" --notes 'Native Rust HEC-DSS engine for Python. See CHANGELOG.md.'
+
+  pypi:
+    name: Publish to PyPI
+    if: ${{ always() && vars.PUBLISH_PYPI == 'true' && needs.version.result == 'success' && (needs.github-release.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.publish_existing)) }}
+    needs: [version, github-release]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Verify tagged release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release download "$RELEASE_TAG" --dir artifacts
+          (cd artifacts && sha256sum --check SHA256SUMS)
+      - run: mkdir dist && cp artifacts/*.whl artifacts/*.tar.gz dist/
+      # With PYPI_API_TOKEN unset, the action uses the PyPI trusted publisher for this workflow.
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+  # crates.io publishing stays off: every crate has publish = false, and PUBLISH_CRATES is unused.

@@ -1,0 +1,28 @@
+[workspace]
+resolver = "2"
+members = ["crates/dss-core", "crates/dss-py", "crates/dss-vortex", "crates/dss-wasm"]
+default-members = ["crates/dss-core"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+license = "MIT"
+authors = ["CLB Engineering Corporation"]
+repository = "https://github.com/gpt-cmdr/ras-commander-fast-dss"
+homepage = "https://rascommander.info/ras/native-engine/"
+# Python wheels and the sdist are the distribution; the crates are not published to crates.io.
+publish = false
+
+[workspace.dependencies]
+dss-core = { path = "crates/dss-core" }
+dss-vortex = { path = "crates/dss-vortex" }
+
+# The P41 warp fixture test covers 43.5 million cells; unoptimised it would take far too long.
+[profile.dev.package.dss-vortex]
+opt-level = 3
+
+# hdf5-reader and netcdf-reader 0.12.1 with CLB's patches: vendor/README.md and vendor/PATCHES.md.
+[patch.crates-io]
+hdf5-reader = { path = "vendor/hdf5-reader" }
+netcdf-reader = { path = "vendor/netcdf-reader" }

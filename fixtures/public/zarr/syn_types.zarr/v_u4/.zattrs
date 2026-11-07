@@ -1,0 +1,9 @@
+{
+  "units": "1",
+  "crs": "EPSG:4326",
+  "_ARRAY_DIMENSIONS": [
+    "time",
+    "latitude",
+    "longitude"
+  ]
+}

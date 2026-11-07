@@ -1,0 +1,11 @@
+{
+  "scale_factor": 0.25,
+  "units": "mm",
+  "long_name": "Rain depth",
+  "grid_mapping": "spatial_ref",
+  "_ARRAY_DIMENSIONS": [
+    "t",
+    "y",
+    "x"
+  ]
+}

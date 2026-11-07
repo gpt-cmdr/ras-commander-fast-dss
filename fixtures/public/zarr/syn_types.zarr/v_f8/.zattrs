@@ -1,0 +1,12 @@
+{
+  "_FillValue": -9999.0,
+  "scale_factor": 2.5,
+  "add_offset": -1.25,
+  "units": "mm",
+  "crs": "EPSG:4326",
+  "_ARRAY_DIMENSIONS": [
+    "time",
+    "latitude",
+    "longitude"
+  ]
+}

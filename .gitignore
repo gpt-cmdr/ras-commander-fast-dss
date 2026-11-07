@@ -1,0 +1,13 @@
+/target/
+/dist/
+/working/
+/.venv/
+/.pytest_cache/
+__pycache__/
+*.pyc
+*.pyd
+*.so
+*.pdb
+*.dylib
+*.dll
+/crates/dss-wasm/pkg/

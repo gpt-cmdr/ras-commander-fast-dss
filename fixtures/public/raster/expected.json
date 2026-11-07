@@ -1,0 +1,1872 @@
+{
+"2000-01-01T0000.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": [
+36525,
+0
+],
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"2000-01-01T0000_2000-01-01T0100.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "PerAver",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": [
+36525,
+0,
+36525,
+3600
+],
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"2023-02-31T0100.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": [
+44984,
+3600
+],
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"PRISM_ppt_30yr_normal_4kmM2_annual_b.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "PerCum",
+"description": "precipitation",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": [
+29586,
+0,
+40542,
+0
+],
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "mm",
+"variable": "precipitation",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"PRISM_ppt_stable_4kmD2_20170101_b.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "PerCum",
+"description": "precipitation",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": [
+42734,
+43200,
+42735,
+43200
+],
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "mm",
+"variable": "precipitation",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"PRISM_tmean_stable_4kmM3_196001_b.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "PerAver",
+"description": "mean temperature",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": [
+21915,
+0,
+21946,
+0
+],
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "Degrees C",
+"variable": "mean temperature",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"PRISM_vpdmax_early_4kmD2_20190305_b.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "PerAver",
+"description": "maximum vapor pressure deficit",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": [
+43527,
+43200,
+43528,
+43200
+],
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "hPa",
+"variable": "maximum vapor pressure deficit",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"QPF_1HR_AZ_19121900.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "PerCum",
+"description": "precipitation",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": [
+43816,
+82800,
+43817,
+0
+],
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "mm",
+"variable": "precipitation",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"TrinityXMRG2DSS.tiff": {
+"cells_fnv": "4a5d19a2a85a9de6",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "nan",
+"nx": 1198,
+"ny": 1086,
+"time": null,
+"transform": [
+"c139a28000000000",
+"409f400000000000",
+"0000000000000000",
+"4141596800000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"asc_bad_prj.asc": {
+"refused": ".prj"
+},
+"asc_center.asc": {
+"cells_fnv": "532a9ab989458cb8",
+"crs_kind": "undefined",
+"data_type": "InstVal",
+"description": "",
+"nodata": null,
+"nx": 3,
+"ny": 2,
+"time": null,
+"transform": [
+"4058d00000000000",
+"4004000000000000",
+"0000000000000000",
+"4069800000000000",
+"0000000000000000",
+"c004000000000000"
+],
+"units": "",
+"variable": "",
+"wkt": ""
+},
+"asc_crlf_upper.asc": {
+"cells_fnv": "532a9ab989458cb8",
+"crs_kind": "undefined",
+"data_type": "InstVal",
+"description": "",
+"nodata": null,
+"nx": 3,
+"ny": 2,
+"time": null,
+"transform": [
+"4059200000000000",
+"4004000000000000",
+"0000000000000000",
+"4069a80000000000",
+"0000000000000000",
+"c004000000000000"
+],
+"units": "",
+"variable": "",
+"wkt": ""
+},
+"asc_dxdy.asc": {
+"cells_fnv": "532a9ab989458cb8",
+"crs_kind": "undefined",
+"data_type": "InstVal",
+"description": "",
+"nodata": null,
+"nx": 3,
+"ny": 2,
+"time": null,
+"transform": [
+"4059200000000000",
+"4004000000000000",
+"0000000000000000",
+"4069e80000000000",
+"0000000000000000",
+"c00c000000000000"
+],
+"units": "",
+"variable": "",
+"wkt": ""
+},
+"asc_float.asc": {
+"cells_fnv": "e78edb982a6ea4e6",
+"crs_kind": "wkt",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 3,
+"ny": 2,
+"time": null,
+"transform": [
+"4059200000000000",
+"4004000000000000",
+"0000000000000000",
+"4069a80000000000",
+"0000000000000000",
+"c004000000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"unnamed\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Albers_Conic_Equal_Area\"],PARAMETER[\"latitude_of_center\",23],PARAMETER[\"longitude_of_center\",-96],PARAMETER[\"standard_parallel_1\",29.5],PARAMETER[\"standard_parallel_2\",45.5],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]"
+},
+"asc_garbage.asc": {
+"refused": "cannot read"
+},
+"asc_global_hack.asc": {
+"cells_fnv": "f58e2a4a99915fa5",
+"crs_kind": "undefined",
+"data_type": "InstVal",
+"description": "",
+"nodata": null,
+"nx": 360,
+"ny": 2,
+"time": null,
+"transform": [
+"c066800000000000",
+"3ff0000000000000",
+"0000000000000000",
+"4000000000000000",
+"0000000000000000",
+"bff0000000000000"
+],
+"units": "",
+"variable": "",
+"wkt": ""
+},
+"asc_int.asc": {
+"cells_fnv": "252ef0796f33df87",
+"crs_kind": "undefined",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 3,
+"ny": 2,
+"time": null,
+"transform": [
+"4059200000000000",
+"4004000000000000",
+"0000000000000000",
+"4069a80000000000",
+"0000000000000000",
+"c004000000000000"
+],
+"units": "",
+"variable": "",
+"wkt": ""
+},
+"asc_int_garbage.asc": {
+"refused": "not an integer"
+},
+"asc_int_nodata_dot.asc": {
+"cells_fnv": "5b6000adbd005652",
+"crs_kind": "undefined",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 3,
+"ny": 2,
+"time": null,
+"transform": [
+"4059200000000000",
+"4004000000000000",
+"0000000000000000",
+"4069a80000000000",
+"0000000000000000",
+"c004000000000000"
+],
+"units": "",
+"variable": "",
+"wkt": ""
+},
+"asc_long.asc": {
+"refused": "more values"
+},
+"asc_nan.asc": {
+"cells_fnv": "254b235fbde1b595",
+"crs_kind": "undefined",
+"data_type": "InstVal",
+"description": "",
+"nodata": "nan",
+"nx": 3,
+"ny": 2,
+"time": null,
+"transform": [
+"4059200000000000",
+"4004000000000000",
+"0000000000000000",
+"4069a80000000000",
+"0000000000000000",
+"c004000000000000"
+],
+"units": "",
+"variable": "",
+"wkt": ""
+},
+"asc_no_corner.asc": {
+"refused": "georeference"
+},
+"asc_nodata_small.asc": {
+"refused": "normal float32"
+},
+"asc_nodata_zero.asc": {
+"cells_fnv": "af7f79de57c1b778",
+"crs_kind": "undefined",
+"data_type": "InstVal",
+"description": "",
+"nodata": "00000000",
+"nx": 3,
+"ny": 2,
+"time": null,
+"transform": [
+"4059200000000000",
+"4004000000000000",
+"0000000000000000",
+"4069a80000000000",
+"0000000000000000",
+"c004000000000000"
+],
+"units": "",
+"variable": "",
+"wkt": ""
+},
+"asc_short.asc": {
+"refused": "data stops"
+},
+"asc_too_big.asc": {
+"refused": "does not fit"
+},
+"asc_wrapped.asc": {
+"cells_fnv": "532a9ab989458cb8",
+"crs_kind": "undefined",
+"data_type": "InstVal",
+"description": "",
+"nodata": null,
+"nx": 3,
+"ny": 2,
+"time": null,
+"transform": [
+"4059200000000000",
+"4004000000000000",
+"0000000000000000",
+"4069a80000000000",
+"0000000000000000",
+"c004000000000000"
+],
+"units": "",
+"variable": "",
+"wkt": ""
+},
+"bands_2.tif": {
+"refused": "bands"
+},
+"bands_2_separate.tif": {
+"refused": "bands"
+},
+"bits_u4.tif": {
+"refused": "sample type"
+},
+"compress_lerc.tif": {
+"refused": "compression"
+},
+"compress_packbits.tif": {
+"refused": "compression"
+},
+"compress_zstd.tif": {
+"refused": "compression"
+},
+"crs_4326.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "wkt",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c05f41555555553e",
+"3fa5555555555555",
+"0000000000000000",
+"4048f80000000000",
+"0000000000000000",
+"bfa5555555555555"
+],
+"units": "",
+"variable": "",
+"wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+"crs_5070.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"crs_feet.tif": {
+"refused": "linear unit"
+},
+"crs_lcc_2sp.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "wkt",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Lambert Conformal Conic 2SP\",\n    GEOGCS[\"WGS 84\",\n        DATUM[\"WGS_1984\",\n            SPHEROID[\"WGS 84\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],\n    PARAMETER[\"latitude_of_origin\",40],\n    PARAMETER[\"central_meridian\",-97],\n    PARAMETER[\"standard_parallel_1\",33],\n    PARAMETER[\"standard_parallel_2\",45],\n    PARAMETER[\"false_easting\",1000],\n    PARAMETER[\"false_northing\",2000],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"crs_lcc_sphere.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "wkt",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Lambert Conformal Conic 2SP\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],\n    PARAMETER[\"latitude_of_origin\",38.5],\n    PARAMETER[\"central_meridian\",-97.5],\n    PARAMETER[\"standard_parallel_1\",38.5],\n    PARAMETER[\"standard_parallel_2\",38.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"crs_nad27.tif": {
+"refused": "EPSG code 4267"
+},
+"crs_none.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "undefined",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": ""
+},
+"crs_polar.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371200,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Polar_Stereographic\"],\n    PARAMETER[\"latitude_of_origin\",60],\n    PARAMETER[\"central_meridian\",-105],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",SOUTH],\n    AXIS[\"Northing\",SOUTH]]"
+},
+"crs_stere.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "wkt",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"WGS 84\",\n        DATUM[\"WGS_1984\",\n            SPHEROID[\"WGS 84\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Stereographic\"],\n    PARAMETER[\"latitude_of_origin\",40],\n    PARAMETER[\"central_meridian\",-100],\n    PARAMETER[\"scale_factor\",0.9],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"crs_utm.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "wkt",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Transverse Mercator\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",-93],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"crs_web_mercator.tif": {
+"refused": "EPSG:3857"
+},
+"geo_fine.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "wkt",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c05f41555555553e",
+"3fa5555555555555",
+"0000000000000000",
+"4048f80000000000",
+"0000000000000000",
+"bfa5555555555555"
+],
+"units": "",
+"variable": "",
+"wkt": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+"geo_gcps.tif": {
+"refused": "georeference"
+},
+"geo_none.tif": {
+"refused": "georeference"
+},
+"geo_point.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"geo_point_rotated.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f180000000000",
+"4062c00000000000",
+"4140347000000000",
+"405e000000000000",
+"c09f2c0000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"geo_rotated.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f180000000000",
+"4062c00000000000",
+"4140347000000000",
+"405e000000000000",
+"c09f2c0000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"geo_sheared.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"408f440000000000",
+"409f400000000000",
+"407f400000000000",
+"409f410000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"geo_south_up.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"413d53d000000000",
+"0000000000000000",
+"409f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"i16.tif": {
+"cells_fnv": "5317d81cd9536d73",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c7000000",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"mask_internal.tif": {
+"refused": "mask"
+},
+"nodata_frac.tif": {
+"cells_fnv": "d241ecb980352dbc",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "3dcccccd",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"nodata_lowest.tif": {
+"cells_fnv": "2fd724f3a0ff5422",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "ff7fffff",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"nodata_nan.tif": {
+"cells_fnv": "8202acd02c3f6297",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "nan",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"nodata_near.tif": {
+"cells_fnv": "1cc143218da23a6d",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"nodata_none.tif": {
+"cells_fnv": "f988d3f37cbb9e33",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": null,
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"nodata_too_big.tif": {
+"refused": "nodata"
+},
+"nodata_zero.tif": {
+"cells_fnv": "4b1b3aa1fde973d6",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "00000000",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"one_strip.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"orb100yr24ha.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "orb100yr24ha",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "1/1000 in",
+"variable": "precipitation-frequency",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"overviews.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"p41_v1_1_0.asc": {
+"cells_fnv": "f46079a8e90c38af",
+"crs_kind": "wkt",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 101,
+"ny": 101,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]"
+},
+"p41_v1_1_0.tiff": {
+"cells_fnv": "f46079a8e90c38af",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 101,
+"ny": 101,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"pred2_deflate.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"pred2_deflate_be.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"pred2_deflate_tile.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"pred2_lzw.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"pred2_lzw_be.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"pred2_lzw_tile.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"pred3_deflate.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"pred3_deflate_be.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"pred3_deflate_tile.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"pred3_lzw.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"pred3_lzw_be.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"pred3_lzw_tile.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"prism_ppt_us_30s_202001.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "PerCum",
+"description": "precipitation",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": [
+43830,
+0,
+43861,
+0
+],
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "mm",
+"variable": "precipitation",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"prism_tmax_us_25m_20200102.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "PerAver",
+"description": "maximum temperature",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": [
+43830,
+43200,
+43831,
+43200
+],
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "Degrees C",
+"variable": "maximum temperature",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"sparse.tif": {
+"refused": "sparse"
+},
+"strip_deflate.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"strip_deflate_be.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"strip_deflate_big.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"strip_lzw.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"strip_lzw_be.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"strip_lzw_big.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"strip_none.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"strip_none_be.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"strip_none_big.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"test_albers.tiff": {
+"cells_fnv": "7155fe06aa90dbb6",
+"crs_kind": "wkt",
+"data_type": "InstVal",
+"description": "",
+"nodata": null,
+"nx": 8,
+"ny": 14,
+"time": null,
+"transform": [
+"c1417c9000000000",
+"409f400000000000",
+"0000000000000000",
+"41208a6000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",37.5],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"tile_deflate.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"tile_deflate_be.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"tile_deflate_big.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"tile_lzw.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"tile_lzw_be.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"tile_lzw_big.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"tile_none.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"tile_none_be.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"tile_none_big.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"tile_over_image.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"tmin_c.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "Degrees C",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"type_float16.tif": {
+"refused": "sample type"
+},
+"type_float64.tif": {
+"refused": "sample type"
+},
+"type_int32.tif": {
+"refused": "sample type"
+},
+"type_int8.tif": {
+"refused": "sample type"
+},
+"type_uint32.tif": {
+"refused": "sample type"
+},
+"u16.tif": {
+"cells_fnv": "55574090023bd6a1",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "477fff00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"u8.tif": {
+"cells_fnv": "b50b097d989bc5f4",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "",
+"nodata": "437f0000",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+"windspeed_a.tif": {
+"cells_fnv": "37682b7a0725c99c",
+"crs_kind": "named",
+"data_type": "InstVal",
+"description": "windspeed",
+"nodata": "c61c3c00",
+"nx": 37,
+"ny": 29,
+"time": null,
+"transform": [
+"c123b6e000000000",
+"409f400000000000",
+"0000000000000000",
+"4140347000000000",
+"0000000000000000",
+"c09f400000000000"
+],
+"units": "",
+"variable": "windspeed",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+}

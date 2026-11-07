@@ -1,0 +1,58 @@
+[build-system]
+requires = ["maturin>=1.9,<2"]
+build-backend = "maturin"
+
+[project]
+name = "ras-commander-fast-dss"
+version = "0.1.0"
+description = "Native (Rust) HEC-DSS engine for ras-commander and hms-commander: DSS6 and DSS7 read and write without Java"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT AND BSD-3-Clause"
+license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md"]
+authors = [{ name = "CLB Engineering Corporation" }]
+keywords = ["hec-dss", "dss", "hec-ras", "hec-hms", "hydrology", "hydraulics", "time-series"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Rust",
+    "Topic :: Scientific/Engineering :: Hydrology",
+]
+dependencies = ["numpy", "pandas"]
+
+[project.urls]
+Homepage = "https://rascommander.info/ras/native-engine/"
+Documentation = "https://rascommander.info/ras/native-engine/"
+Repository = "https://github.com/gpt-cmdr/ras-commander-fast-dss"
+Issues = "https://github.com/gpt-cmdr/ras-commander-fast-dss/issues"
+Changelog = "https://github.com/gpt-cmdr/ras-commander-fast-dss/blob/main/CHANGELOG.md"
+
+[tool.maturin]
+manifest-path = "crates/dss-py/Cargo.toml"
+python-source = "python"
+module-name = "ras_commander_fast_dss._native"
+features = ["pyo3/extension-module", "vortex"]
+strip = true
+# The sdist builds offline from these: the patched readers and the notices. Test fixtures stay
+# out of the sdist (40 MB); the source repository has them.
+include = [
+    { path = "vendor/hdf5-reader/**/*", format = "sdist" },
+    { path = "vendor/netcdf-reader/**/*", format = "sdist" },
+    { path = "vendor/README.md", format = "sdist" },
+    { path = "vendor/PATCHES.md", format = "sdist" },
+    { path = "THIRD_PARTY_NOTICES.md", format = "sdist" },
+    { path = "licenses/**/*", format = "sdist" },
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]

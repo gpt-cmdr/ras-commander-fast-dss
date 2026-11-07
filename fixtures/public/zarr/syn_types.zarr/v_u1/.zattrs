@@ -1,0 +1,10 @@
+{
+  "add_offset": -5.0,
+  "units": "K",
+  "crs": "EPSG:4326",
+  "_ARRAY_DIMENSIONS": [
+    "time",
+    "latitude",
+    "longitude"
+  ]
+}

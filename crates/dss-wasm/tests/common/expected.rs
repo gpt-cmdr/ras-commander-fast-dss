@@ -1,0 +1,205 @@
+//! Digests of `common::digest` for `common::FIXTURES`, recorded on the host
+//! (x86_64-pc-windows-msvc) with `DSS_WASM_PRINT_DIGESTS=1 cargo test -p dss-wasm
+//! --test reader_fixtures recorded_digests -- --nocapture`. `node.rs` checks the same
+//! table inside `wasm32-unknown-unknown`.
+#![allow(dead_code)]
+
+use super::Digest;
+
+pub const EXPECTED: &[(&str, Digest)] = &[
+    (
+        "castro.dss",
+        Digest {
+            entries: 3,
+            records: 2,
+            datasets: 2,
+            paired: 1,
+            grids: 0,
+            errors: 0,
+            values: 410,
+            hash: 0x25cc13100fc6cb7d,
+        },
+    ),
+    (
+        "synthetic_python6.dss",
+        Digest {
+            entries: 8,
+            records: 8,
+            datasets: 6,
+            paired: 0,
+            grids: 0,
+            errors: 0,
+            values: 10234,
+            hash: 0x47df2f5641166310,
+        },
+    ),
+    (
+        "synthetic_python7.dss",
+        Digest {
+            entries: 2,
+            records: 1,
+            datasets: 1,
+            paired: 0,
+            grids: 0,
+            errors: 0,
+            values: 10,
+            hash: 0xf14056df3ff41916,
+        },
+    ),
+    (
+        "synthetic_hec_variants6.dss",
+        Digest {
+            entries: 28,
+            records: 28,
+            datasets: 15,
+            paired: 0,
+            grids: 0,
+            errors: 0,
+            values: 3861,
+            hash: 0x1628750d2f776047,
+        },
+    ),
+    (
+        "synthetic_irregular_variants7.dss",
+        Digest {
+            entries: 16,
+            records: 16,
+            datasets: 11,
+            paired: 0,
+            grids: 0,
+            errors: 0,
+            values: 148,
+            hash: 0x671da693989fa996,
+        },
+    ),
+    (
+        "p21_hec_its7.dss",
+        Digest {
+            entries: 28,
+            records: 28,
+            datasets: 18,
+            paired: 0,
+            grids: 0,
+            errors: 0,
+            values: 3724,
+            hash: 0xa680f71ae1696e34,
+        },
+    ),
+    (
+        "pattern_offset7.dss",
+        Digest {
+            entries: 3,
+            records: 3,
+            datasets: 3,
+            paired: 0,
+            grids: 0,
+            errors: 0,
+            values: 26,
+            hash: 0xed6902351678ab96,
+        },
+    ),
+    (
+        "synthetic_pd6.dss",
+        Digest {
+            entries: 3,
+            records: 1,
+            datasets: 1,
+            paired: 2,
+            grids: 0,
+            errors: 0,
+            values: 23,
+            hash: 0xce821eb440370802,
+        },
+    ),
+    (
+        "synthetic_pd7.dss",
+        Digest {
+            entries: 3,
+            records: 0,
+            datasets: 0,
+            paired: 2,
+            grids: 0,
+            errors: 2,
+            values: 16,
+            hash: 0x76cbe95808803349,
+        },
+    ),
+    (
+        "p23_hec_pd6.dss",
+        Digest {
+            entries: 13,
+            records: 0,
+            datasets: 0,
+            paired: 13,
+            grids: 0,
+            errors: 0,
+            values: 10629,
+            hash: 0x7b311474d4573076,
+        },
+    ),
+    (
+        "p23_hec_pd7.dss",
+        Digest {
+            entries: 14,
+            records: 0,
+            datasets: 0,
+            paired: 14,
+            grids: 0,
+            errors: 0,
+            values: 10639,
+            hash: 0x01543553e3197306,
+        },
+    ),
+    (
+        "real_grid6.dss",
+        Digest {
+            entries: 7,
+            records: 0,
+            datasets: 0,
+            paired: 0,
+            grids: 7,
+            errors: 0,
+            values: 123203,
+            hash: 0x84db7f63177fd0d0,
+        },
+    ),
+    (
+        "real_grid7.dss",
+        Digest {
+            entries: 7,
+            records: 0,
+            datasets: 0,
+            paired: 0,
+            grids: 7,
+            errors: 0,
+            values: 123203,
+            hash: 0xb0ee1fd89ee115b8,
+        },
+    ),
+    (
+        "p24_hec_grid6.dss",
+        Digest {
+            entries: 19,
+            records: 0,
+            datasets: 0,
+            paired: 0,
+            grids: 19,
+            errors: 0,
+            values: 53639,
+            hash: 0x23920049039ff7e8,
+        },
+    ),
+    (
+        "p24_hec_grid7.dss",
+        Digest {
+            entries: 18,
+            records: 0,
+            datasets: 0,
+            paired: 0,
+            grids: 18,
+            errors: 0,
+            values: 53575,
+            hash: 0xac5728566a87d795,
+        },
+    ),
+];

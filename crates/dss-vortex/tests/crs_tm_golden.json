@@ -1,0 +1,1254 @@
+{
+"cases": [
+{
+"id": "utm15n_nad83.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm15n_nad83.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm15n_esri.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"NAD_1983_UTM_Zone_15N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-93.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm15n_esri.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"NAD_1983_UTM_Zone_15N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-93.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm10n_nad83.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-123],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm10n_nad83.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-123],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm19n_nad83.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-69],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm19n_nad83.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-69],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm33n_wgs84.fwd.zone",
+"src": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm33n_wgs84.fwd.world",
+"src": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm33s_wgs84.fwd.zone",
+"src": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm33s_wgs84.fwd.world",
+"src": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm01n_wgs84.fwd.zone",
+"src": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm01n_wgs84.fwd.world",
+"src": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm60s_wgs84.fwd.zone",
+"src": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm60s_wgs84.fwd.world",
+"src": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm18s_wgs84.fwd.zone",
+"src": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm18s_wgs84.fwd.world",
+"src": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_utm_but_fn.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",100],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_but_fn.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",100],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_utm_but_k.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_but_k.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_utm_but_lon.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-92.5],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_but_lon.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-92.5],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_il_east_m.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",36.66666666666666],PARAMETER[\"central_meridian\",-88.33333333333333],PARAMETER[\"scale_factor\",0.999975],PARAMETER[\"false_easting\",300000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_il_east_m.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",36.66666666666666],PARAMETER[\"central_meridian\",-88.33333333333333],PARAMETER[\"scale_factor\",0.999975],PARAMETER[\"false_easting\",300000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"Foot_US\",0.3048006096012192]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"Foot_US\",0.3048006096012192]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus15.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"US survey foot\",0.304800609601219]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus15.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"US survey foot\",0.304800609601219]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_az_central_ft.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-111.9166666666667],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_az_central_ft.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-111.9166666666667],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_utm_shape_ftus.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",1640416.666666667],PARAMETER[\"false_northing\",0],UNIT[\"Foot_US\",0.3048006096012192]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_shape_ftus.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",1640416.666666667],PARAMETER[\"false_northing\",0],UNIT[\"Foot_US\",0.3048006096012192]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_nm_west_ftus_fn.fwd.zone",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-107.8333333333333],PARAMETER[\"scale_factor\",0.9999166666666667],PARAMETER[\"false_easting\",2723091.666666666],PARAMETER[\"false_northing\",100000.25],UNIT[\"Foot_US\",0.3048006096012192]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_nm_west_ftus_fn.fwd.world",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-107.8333333333333],PARAMETER[\"scale_factor\",0.9999166666666667],PARAMETER[\"false_easting\",2723091.666666666],PARAMETER[\"false_northing\",100000.25],UNIT[\"Foot_US\",0.3048006096012192]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm33n_wgs84.fwd.from_nad83",
+"src": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm15n_nad83.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm15n_nad83.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm15n_nad83.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 25,
+"listed": [
+{
+"k": 22,
+"x": "c05611999999999a",
+"y": "4052d99999999999"
+}
+]
+},
+{
+"id": "utm15n_nad83.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 25,
+"listed": [
+{
+"k": 22,
+"x": "411690e2a98da9dd",
+"y": "4154904cec840f4e"
+}
+]
+},
+{
+"id": "utm15n_nad83.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm15n_nad83.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm15n_esri.inv.box",
+"src": "PROJCS[\"NAD_1983_UTM_Zone_15N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-93.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm15n_esri.to_shg.box",
+"src": "PROJCS[\"NAD_1983_UTM_Zone_15N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-93.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm15n_esri.inv.onfwd",
+"src": "PROJCS[\"NAD_1983_UTM_Zone_15N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-93.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm15n_esri.to_shg.onfwd",
+"src": "PROJCS[\"NAD_1983_UTM_Zone_15N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-93.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm15n_esri.inv.onworld",
+"src": "PROJCS[\"NAD_1983_UTM_Zone_15N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-93.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm15n_esri.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"NAD_1983_UTM_Zone_15N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-93.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm10n_nad83.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-123],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 29,
+"listed": [
+{
+"k": 3,
+"x": "c05ff53460e20d21",
+"y": "404137a3c2a7b2f2"
+}
+]
+},
+{
+"id": "utm10n_nad83.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-123],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 29,
+"listed": [
+{
+"k": 3,
+"x": "c145bb76397227db",
+"y": "413aa0ea57ce1db9"
+}
+]
+},
+{
+"id": "utm10n_nad83.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-123],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm10n_nad83.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-123],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm10n_nad83.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-123],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm10n_nad83.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-123],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm19n_nad83.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-69],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 29,
+"listed": [
+{
+"k": 28,
+"x": "4039cf4188ea3fc6",
+"y": "c02df0f1a57f5991"
+}
+]
+},
+{
+"id": "utm19n_nad83.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-69],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 29,
+"listed": [
+{
+"k": 28,
+"x": "4168e8bab129d241",
+"y": "41570fca2a7c71ad"
+}
+]
+},
+{
+"id": "utm19n_nad83.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-69],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm19n_nad83.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-69],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm19n_nad83.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-69],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm19n_nad83.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-69],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm33n_wgs84.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm33n_wgs84.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm33n_wgs84.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm33n_wgs84.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm33n_wgs84.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm33n_wgs84.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm33s_wgs84.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 29,
+"listed": [
+{
+"k": 2,
+"x": "40244e935044f8ca",
+"y": "c052eac59484ab54"
+}
+]
+},
+{
+"id": "utm33s_wgs84.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 29,
+"listed": [
+{
+"k": 2,
+"x": "416cc22c57f728a2",
+"y": "4143a581f239870f"
+}
+]
+},
+{
+"id": "utm33s_wgs84.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm33s_wgs84.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm33s_wgs84.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm33s_wgs84.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm01n_wgs84.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 29,
+"listed": [
+{
+"k": 18,
+"x": "40646286bca52b3d",
+"y": "405562b24d6822ff"
+}
+]
+},
+{
+"id": "utm01n_wgs84.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 29,
+"listed": [
+{
+"k": 18,
+"x": "c14b469eb84b3df4",
+"y": "415e44a4d0f93ba0"
+}
+]
+},
+{
+"id": "utm01n_wgs84.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm01n_wgs84.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm01n_wgs84.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm01n_wgs84.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm60s_wgs84.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm60s_wgs84.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm60s_wgs84.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm60s_wgs84.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm60s_wgs84.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm60s_wgs84.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",177],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm18s_wgs84.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm18s_wgs84.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm18s_wgs84.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm18s_wgs84.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm18s_wgs84.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 29,
+"listed": [
+{
+"k": 24,
+"x": "c061c00000000001",
+"y": "404b800000000002"
+}
+]
+},
+{
+"id": "utm18s_wgs84.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-75],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_but_fn.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",100],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 32,
+"listed": [
+{
+"k": 1,
+"x": "c05805b384053512",
+"y": "4009e48cfb6fd009"
+},
+{
+"k": 8,
+"x": "c058242d7df9d9d6",
+"y": "403e2d74566c42c3"
+},
+{
+"k": 10,
+"x": "c0582cd730925b0d",
+"y": "4040cf26c1ad892b"
+},
+{
+"k": 29,
+"x": "40366ae1c4e52633",
+"y": "4031ba4ead400be3"
+}
+]
+},
+{
+"id": "tm_utm_but_fn.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",100],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 30,
+"listed": [
+{
+"k": 1,
+"x": "c0c5ed0d75cc6378",
+"y": "c13f3cbd5d8b4a0d"
+},
+{
+"k": 8,
+"x": "c0ea8bac08e55bcd",
+"y": "412815f8080ff2bc"
+}
+]
+},
+{
+"id": "tm_utm_but_fn.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",100],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_but_fn.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",100],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_but_fn.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",100],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_utm_but_fn.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",100],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_but_k.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_utm_but_k.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_utm_but_k.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_but_k.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_but_k.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_utm_but_k.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_but_lon.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-92.5],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 31,
+"listed": [
+{
+"k": 16,
+"x": "c05ae28d28549431",
+"y": "4052b5092e4be917"
+},
+{
+"k": 18,
+"x": "c05bd9db31189349",
+"y": "405379b1d9bc9d68"
+},
+{
+"k": 20,
+"x": "c04a3b12762e1b8f",
+"y": "4055108151a55d26"
+}
+]
+},
+{
+"id": "tm_utm_but_lon.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-92.5],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 30,
+"listed": [
+{
+"k": 16,
+"x": "c120f8fb80382fe4",
+"y": "41547d80dd6761d7"
+},
+{
+"k": 18,
+"x": "c125ac2263c55ba6",
+"y": "41554f3180a15070"
+}
+]
+},
+{
+"id": "tm_utm_but_lon.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-92.5],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_but_lon.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-92.5],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_but_lon.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-92.5],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 30,
+"listed": [
+{
+"k": 11,
+"x": "c02e000006587621",
+"y": "c01fffffccc2eb04"
+},
+{
+"k": 18,
+"x": "c02e000006587621",
+"y": "401fffffccc2eb04"
+}
+]
+},
+{
+"id": "tm_utm_but_lon.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-92.5],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_il_east_m.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",36.66666666666666],PARAMETER[\"central_meridian\",-88.33333333333333],PARAMETER[\"scale_factor\",0.999975],PARAMETER[\"false_easting\",300000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_il_east_m.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",36.66666666666666],PARAMETER[\"central_meridian\",-88.33333333333333],PARAMETER[\"scale_factor\",0.999975],PARAMETER[\"false_easting\",300000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_il_east_m.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",36.66666666666666],PARAMETER[\"central_meridian\",-88.33333333333333],PARAMETER[\"scale_factor\",0.999975],PARAMETER[\"false_easting\",300000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_il_east_m.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",36.66666666666666],PARAMETER[\"central_meridian\",-88.33333333333333],PARAMETER[\"scale_factor\",0.999975],PARAMETER[\"false_easting\",300000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_il_east_m.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",36.66666666666666],PARAMETER[\"central_meridian\",-88.33333333333333],PARAMETER[\"scale_factor\",0.999975],PARAMETER[\"false_easting\",300000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 32,
+"listed": [
+{
+"k": 10,
+"x": "c0649fffffff5c38",
+"y": "c033fffffffc4247"
+},
+{
+"k": 16,
+"x": "c0487fffffffffff",
+"y": "c01bfffffffffff7"
+},
+{
+"k": 19,
+"x": "c0487fffffffffff",
+"y": "401bfffffffffff7"
+},
+{
+"k": 22,
+"x": "c0649fffffff5c38",
+"y": "4033fffffffc4247"
+}
+]
+},
+{
+"id": "tm_il_east_m.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",36.66666666666666],PARAMETER[\"central_meridian\",-88.33333333333333],PARAMETER[\"scale_factor\",0.999975],PARAMETER[\"false_easting\",300000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus.inv.box",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus.to_shg.box",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus.inv.onfwd",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus.to_shg.onfwd",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus.inv.onworld",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 29,
+"listed": [
+{
+"k": 23,
+"x": "40427ffffffffffb",
+"y": "404a000000000002"
+}
+]
+},
+{
+"id": "tm_fl_east_ftus.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"Foot_US\",0.3048006096012192]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus15.inv.box",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"US survey foot\",0.304800609601219]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus15.to_shg.box",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"US survey foot\",0.304800609601219]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus15.inv.onfwd",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"US survey foot\",0.304800609601219]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus15.to_shg.onfwd",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"US survey foot\",0.304800609601219]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus15.inv.onworld",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"US survey foot\",0.304800609601219]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 29,
+"listed": [
+{
+"k": 23,
+"x": "40427ffffffffffb",
+"y": "404a000000000002"
+}
+]
+},
+{
+"id": "tm_fl_east_ftus15.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"US survey foot\",0.304800609601219]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_az_central_ft.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-111.9166666666667],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_az_central_ft.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-111.9166666666667],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_az_central_ft.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-111.9166666666667],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_az_central_ft.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-111.9166666666667],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_az_central_ft.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-111.9166666666667],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_az_central_ft.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-111.9166666666667],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_shape_ftus.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",1640416.666666667],PARAMETER[\"false_northing\",0],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_utm_shape_ftus.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",1640416.666666667],PARAMETER[\"false_northing\",0],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_utm_shape_ftus.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",1640416.666666667],PARAMETER[\"false_northing\",0],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_shape_ftus.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",1640416.666666667],PARAMETER[\"false_northing\",0],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_utm_shape_ftus.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",1640416.666666667],PARAMETER[\"false_northing\",0],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 30,
+"listed": [
+{
+"k": 2,
+"x": "4041800000000007",
+"y": "c054bfffffffffff"
+},
+{
+"k": 28,
+"x": "4041800000000007",
+"y": "4054bfffffffffff"
+}
+]
+},
+{
+"id": "tm_utm_shape_ftus.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",1640416.666666667],PARAMETER[\"false_northing\",0],UNIT[\"Foot_US\",0.3048006096012192]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_nm_west_ftus_fn.inv.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-107.8333333333333],PARAMETER[\"scale_factor\",0.9999166666666667],PARAMETER[\"false_easting\",2723091.666666666],PARAMETER[\"false_northing\",100000.25],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_nm_west_ftus_fn.to_shg.box",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-107.8333333333333],PARAMETER[\"scale_factor\",0.9999166666666667],PARAMETER[\"false_easting\",2723091.666666666],PARAMETER[\"false_northing\",100000.25],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_nm_west_ftus_fn.inv.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-107.8333333333333],PARAMETER[\"scale_factor\",0.9999166666666667],PARAMETER[\"false_easting\",2723091.666666666],PARAMETER[\"false_northing\",100000.25],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_nm_west_ftus_fn.to_shg.onfwd",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-107.8333333333333],PARAMETER[\"scale_factor\",0.9999166666666667],PARAMETER[\"false_easting\",2723091.666666666],PARAMETER[\"false_northing\",100000.25],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_nm_west_ftus_fn.inv.onworld",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-107.8333333333333],PARAMETER[\"scale_factor\",0.9999166666666667],PARAMETER[\"false_easting\",2723091.666666666],PARAMETER[\"false_northing\",100000.25],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+"n": 29,
+"listed": [
+{
+"k": 10,
+"x": "c03d0000005e56b1",
+"y": "c02fffffffd1887d"
+}
+]
+},
+{
+"id": "tm_nm_west_ftus_fn.from_shg",
+"src": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",        GEOGCS[\"GCS_North_American_1983\",        DATUM[\"D_North_American_1983\",        SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],        PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-107.8333333333333],PARAMETER[\"scale_factor\",0.9999166666666667],PARAMETER[\"false_easting\",2723091.666666666],PARAMETER[\"false_northing\",100000.25],UNIT[\"Foot_US\",0.3048006096012192]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "utm15n_nad83.to.utm10n_nad83",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-123],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus.to.utm15n_nad83",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm15n_nad83.to.tm_fl_east_ftus",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"Foot_US\",0.3048006096012192]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus.to.tm_az_central_ft",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",31],PARAMETER[\"central_meridian\",-111.9166666666667],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm33n_wgs84.to.utm33s_wgs84",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"WGS_1984\",SPHEROID[\"s\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",15],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",10000000],UNIT[\"Meter\",1]]",
+"n": 28,
+"listed": []
+},
+{
+"id": "utm15n_nad83.to.utm15n_esri",
+"src": "PROJCS[\"p\",GEOGCS[\"g\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"s\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+"dst": "PROJCS[\"NAD_1983_UTM_Zone_15N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-93.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+"n": 24,
+"listed": []
+},
+{
+"id": "tm_fl_east_ftus.to.tm_fl_east_ftus15",
+"src": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"Foot_US\",0.3048006096012192]]",
+"dst": "PROJCS[\"NAD_1983_StatePlane_Florida_East_FIPS_0901_Feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",656166.6666666665],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9999411764705882],PARAMETER[\"Latitude_Of_Origin\",24.33333333333333],UNIT[\"US survey foot\",0.304800609601219]]",
+"n": 24,
+"listed": []
+}
+]
+}

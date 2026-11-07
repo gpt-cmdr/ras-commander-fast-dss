@@ -1,0 +1,23 @@
+{
+    "chunks": [
+        144,
+        128,
+        256
+    ],
+    "compressor": {
+        "checksum": false,
+        "id": "zstd",
+        "level": 3
+    },
+    "dimension_separator": ".",
+    "dtype": "<i2",
+    "fill_value": null,
+    "filters": null,
+    "order": "C",
+    "shape": [
+        8760,
+        4201,
+        8401
+    ],
+    "zarr_format": 2
+}

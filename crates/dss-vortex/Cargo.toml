@@ -1,0 +1,32 @@
+[package]
+name = "dss-vortex"
+description = "Pure-Rust gridded import for HEC-DSS: the Tier V replacement for HEC-Vortex"
+version.workspace = true
+license = "MIT AND BSD-3-Clause"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+edition.workspace = true
+# D48: this crate's own MSRV, not the workspace's. hayro-jpeg2000 0.4.1 declares 1.92.
+rust-version = "1.92"
+publish.workspace = true
+
+# D40: exact versions, a committed lock with checksums, no C in the build graph. Enforced by
+# tests/build_graph.rs.
+# netcdf-reader's own dependency, named here for its parsers: source/netcdf/budget.rs walks a file's
+# metadata with them first. The version must stay the one netcdf-reader locks.
+[dependencies]
+dss-core.workspace = true
+hdf5-reader = { version = "=0.12.1", default-features = false }
+flate2 = { version = "=1.1.10", default-features = false, features = ["rust_backend"] }
+hayro-jpeg2000 = { version = "=0.4.1", default-features = false, features = ["std"] }
+netcdf-reader = { version = "=0.12.1", default-features = false, features = ["netcdf4"] }
+png = { version = "=0.18.1", default-features = false }
+same-file = { version = "=1.0.6", default-features = false }
+ruzstd = { version = "=0.9.1", default-features = false, features = ["std"] }
+shapefile = { version = "=0.9.0", default-features = false }
+weezl = { version = "=0.1.12", default-features = false, features = ["alloc"] }
+
+[dev-dependencies]
+serde_json = "=1.0.154"
+tiff = { version = "=0.11.3", default-features = false, features = ["deflate", "lzw"] }

@@ -1,0 +1,929 @@
+{
+ "_about": "P34 reference values recorded with HEC Monolith 3.3.27 (hec-monolith-3.3.27.jar) on the HMS 4.13 JRE 17.0.11 by docs/project/packets/evidence/P34/scripts/GridP34.java ('ref' mode, HecDss.get -> GridContainer, the path ras-commander RasDss.read_grid uses) from disposable copies of fixtures/public/real_grid6.dss and real_grid7.dss. Float values are IEEE-754 float32 bit patterns (hex). data_sha256 is the SHA-256 of GridData.getData() as float32 little-endian. Monolith is not run in CI.",
+ "ras_commander_read_grid": {
+  "source": "ras-commander branch dss-native-backend, ras_commander/dss/RasDss.py RasDss.read_grid (Java path)",
+  "keys": [
+   "dss_file",
+   "pathname",
+   "data",
+   "shape",
+   "units",
+   "data_type",
+   "grid_type",
+   "crs",
+   "cell_size",
+   "start_time",
+   "end_time",
+   "metadata"
+  ],
+  "metadata_keys": [
+   "pathname_parts",
+   "grid_class",
+   "grid_type_code",
+   "data_type_code",
+   "shape",
+   "number_of_cells_x",
+   "number_of_cells_y",
+   "lower_left_cell",
+   "origin",
+   "projection",
+   "number_missing",
+   "nodata_value",
+   "compression",
+   "timing"
+  ],
+  "grid_type_names": {
+   "AlbersInfo": "albers",
+   "SpecifiedGridInfo": "specified",
+   "HrapInfo": "hrap"
+  }
+ },
+ "files": {
+  "real_grid6.dss": {
+   "dss_version": 6,
+   "java_version": "17.0.11",
+   "records": [
+    {
+     "pathname": "/SHG/RUSSIAN RIVER/PRECIP/29SEP2018:1200/29SEP2018:1800/WPC-QPF/",
+     "grid_class": "hec.heclib.grid.AlbersInfo",
+     "grid_type_code": 420,
+     "data_type_code": 1,
+     "data_type": "PER-CUM",
+     "units": "mm",
+     "nx": 31,
+     "ny": 70,
+     "lower_left_cell": [
+      -1160,
+      1007
+     ],
+     "cell_size_bits": "44fa0000",
+     "crs": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "cell_zero_bits": [
+      "00000000",
+      "00000000"
+     ],
+     "albers": {
+      "datum_code": 2,
+      "units": "METERS",
+      "standard_parallel_1": "41ec0000",
+      "standard_parallel_2": "42360000",
+      "central_meridian": "c2c00000",
+      "latitude_of_origin": "41b80000",
+      "false_easting": "00000000",
+      "false_northing": "00000000"
+     },
+     "compression": {
+      "method": 101001,
+      "base_bits": "00000000",
+      "scale_factor_bits": "42c80000",
+      "element_size": 3490
+     },
+     "min_bits": "00000000",
+     "max_bits": "3f7d70a4",
+     "mean_bits": "3e879676",
+     "number_missing": 0,
+     "timing": {
+      "start": "29 September 2018, 12:00",
+      "end": "29 September 2018, 18:00",
+      "period": "29 September 2018, 12:00 to 29 September 2018, 18:00"
+     },
+     "n_cells": 2170,
+     "n_nodata": 0,
+     "n_nan": 0,
+     "data_sha256": "ed7ca195670c38b10548afd9e3ecdb28c2a81b5fbd343256c7a3fc9c4922b0aa",
+     "samples": [
+      [
+       0,
+       "3ebd70a4"
+      ],
+      [
+       1085,
+       "3f2e147b"
+      ],
+      [
+       2169,
+       "00000000"
+      ],
+      [
+       591,
+       "3f7d70a4"
+      ]
+     ]
+    },
+    {
+     "pathname": "/SHG/RUSSIAN RIVER/PRECIP/01SEP2018:0100/01SEP2018:0200/NDGD-RTMA/",
+     "grid_class": "hec.heclib.grid.AlbersInfo",
+     "grid_type_code": 420,
+     "data_type_code": 1,
+     "data_type": "PER-CUM",
+     "units": "mm",
+     "nx": 31,
+     "ny": 70,
+     "lower_left_cell": [
+      -1160,
+      1007
+     ],
+     "cell_size_bits": "44fa0000",
+     "crs": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "cell_zero_bits": [
+      "00000000",
+      "00000000"
+     ],
+     "albers": {
+      "datum_code": 2,
+      "units": "METERS",
+      "standard_parallel_1": "41ec0000",
+      "standard_parallel_2": "42360000",
+      "central_meridian": "c2c00000",
+      "latitude_of_origin": "41b80000",
+      "false_easting": "00000000",
+      "false_northing": "00000000"
+     },
+     "compression": {
+      "method": 101001,
+      "base_bits": "00000000",
+      "scale_factor_bits": "42c80000",
+      "element_size": 98
+     },
+     "min_bits": "00000000",
+     "max_bits": "3d8f5c29",
+     "mean_bits": "38fa232c",
+     "number_missing": 74,
+     "timing": {
+      "start": "1 September 2018, 01:00",
+      "end": "1 September 2018, 02:00",
+      "period": "1 September 2018, 01:00 to 1 September 2018, 02:00"
+     },
+     "n_cells": 2170,
+     "n_nodata": 74,
+     "n_nan": 0,
+     "data_sha256": "7c4762baac58c73b27efe51032ff25f78a9e77755daaa67ce67fad29f85538f4",
+     "samples": [
+      [
+       0,
+       "ff7fffff"
+      ],
+      [
+       1085,
+       "00000000"
+      ],
+      [
+       2169,
+       "00000000"
+      ],
+      [
+       589,
+       "3d8f5c29"
+      ],
+      [
+       0,
+       "ff7fffff"
+      ]
+     ]
+    },
+    {
+     "pathname": "/SHG/UPPER SUSQUEHANNA RIVER/PRECIP/28SEP2018:0600/28SEP2018:0700/HRRR-FCST/",
+     "grid_class": "hec.heclib.grid.AlbersInfo",
+     "grid_type_code": 420,
+     "data_type_code": 1,
+     "data_type": "PER-CUM",
+     "units": "mm",
+     "nx": 91,
+     "ny": 135,
+     "lower_left_cell": [
+      779,
+      1070
+     ],
+     "cell_size_bits": "44fa0000",
+     "crs": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "cell_zero_bits": [
+      "00000000",
+      "00000000"
+     ],
+     "albers": {
+      "datum_code": 2,
+      "units": "METERS",
+      "standard_parallel_1": "41ec0000",
+      "standard_parallel_2": "42360000",
+      "central_meridian": "c2c00000",
+      "latitude_of_origin": "41b80000",
+      "false_easting": "00000000",
+      "false_northing": "00000000"
+     },
+     "compression": {
+      "method": 101001,
+      "base_bits": "00000000",
+      "scale_factor_bits": "42c80000",
+      "element_size": 24570
+     },
+     "min_bits": "3e2e147b",
+     "max_bits": "4157851f",
+     "mean_bits": "401ad539",
+     "number_missing": 0,
+     "timing": {
+      "start": "28 September 2018, 06:00",
+      "end": "28 September 2018, 07:00",
+      "period": "28 September 2018, 06:00 to 28 September 2018, 07:00"
+     },
+     "n_cells": 12285,
+     "n_nodata": 0,
+     "n_nan": 0,
+     "data_sha256": "55678bca07faaa47f7b96b2d339da3b72316653b16108dcb5089414da8d0983d",
+     "samples": [
+      [
+       0,
+       "3ea3d70a"
+      ],
+      [
+       6142,
+       "4030a3d7"
+      ],
+      [
+       12284,
+       "3f63d70a"
+      ],
+      [
+       83,
+       "4157851f"
+      ]
+     ]
+    },
+    {
+     "pathname": "/HRAP/ABRFC/PRECIP/18JAN1996:0600/18JAN1996:0700//",
+     "grid_class": "hec.heclib.grid.HrapInfo",
+     "grid_type_code": 410,
+     "data_type_code": 1,
+     "data_type": "PER-CUM",
+     "units": "mm",
+     "nx": 335,
+     "ny": 159,
+     "lower_left_cell": [
+      367,
+      263
+     ],
+     "cell_size_bits": "4594d400",
+     "crs": "PROJCS[\"Stereographic_CONUS_HRAP\",GEOGCS[\"GCS_Sphere_LFM\",DATUM[\"D_Sphere_LFM\",SPHEROID[\"Shpere_LFM\",6371200.0,0.0]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Stereographic_North_Pole\"],PARAMETER[\"False_Easting\",1909762.5],PARAMETER[\"False_Northing\",7624762.5],PARAMETER[\"Central_Meridian\",-105.0],PARAMETER[\"Standard_Parallel_1\",60.0],UNIT[\"Meter\",1.0]]",
+     "compression": {
+      "method": 101001,
+      "base_bits": "00000000",
+      "scale_factor_bits": "42c80000",
+      "element_size": 26680
+     },
+     "min_bits": "00000000",
+     "max_bits": "420947ae",
+     "mean_bits": "3f87edcc",
+     "number_missing": 343,
+     "timing": {
+      "start": "18 January 1996, 06:00",
+      "end": "18 January 1996, 07:00",
+      "period": "18 January 1996, 06:00 to 18 January 1996, 07:00"
+     },
+     "n_cells": 53265,
+     "n_nodata": 343,
+     "n_nan": 0,
+     "data_sha256": "e33ecf125e0aba0059f693e11c055bc4bf2fd8c17318196d049b1e0571a97266",
+     "samples": [
+      [
+       0,
+       "00000000"
+      ],
+      [
+       26632,
+       "00000000"
+      ],
+      [
+       53264,
+       "ff7fffff"
+      ],
+      [
+       23382,
+       "420947ae"
+      ],
+      [
+       33,
+       "ff7fffff"
+      ]
+     ]
+    },
+    {
+     "pathname": "/HRAP/ABRFC/PRECIP/18JAN1996:1400/18JAN1996:1500//",
+     "grid_class": "hec.heclib.grid.HrapInfo",
+     "grid_type_code": 410,
+     "data_type_code": 1,
+     "data_type": "PER-CUM",
+     "units": "mm",
+     "nx": 335,
+     "ny": 159,
+     "lower_left_cell": [
+      367,
+      263
+     ],
+     "cell_size_bits": "4594d400",
+     "crs": "PROJCS[\"Stereographic_CONUS_HRAP\",GEOGCS[\"GCS_Sphere_LFM\",DATUM[\"D_Sphere_LFM\",SPHEROID[\"Shpere_LFM\",6371200.0,0.0]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Stereographic_North_Pole\"],PARAMETER[\"False_Easting\",1909762.5],PARAMETER[\"False_Northing\",7624762.5],PARAMETER[\"Central_Meridian\",-105.0],PARAMETER[\"Standard_Parallel_1\",60.0],UNIT[\"Meter\",1.0]]",
+     "compression": {
+      "method": 101001,
+      "base_bits": "00000000",
+      "scale_factor_bits": "42c80000",
+      "element_size": 2788
+     },
+     "min_bits": "00000000",
+     "max_bits": "4155eb85",
+     "mean_bits": "3ce82c86",
+     "number_missing": 343,
+     "timing": {
+      "start": "18 January 1996, 14:00",
+      "end": "18 January 1996, 15:00",
+      "period": "18 January 1996, 14:00 to 18 January 1996, 15:00"
+     },
+     "n_cells": 53265,
+     "n_nodata": 343,
+     "n_nan": 0,
+     "data_sha256": "05827275e7a3420c486c5175ded807f798538050ca13452ce5dc12135bd4782a",
+     "samples": [
+      [
+       0,
+       "00000000"
+      ],
+      [
+       26632,
+       "00000000"
+      ],
+      [
+       53264,
+       "ff7fffff"
+      ],
+      [
+       32494,
+       "4155eb85"
+      ],
+      [
+       33,
+       "ff7fffff"
+      ]
+     ]
+    },
+    {
+     "pathname": "/UTM17N/SYNTH P34/TEMPERATURE/01JAN2020:0600//SYNTHETIC/",
+     "grid_class": "hec.heclib.grid.SpecifiedGridInfo",
+     "grid_type_code": 430,
+     "data_type_code": 2,
+     "data_type": "INST-VAL",
+     "units": "DEG C",
+     "nx": 6,
+     "ny": 4,
+     "lower_left_cell": [
+      250,
+      4400
+     ],
+     "cell_size_bits": "447a0000",
+     "crs": "PROJCS[\"NAD_1983_UTM_Zone_17N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+     "cell_zero_bits": [
+      "00000000",
+      "00000000"
+     ],
+     "compression": {
+      "method": 26,
+      "base_bits": "00000000",
+      "scale_factor_bits": "3f800000",
+      "element_size": 72
+     },
+     "min_bits": "c0880000",
+     "max_bits": "40000000",
+     "mean_bits": "bf88590b",
+     "number_missing": 1,
+     "timing": {
+      "start": "1 January 2020, 06:00",
+      "end": "1 January 2020, 06:00",
+      "period": "1 January 2020, 06:00 to 1 January 2020, 06:00"
+     },
+     "n_cells": 24,
+     "n_nodata": 1,
+     "n_nan": 0,
+     "data_sha256": "9a161701d865b4a6b11bdb992bf1559d37923e2b3fd08cdf64a7e1220a7eac29",
+     "samples": [
+      [
+       0,
+       "c0880000"
+      ],
+      [
+       12,
+       "bfe00000"
+      ],
+      [
+       23,
+       "40000000"
+      ],
+      [
+       23,
+       "40000000"
+      ],
+      [
+       7,
+       "ff7fffff"
+      ]
+     ]
+    },
+    {
+     "pathname": "/UTM17N/SYNTH P34/SWE/01JAN2020:0600//SYNTHETIC/",
+     "grid_class": "hec.heclib.grid.SpecifiedGridInfo",
+     "grid_type_code": 430,
+     "data_type_code": 2,
+     "data_type": "INST-VAL",
+     "units": "MM",
+     "nx": 6,
+     "ny": 4,
+     "lower_left_cell": [
+      250,
+      4400
+     ],
+     "cell_size_bits": "447a0000",
+     "crs": "PROJCS[\"NAD_1983_UTM_Zone_17N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+     "cell_zero_bits": [
+      "00000000",
+      "00000000"
+     ],
+     "compression": {
+      "method": 26,
+      "base_bits": "00000000",
+      "scale_factor_bits": "3f800000",
+      "element_size": 52
+     },
+     "min_bits": "00000000",
+     "max_bits": "422a0000",
+     "mean_bits": "41660000",
+     "number_missing": 0,
+     "timing": {
+      "start": "1 January 2020, 06:00",
+      "end": "1 January 2020, 06:00",
+      "period": "1 January 2020, 06:00 to 1 January 2020, 06:00"
+     },
+     "n_cells": 24,
+     "n_nodata": 0,
+     "n_nan": 0,
+     "data_sha256": "a39d94c4afe062af9784293663832d8860fdc9ed43f2b5e3189bbffdab6c82ec",
+     "samples": [
+      [
+       0,
+       "00000000"
+      ],
+      [
+       12,
+       "41a00000"
+      ],
+      [
+       23,
+       "422a0000"
+      ],
+      [
+       23,
+       "422a0000"
+      ]
+     ]
+    }
+   ]
+  },
+  "real_grid7.dss": {
+   "dss_version": 7,
+   "java_version": "17.0.11",
+   "records": [
+    {
+     "pathname": "/SHG/RUSSIAN RIVER/PRECIP/29SEP2018:1200/29SEP2018:1800/WPC-QPF/",
+     "grid_class": "hec.heclib.grid.AlbersInfo",
+     "grid_type_code": 420,
+     "data_type_code": 1,
+     "data_type": "PER-CUM",
+     "units": "mm",
+     "nx": 31,
+     "ny": 70,
+     "lower_left_cell": [
+      -1160,
+      1007
+     ],
+     "cell_size_bits": "44fa0000",
+     "crs": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "cell_zero_bits": [
+      "00000000",
+      "00000000"
+     ],
+     "albers": {
+      "datum_code": 2,
+      "units": "Meter",
+      "standard_parallel_1": "41ec0000",
+      "standard_parallel_2": "42360000",
+      "central_meridian": "c2c00000",
+      "latitude_of_origin": "41b80000",
+      "false_easting": "00000000",
+      "false_northing": "00000000"
+     },
+     "compression": {
+      "method": 26,
+      "base_bits": "00000000",
+      "scale_factor_bits": "00000000",
+      "element_size": 1867
+     },
+     "min_bits": "00000000",
+     "max_bits": "3f7d70a4",
+     "mean_bits": "3e879676",
+     "number_missing": 0,
+     "timing": {
+      "start": "29 September 2018, 12:00",
+      "end": "29 September 2018, 18:00",
+      "period": "29 September 2018, 12:00 to 29 September 2018, 18:00"
+     },
+     "n_cells": 2170,
+     "n_nodata": 0,
+     "n_nan": 0,
+     "data_sha256": "ed7ca195670c38b10548afd9e3ecdb28c2a81b5fbd343256c7a3fc9c4922b0aa",
+     "samples": [
+      [
+       0,
+       "3ebd70a4"
+      ],
+      [
+       1085,
+       "3f2e147b"
+      ],
+      [
+       2169,
+       "00000000"
+      ],
+      [
+       591,
+       "3f7d70a4"
+      ]
+     ]
+    },
+    {
+     "pathname": "/SHG/RUSSIAN RIVER/PRECIP/01SEP2018:0100/01SEP2018:0200/NDGD-RTMA/",
+     "grid_class": "hec.heclib.grid.AlbersInfo",
+     "grid_type_code": 420,
+     "data_type_code": 1,
+     "data_type": "PER-CUM",
+     "units": "mm",
+     "nx": 31,
+     "ny": 70,
+     "lower_left_cell": [
+      -1160,
+      1007
+     ],
+     "cell_size_bits": "44fa0000",
+     "crs": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "cell_zero_bits": [
+      "00000000",
+      "00000000"
+     ],
+     "albers": {
+      "datum_code": 2,
+      "units": "Meter",
+      "standard_parallel_1": "41ec0000",
+      "standard_parallel_2": "42360000",
+      "central_meridian": "c2c00000",
+      "latitude_of_origin": "41b80000",
+      "false_easting": "00000000",
+      "false_northing": "00000000"
+     },
+     "compression": {
+      "method": 26,
+      "base_bits": "00000000",
+      "scale_factor_bits": "00000000",
+      "element_size": 115
+     },
+     "min_bits": "00000000",
+     "max_bits": "3d8f5c29",
+     "mean_bits": "38fa232c",
+     "number_missing": 74,
+     "timing": {
+      "start": "1 September 2018, 01:00",
+      "end": "1 September 2018, 02:00",
+      "period": "1 September 2018, 01:00 to 1 September 2018, 02:00"
+     },
+     "n_cells": 2170,
+     "n_nodata": 74,
+     "n_nan": 0,
+     "data_sha256": "7c4762baac58c73b27efe51032ff25f78a9e77755daaa67ce67fad29f85538f4",
+     "samples": [
+      [
+       0,
+       "ff7fffff"
+      ],
+      [
+       1085,
+       "00000000"
+      ],
+      [
+       2169,
+       "00000000"
+      ],
+      [
+       589,
+       "3d8f5c29"
+      ],
+      [
+       0,
+       "ff7fffff"
+      ]
+     ]
+    },
+    {
+     "pathname": "/SHG/UPPER SUSQUEHANNA RIVER/PRECIP/28SEP2018:0600/28SEP2018:0700/HRRR-FCST/",
+     "grid_class": "hec.heclib.grid.AlbersInfo",
+     "grid_type_code": 420,
+     "data_type_code": 1,
+     "data_type": "PER-CUM",
+     "units": "mm",
+     "nx": 91,
+     "ny": 135,
+     "lower_left_cell": [
+      779,
+      1070
+     ],
+     "cell_size_bits": "44fa0000",
+     "crs": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "cell_zero_bits": [
+      "00000000",
+      "00000000"
+     ],
+     "albers": {
+      "datum_code": 2,
+      "units": "Meter",
+      "standard_parallel_1": "41ec0000",
+      "standard_parallel_2": "42360000",
+      "central_meridian": "c2c00000",
+      "latitude_of_origin": "41b80000",
+      "false_easting": "00000000",
+      "false_northing": "00000000"
+     },
+     "compression": {
+      "method": 26,
+      "base_bits": "00000000",
+      "scale_factor_bits": "00000000",
+      "element_size": 19782
+     },
+     "min_bits": "3e2e147b",
+     "max_bits": "4157851f",
+     "mean_bits": "401ad539",
+     "number_missing": 0,
+     "timing": {
+      "start": "28 September 2018, 06:00",
+      "end": "28 September 2018, 07:00",
+      "period": "28 September 2018, 06:00 to 28 September 2018, 07:00"
+     },
+     "n_cells": 12285,
+     "n_nodata": 0,
+     "n_nan": 0,
+     "data_sha256": "55678bca07faaa47f7b96b2d339da3b72316653b16108dcb5089414da8d0983d",
+     "samples": [
+      [
+       0,
+       "3ea3d70a"
+      ],
+      [
+       6142,
+       "4030a3d7"
+      ],
+      [
+       12284,
+       "3f63d70a"
+      ],
+      [
+       83,
+       "4157851f"
+      ]
+     ]
+    },
+    {
+     "pathname": "/HRAP/ABRFC/PRECIP/18JAN1996:0600/18JAN1996:0700//",
+     "grid_class": "hec.heclib.grid.HrapInfo",
+     "grid_type_code": 410,
+     "data_type_code": 1,
+     "data_type": "PER-CUM",
+     "units": "mm",
+     "nx": 335,
+     "ny": 159,
+     "lower_left_cell": [
+      367,
+      263
+     ],
+     "cell_size_bits": "4594d400",
+     "crs": "PROJCS[\"Stereographic_CONUS_HRAP\",GEOGCS[\"GCS_Sphere_LFM\",DATUM[\"D_Sphere_LFM\",SPHEROID[\"Shpere_LFM\",6371200.0,0.0]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Stereographic_North_Pole\"],PARAMETER[\"False_Easting\",1909762.5],PARAMETER[\"False_Northing\",7624762.5],PARAMETER[\"Central_Meridian\",-105.0],PARAMETER[\"Standard_Parallel_1\",60.0],UNIT[\"Meter\",1.0]]",
+     "compression": {
+      "method": 26,
+      "base_bits": "00000000",
+      "scale_factor_bits": "00000000",
+      "element_size": 28446
+     },
+     "min_bits": "00000000",
+     "max_bits": "420947ae",
+     "mean_bits": "3f87edcc",
+     "number_missing": 343,
+     "timing": {
+      "start": "18 January 1996, 06:00",
+      "end": "18 January 1996, 07:00",
+      "period": "18 January 1996, 06:00 to 18 January 1996, 07:00"
+     },
+     "n_cells": 53265,
+     "n_nodata": 343,
+     "n_nan": 0,
+     "data_sha256": "e33ecf125e0aba0059f693e11c055bc4bf2fd8c17318196d049b1e0571a97266",
+     "samples": [
+      [
+       0,
+       "00000000"
+      ],
+      [
+       26632,
+       "00000000"
+      ],
+      [
+       53264,
+       "ff7fffff"
+      ],
+      [
+       23382,
+       "420947ae"
+      ],
+      [
+       33,
+       "ff7fffff"
+      ]
+     ]
+    },
+    {
+     "pathname": "/HRAP/ABRFC/PRECIP/18JAN1996:1400/18JAN1996:1500//",
+     "grid_class": "hec.heclib.grid.HrapInfo",
+     "grid_type_code": 410,
+     "data_type_code": 1,
+     "data_type": "PER-CUM",
+     "units": "mm",
+     "nx": 335,
+     "ny": 159,
+     "lower_left_cell": [
+      367,
+      263
+     ],
+     "cell_size_bits": "4594d400",
+     "crs": "PROJCS[\"Stereographic_CONUS_HRAP\",GEOGCS[\"GCS_Sphere_LFM\",DATUM[\"D_Sphere_LFM\",SPHEROID[\"Shpere_LFM\",6371200.0,0.0]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Stereographic_North_Pole\"],PARAMETER[\"False_Easting\",1909762.5],PARAMETER[\"False_Northing\",7624762.5],PARAMETER[\"Central_Meridian\",-105.0],PARAMETER[\"Standard_Parallel_1\",60.0],UNIT[\"Meter\",1.0]]",
+     "compression": {
+      "method": 26,
+      "base_bits": "00000000",
+      "scale_factor_bits": "00000000",
+      "element_size": 3434
+     },
+     "min_bits": "00000000",
+     "max_bits": "4155eb85",
+     "mean_bits": "3ce82c86",
+     "number_missing": 343,
+     "timing": {
+      "start": "18 January 1996, 14:00",
+      "end": "18 January 1996, 15:00",
+      "period": "18 January 1996, 14:00 to 18 January 1996, 15:00"
+     },
+     "n_cells": 53265,
+     "n_nodata": 343,
+     "n_nan": 0,
+     "data_sha256": "05827275e7a3420c486c5175ded807f798538050ca13452ce5dc12135bd4782a",
+     "samples": [
+      [
+       0,
+       "00000000"
+      ],
+      [
+       26632,
+       "00000000"
+      ],
+      [
+       53264,
+       "ff7fffff"
+      ],
+      [
+       32494,
+       "4155eb85"
+      ],
+      [
+       33,
+       "ff7fffff"
+      ]
+     ]
+    },
+    {
+     "pathname": "/UTM17N/SYNTH P34/TEMPERATURE/01JAN2020:0600//SYNTHETIC/",
+     "grid_class": "hec.heclib.grid.SpecifiedGridInfo",
+     "grid_type_code": 430,
+     "data_type_code": 2,
+     "data_type": "INST-VAL",
+     "units": "DEG C",
+     "nx": 6,
+     "ny": 4,
+     "lower_left_cell": [
+      250,
+      4400
+     ],
+     "cell_size_bits": "447a0000",
+     "crs": "PROJCS[\"NAD_1983_UTM_Zone_17N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+     "cell_zero_bits": [
+      "00000000",
+      "00000000"
+     ],
+     "compression": {
+      "method": 26,
+      "base_bits": "00000000",
+      "scale_factor_bits": "00000000",
+      "element_size": 72
+     },
+     "min_bits": "c0880000",
+     "max_bits": "40000000",
+     "mean_bits": "bf88590b",
+     "number_missing": 1,
+     "timing": {
+      "start": "1 January 2020, 06:00",
+      "end": "1 January 2020, 06:00",
+      "period": "1 January 2020, 06:00 to 1 January 2020, 06:00"
+     },
+     "n_cells": 24,
+     "n_nodata": 1,
+     "n_nan": 0,
+     "data_sha256": "9a161701d865b4a6b11bdb992bf1559d37923e2b3fd08cdf64a7e1220a7eac29",
+     "samples": [
+      [
+       0,
+       "c0880000"
+      ],
+      [
+       12,
+       "bfe00000"
+      ],
+      [
+       23,
+       "40000000"
+      ],
+      [
+       23,
+       "40000000"
+      ],
+      [
+       7,
+       "ff7fffff"
+      ]
+     ]
+    },
+    {
+     "pathname": "/UTM17N/SYNTH P34/SWE/01JAN2020:0600//SYNTHETIC/",
+     "grid_class": "hec.heclib.grid.SpecifiedGridInfo",
+     "grid_type_code": 430,
+     "data_type_code": 2,
+     "data_type": "INST-VAL",
+     "units": "MM",
+     "nx": 6,
+     "ny": 4,
+     "lower_left_cell": [
+      250,
+      4400
+     ],
+     "cell_size_bits": "447a0000",
+     "crs": "PROJCS[\"NAD_1983_UTM_Zone_17N\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"False_Easting\",500000.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-81.0],PARAMETER[\"Scale_Factor\",0.9996],PARAMETER[\"Latitude_Of_Origin\",0.0],UNIT[\"Meter\",1.0]]",
+     "cell_zero_bits": [
+      "00000000",
+      "00000000"
+     ],
+     "compression": {
+      "method": 26,
+      "base_bits": "00000000",
+      "scale_factor_bits": "00000000",
+      "element_size": 52
+     },
+     "min_bits": "00000000",
+     "max_bits": "422a0000",
+     "mean_bits": "41660000",
+     "number_missing": 0,
+     "timing": {
+      "start": "1 January 2020, 06:00",
+      "end": "1 January 2020, 06:00",
+      "period": "1 January 2020, 06:00 to 1 January 2020, 06:00"
+     },
+     "n_cells": 24,
+     "n_nodata": 0,
+     "n_nan": 0,
+     "data_sha256": "a39d94c4afe062af9784293663832d8860fdc9ed43f2b5e3189bbffdab6c82ec",
+     "samples": [
+      [
+       0,
+       "00000000"
+      ],
+      [
+       12,
+       "41a00000"
+      ],
+      [
+       23,
+       "422a0000"
+      ],
+      [
+       23,
+       "422a0000"
+      ]
+     ]
+    }
+   ]
+  }
+ }
+}

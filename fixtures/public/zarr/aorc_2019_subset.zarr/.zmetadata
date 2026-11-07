@@ -1,0 +1,418 @@
+{
+    "metadata": {
+        ".zattrs": {},
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "APCP_surface/.zarray": {
+            "chunks": [
+                144,
+                128,
+                256
+            ],
+            "compressor": {
+                "checksum": false,
+                "id": "zstd",
+                "level": 3
+            },
+            "dimension_separator": ".",
+            "dtype": "<i2",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                8760,
+                4201,
+                8401
+            ],
+            "zarr_format": 2
+        },
+        "APCP_surface/.zattrs": {
+            "AORC_Contact": "aorc.info@noaa.gov",
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "latitude",
+                "longitude"
+            ],
+            "_FillValue": -32767,
+            "aorc_version": "v1.1",
+            "crs": "EPSG:4326",
+            "level": "surface",
+            "long_name": "Total Precipitation",
+            "missing_value": -32767,
+            "scale_factor": 0.10000000149011612,
+            "short_name": "APCP_surface",
+            "units": "kg/m^2"
+        },
+        "DLWRF_surface/.zarray": {
+            "chunks": [
+                144,
+                128,
+                256
+            ],
+            "compressor": {
+                "checksum": false,
+                "id": "zstd",
+                "level": 3
+            },
+            "dimension_separator": ".",
+            "dtype": "<i2",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                8760,
+                4201,
+                8401
+            ],
+            "zarr_format": 2
+        },
+        "DLWRF_surface/.zattrs": {
+            "AORC_Contact": "aorc.info@noaa.gov",
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "latitude",
+                "longitude"
+            ],
+            "_FillValue": -32767,
+            "aorc_version": "v1.1",
+            "crs": "EPSG:4326",
+            "level": "surface",
+            "long_name": "Downward Long-Wave Rad. Flux",
+            "missing_value": -32767,
+            "scale_factor": 0.10000000149011612,
+            "short_name": "DLWRF_surface",
+            "units": "W/m^2"
+        },
+        "DSWRF_surface/.zarray": {
+            "chunks": [
+                144,
+                128,
+                256
+            ],
+            "compressor": {
+                "checksum": false,
+                "id": "zstd",
+                "level": 3
+            },
+            "dimension_separator": ".",
+            "dtype": "<i2",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                8760,
+                4201,
+                8401
+            ],
+            "zarr_format": 2
+        },
+        "DSWRF_surface/.zattrs": {
+            "AORC_Contact": "aorc.info@noaa.gov",
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "latitude",
+                "longitude"
+            ],
+            "_FillValue": -32767,
+            "aorc_version": "v1.1",
+            "crs": "EPSG:4326",
+            "level": "surface",
+            "long_name": "Downward Short-Wave Rad. Flux",
+            "missing_value": -32767,
+            "scale_factor": 0.10000000149011612,
+            "short_name": "DSWRF_surface",
+            "units": "W/m^2"
+        },
+        "PRES_surface/.zarray": {
+            "chunks": [
+                144,
+                128,
+                256
+            ],
+            "compressor": {
+                "checksum": false,
+                "id": "zstd",
+                "level": 3
+            },
+            "dimension_separator": ".",
+            "dtype": "<i2",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                8760,
+                4201,
+                8401
+            ],
+            "zarr_format": 2
+        },
+        "PRES_surface/.zattrs": {
+            "AORC_Contact": "aorc.info@noaa.gov",
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "latitude",
+                "longitude"
+            ],
+            "_FillValue": -32767,
+            "aorc_version": "v1.1",
+            "crs": "EPSG:4326",
+            "level": "surface",
+            "long_name": "Pressure",
+            "missing_value": -32767,
+            "scale_factor": 10.0,
+            "short_name": "PRES_surface",
+            "units": "Pa"
+        },
+        "SPFH_2maboveground/.zarray": {
+            "chunks": [
+                144,
+                128,
+                256
+            ],
+            "compressor": {
+                "checksum": false,
+                "id": "zstd",
+                "level": 3
+            },
+            "dimension_separator": ".",
+            "dtype": "<i2",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                8760,
+                4201,
+                8401
+            ],
+            "zarr_format": 2
+        },
+        "SPFH_2maboveground/.zattrs": {
+            "AORC_Contact": "aorc.info@noaa.gov",
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "latitude",
+                "longitude"
+            ],
+            "_FillValue": -32767,
+            "aorc_version": "v1.1",
+            "crs": "EPSG:4326",
+            "level": "2 m above ground",
+            "long_name": "Specific Humidity",
+            "missing_value": -32767,
+            "scale_factor": 9.999999747378752e-05,
+            "short_name": "SPFH_2maboveground",
+            "units": "kg/kg"
+        },
+        "TMP_2maboveground/.zarray": {
+            "chunks": [
+                144,
+                128,
+                256
+            ],
+            "compressor": {
+                "checksum": false,
+                "id": "zstd",
+                "level": 3
+            },
+            "dimension_separator": ".",
+            "dtype": "<i2",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                8760,
+                4201,
+                8401
+            ],
+            "zarr_format": 2
+        },
+        "TMP_2maboveground/.zattrs": {
+            "AORC_Contact": "aorc.info@noaa.gov",
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "latitude",
+                "longitude"
+            ],
+            "_FillValue": -32767,
+            "aorc_version": "v1.1",
+            "crs": "EPSG:4326",
+            "level": "2 m above ground",
+            "long_name": "Temperature",
+            "missing_value": -32767,
+            "scale_factor": 0.10000000149011612,
+            "short_name": "TMP_2maboveground",
+            "units": "K"
+        },
+        "UGRD_10maboveground/.zarray": {
+            "chunks": [
+                144,
+                128,
+                256
+            ],
+            "compressor": {
+                "checksum": false,
+                "id": "zstd",
+                "level": 3
+            },
+            "dimension_separator": ".",
+            "dtype": "<i2",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                8760,
+                4201,
+                8401
+            ],
+            "zarr_format": 2
+        },
+        "UGRD_10maboveground/.zattrs": {
+            "AORC_Contact": "aorc.info@noaa.gov",
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "latitude",
+                "longitude"
+            ],
+            "_FillValue": -32767,
+            "aorc_version": "v1.1",
+            "crs": "EPSG:4326",
+            "level": "10 m above ground",
+            "long_name": "U-Component of Wind",
+            "missing_value": -32767,
+            "scale_factor": 0.10000000149011612,
+            "short_name": "UGRD_10maboveground",
+            "units": "m/s"
+        },
+        "VGRD_10maboveground/.zarray": {
+            "chunks": [
+                144,
+                128,
+                256
+            ],
+            "compressor": {
+                "checksum": false,
+                "id": "zstd",
+                "level": 3
+            },
+            "dimension_separator": ".",
+            "dtype": "<i2",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                8760,
+                4201,
+                8401
+            ],
+            "zarr_format": 2
+        },
+        "VGRD_10maboveground/.zattrs": {
+            "AORC_Contact": "aorc.info@noaa.gov",
+            "_ARRAY_DIMENSIONS": [
+                "time",
+                "latitude",
+                "longitude"
+            ],
+            "_FillValue": -32767,
+            "aorc_version": "v1.1",
+            "crs": "EPSG:4326",
+            "level": "10 m above ground",
+            "long_name": "V-Component of Wind",
+            "missing_value": -32767,
+            "scale_factor": 0.10000000149011612,
+            "short_name": "VGRD_10maboveground",
+            "units": "m/s"
+        },
+        "latitude/.zarray": {
+            "chunks": [
+                128
+            ],
+            "compressor": {
+                "checksum": false,
+                "id": "zstd",
+                "level": 3
+            },
+            "dtype": "<f8",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                4201
+            ],
+            "zarr_format": 2
+        },
+        "latitude/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "latitude"
+            ],
+            "_FillValue": -32767.0,
+            "long_name": "latitude",
+            "missing_value": -32767.0,
+            "units": "degrees_north"
+        },
+        "longitude/.zarray": {
+            "chunks": [
+                256
+            ],
+            "compressor": {
+                "checksum": false,
+                "id": "zstd",
+                "level": 3
+            },
+            "dtype": "<f8",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                8401
+            ],
+            "zarr_format": 2
+        },
+        "longitude/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "longitude"
+            ],
+            "_FillValue": -32767.0,
+            "long_name": "longitude",
+            "missing_value": -32767.0,
+            "units": "degrees_east"
+        },
+        "time/.zarray": {
+            "chunks": [
+                144
+            ],
+            "compressor": {
+                "checksum": false,
+                "id": "zstd",
+                "level": 3
+            },
+            "dimension_separator": ".",
+            "dtype": "<f8",
+            "fill_value": null,
+            "filters": null,
+            "order": "C",
+            "shape": [
+                8760
+            ],
+            "zarr_format": 2
+        },
+        "time/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "time"
+            ],
+            "_FillValue": -32767.0,
+            "calendar": "proleptic_gregorian",
+            "long_name": "verification time generated by wgrib2 function verftime()",
+            "missing_value": -32767.0,
+            "reference_date": "2019.01.01 00:00:00 UTC",
+            "reference_time": 1546300800.0,
+            "reference_time_description": "kind of product unclear, reference date is variable, min found reference date is given",
+            "reference_time_type": 0,
+            "time_step": 0.0,
+            "time_step_setting": "auto",
+            "units": "seconds since 1970-01-01"
+        }
+    },
+    "zarr_consolidated_format": 1
+}

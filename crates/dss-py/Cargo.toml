@@ -1,0 +1,26 @@
+[package]
+name = "dss-py"
+description = "Python bindings for dss-core"
+version.workspace = true
+license = "MIT AND BSD-3-Clause"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lib]
+name = "_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+dss-core.workspace = true
+pyo3 = { version = "0.24", features = ["extension-module", "abi3-py310"] }
+# NumPy arrays for the binding only; dss-core stays dependency-free.
+numpy = "0.24"
+# Tier V gridded import (D42): one wheel, feature off until the importer works.
+dss-vortex = { workspace = true, optional = true }
+
+[features]
+vortex = ["dep:dss-vortex"]

@@ -1,0 +1,12 @@
+{
+  "_FillValue": -2147483647,
+  "missing_value": -2147483647,
+  "scale_factor": 0.001,
+  "units": "m",
+  "crs": "EPSG:4326",
+  "_ARRAY_DIMENSIONS": [
+    "time",
+    "latitude",
+    "longitude"
+  ]
+}

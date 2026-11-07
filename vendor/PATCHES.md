@@ -1,0 +1,20 @@
+# CLB's changes to the vendored readers
+
+Each row is one or more commits on `feat/p48-netcdf-source`, with tests in `crates/dss-vortex/tests/nc_reader_patch.rs`, `nc_hostile_job.rs` and in the crate. **Hit by** says what reaches the code path: every row is a synthetic file. No real file in the P48 set is known to hit any of them. Nothing here has been sent upstream.
+
+| # | Kind | Change | Files | Hit by |
+|---|---|---|---|---|
+| 1 | General | `Storage::charge` and `Storage::check_work`, both defaulting to no limit, forwarded by the wrapping storages. `fallible` helpers, whose failure is `Error::AllocationFailed`, which allocates nothing (`Error::is_resource_limit` covers it and `ResourceLimit`); so do the header message list's and the v2 B-tree record list's reservations. `FileStorage`'s read buffer, whose length a stored chunk size names, is fallible | `hdf5-reader/src/storage.rs`, `fallible.rs`, `lib.rs` | synthetic |
+| 2 | General | Object headers charge each message and grow their lists fallibly, with the count capped by the bytes present | `hdf5-reader/src/object_header.rs` | synthetic: `nil_*` |
+| 3 | General | B-tree v1 and v2 traversals charge each node and kept entry, and grow the visited set and the entry list fallibly. Their depth limits and visited sets were already there | `hdf5-reader/src/btree_v1.rs`, `btree_v2.rs` | synthetic: `v1_chain_*`, `v1_type0_*`, `v2_dup_pad7_*`, `v2_unknown_type_*`, `dense_unknown_*`, `group_leaves_*` |
+| 4 | General | Chunk lists are fallible and charged before they are built. An unfiltered chunk stored at any size but the chunk's is an error before it is read. Shuffle and Fletcher32 check the output limit before their buffers and are fallible. The chunk list's sort does not allocate. `check_work` runs before each chunk is decoded, so a cached chunk costs none | `hdf5-reader/src/dataset.rs`, `chunk_index.rs`, `fixed_array.rs`, `extensible_array.rs`, `filters/mod.rs`, `shuffle.rs`, `fletcher32.rs` | synthetic: `oversize_*`, `btree_dup_*` |
+| 5 | General | Each reference to a global heap object is charged, and copies of decoded strings are fallible | `hdf5-reader/src/attribute_api.rs`, `global_heap.rs`, `fallible.rs` | synthetic: `gheap_dup_*` |
+| 6 | General | `build_group_recursive` holds a depth limit, its ancestors and a count of visits inside the traversal. A group linked below itself is an error, and a group linked twice from different parents is still built | `netcdf-reader/src/nc4/groups.rs` | synthetic: `group_cycle`, `group_doubled` |
+| 7 | General, mechanical | The other `Vec::with_capacity` calls outside tests go through the fallible helper, 81 sites. One stays, sized by a dataset's rank, in a function with no `Result`, and three in `datatype_api.rs` return `None` on failure | both crates | synthetic |
+| 8 | General | N-bit descriptors and members of no size are refused at parse, members must fit their record, and nesting is limited to 32 levels, so one element's work is bounded by its bytes | `hdf5-reader/src/filters/nbit.rs` | synthetic: `nbit_spin_*` |
+| 9 | API | `apply_pipeline_checked`, `FilterRegistry::apply_checked`, and `decompress_checked` in N-bit and scale-offset, which call a stop check every 65,536 elements. Deflate and szip do not | `hdf5-reader/src/filters/`, `dataset.rs` | synthetic |
+| 10 | General | A scale-offset datatype size is 1, 2, 4 or 8 before anything is sized from it. Fractal heap blocks and objects are copied fallibly | `hdf5-reader/src/filters/scaleoffset.rs`, `fractal_heap.rs` | synthetic: `so_fill_*`, `bigblock_*` |
+
+**Allocations that stay infallible** are listed by name under Limits in the engine's private qualification evidence (P48). Items with parts are charged, so a budget that checks memory can refuse first. The defaults charge nothing and check nothing, so without such a storage those can still end the process.
+
+**CLB policy, not in these crates:** the budget itself, the check that memory is left, decode and time limits, the stop flag, sizing the chunk cache, the walk's refusals, and the per-read plan. They are in `budget.rs` and `netcdf.rs`.

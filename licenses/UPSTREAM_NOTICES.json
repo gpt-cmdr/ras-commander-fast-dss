@@ -1,0 +1,26 @@
+{
+  "hdf5-core-0.12.1": [
+    {
+      "path": "licenses/upstream/hdf5-core-0.12.1/LICENSE-APACHE",
+      "source": "vendor/hdf5-reader/LICENSE-APACHE (copied unchanged from the upstream repository https://github.com/roteiro-gis/netcdf-rust at tag v0.9.3; the published 0.12.1 crate ships no licence file and declares MIT OR Apache-2.0)",
+      "sha256": "7e1c4927d7c8765c73e234c2da19c423dfafc9c662e6d028277f9e77476445bb"
+    },
+    {
+      "path": "licenses/upstream/hdf5-core-0.12.1/LICENSE-MIT",
+      "source": "vendor/hdf5-reader/LICENSE-MIT (copied unchanged from the upstream repository https://github.com/roteiro-gis/netcdf-rust at tag v0.9.3; the published 0.12.1 crate ships no licence file and declares MIT OR Apache-2.0)",
+      "sha256": "24a4eeee33afc227bd3e796f772741250b2c93eae1cdba65e775ef8005dfb4b1"
+    }
+  ],
+  "netcdf-core-0.12.1": [
+    {
+      "path": "licenses/upstream/netcdf-core-0.12.1/LICENSE-APACHE",
+      "source": "vendor/hdf5-reader/LICENSE-APACHE (copied unchanged from the upstream repository https://github.com/roteiro-gis/netcdf-rust at tag v0.9.3; the published 0.12.1 crate ships no licence file and declares MIT OR Apache-2.0)",
+      "sha256": "7e1c4927d7c8765c73e234c2da19c423dfafc9c662e6d028277f9e77476445bb"
+    },
+    {
+      "path": "licenses/upstream/netcdf-core-0.12.1/LICENSE-MIT",
+      "source": "vendor/hdf5-reader/LICENSE-MIT (copied unchanged from the upstream repository https://github.com/roteiro-gis/netcdf-rust at tag v0.9.3; the published 0.12.1 crate ships no licence file and declares MIT OR Apache-2.0)",
+      "sha256": "24a4eeee33afc227bd3e796f772741250b2c93eae1cdba65e775ef8005dfb4b1"
+    }
+  ]
+}

@@ -1,0 +1,4006 @@
+{
+"07.nc": {
+"bytes_fnv1a": "51914fe9e897b3a6",
+"sha256": "c836296deb168a73672a2912f3f1cad8296b31c6687589598f9f29a53c442c03",
+"variables": {
+"SWE": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-02T06:00Z",
+"fullName": "SWE",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "SWE",
+"startTime": "2000-01-01T06:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-02T06:00Z",
+"fullName": "SWE",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "SWE",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-02T06:00Z",
+"fullName": "SWE",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "SWE",
+"startTime": "2000-01-01T06:00Z",
+"step": 2,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"3B-HHR.MS.MRG.3IMERG.20170103-S110000-E112959.0660.V06B.HDF5.SUB.hdf5": {
+"bytes_fnv1a": "b3cdc9f7bb586976",
+"sha256": "784f8c9f080493c6129b9bb1d4c1e39c14a99111fe30e175dc611a05f256b2d7",
+"variables": {
+"precipitationCal": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 142500,
+"cells_fnv1a": "6f0d67782c6f0a9f",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.09999998661509732",
+"dy": "0.10000001144409179",
+"endTime": "2017-01-03T11:30Z",
+"fullName": "precipitationCal",
+"noDataValue": "-9999.900390625",
+"nx": 570,
+"ny": 250,
+"originX": "-123.99999618530273",
+"originY": "23.999999046325684",
+"shortName": "precipitationCal",
+"startTime": "2017-01-03T11:00Z",
+"step": 0,
+"units": "mm/hr",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"3B-HHR.MS.MRG.SYNTH.hdf5": {
+"bytes_fnv1a": "4ed4e8ff734e0a1f",
+"sha256": "4936ae041671a6095be1d79a32ee2a3e4fe775b1f7e60c7e612a167ef665df75",
+"variables": {
+"precipitationCal": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:30Z",
+"fullName": "precipitationCal",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "precipitationCal",
+"startTime": "2000-01-01T06:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T09:30Z",
+"fullName": "precipitationCal",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "precipitationCal",
+"startTime": "2000-01-01T09:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T12:30Z",
+"fullName": "precipitationCal",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "precipitationCal",
+"startTime": "2000-01-01T12:00Z",
+"step": 2,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"AORC_APCP_MARFC_1984010100.nc4": {
+"bytes_fnv1a": "97b767c89cbeb913",
+"sha256": "a5d6b74e793acbc450925cd8c99ca124799fc5d9a63063a1eb99ff1f25b2da81",
+"variables": {
+"APCP_surface": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 47250,
+"cells_fnv1a": "0586c342bb18fab5",
+"dataType": "ACCUMULATION",
+"description": "Total Precipitation",
+"dx": "0.03333199999997305",
+"dy": "0.033332000000000014",
+"endTime": "1984-01-01T00:00Z",
+"fullName": "APCP_surface",
+"noDataValue": "-32767.0",
+"nx": 225,
+"ny": 210,
+"originX": "-80.98529400003963",
+"originY": "36.24934999999999",
+"shortName": "APCP_surface",
+"startTime": "1983-12-31T23:00Z",
+"step": 0,
+"units": "kg/m^2",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"AORC_APCP_SYNTH_2000010100.nc4": {
+"bytes_fnv1a": "adaeead24c5166e7",
+"sha256": "d4a90bd0733e7a30c7f0ac600cf4d3b495861f85393cfd33b91939a0e5d1a505",
+"variables": {
+"APCP_surface": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "APCP_surface",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "APCP_surface",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T09:00Z",
+"fullName": "APCP_surface",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "APCP_surface",
+"startTime": "2000-01-01T08:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T12:00Z",
+"fullName": "APCP_surface",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "APCP_surface",
+"startTime": "2000-01-01T11:00Z",
+"step": 2,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"AORC_TMP_MARFC_1984010100.nc4": {
+"bytes_fnv1a": "66bcb8eef574aaf0",
+"sha256": "6c662080476701fd31b80a74d4b4d334a9c52e775c6bccf07bc58b5fa09752b6",
+"variables": {
+"TMP_2maboveground": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 47250,
+"cells_fnv1a": "aba0d100f6c30f0a",
+"dataType": "INSTANTANEOUS",
+"description": "Temperature",
+"dx": "0.033333200000015495",
+"dy": "0.0333332",
+"endTime": "1984-01-01T00:00Z",
+"fullName": "TMP_2maboveground",
+"noDataValue": "-32767.0",
+"nx": 225,
+"ny": 210,
+"originX": "-80.98352939997721",
+"originY": "36.249935",
+"shortName": "TMP_2maboveground",
+"startTime": "1984-01-01T00:00Z",
+"step": 0,
+"units": "K",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"AORC_TMP_SYNTH_2000010100.nc4": {
+"bytes_fnv1a": "aec3b997c0c485a7",
+"sha256": "ce0c9d99f97140aac1778a1bc406d97ec033ace204403a868412a0eb5f202bb9",
+"variables": {
+"TMP_2maboveground": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "TMP_2maboveground",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "TMP_2maboveground",
+"startTime": "2000-01-01T06:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T09:00Z",
+"fullName": "TMP_2maboveground",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "TMP_2maboveground",
+"startTime": "2000-01-01T09:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T12:00Z",
+"fullName": "TMP_2maboveground",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "TMP_2maboveground",
+"startTime": "2000-01-01T12:00Z",
+"step": 2,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"CMORPH_SYNTH-HLY_2000010100.nc": {
+"bytes_fnv1a": "b7d4c675d26c270b",
+"sha256": "c36ef9cb78cf9e0cd358eb50486239dbdc393ca6291b946259a11676f61495ea",
+"variables": {
+"cmorph": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T05:30Z",
+"fullName": "cmorph",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "cmorph",
+"startTime": "2000-01-01T04:30Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T08:30Z",
+"fullName": "cmorph",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "cmorph",
+"startTime": "2000-01-01T07:30Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T11:30Z",
+"fullName": "cmorph",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "cmorph",
+"startTime": "2000-01-01T10:30Z",
+"step": 2,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"NLDAS_FORA0125_H.A20000101.nc4": {
+"bytes_fnv1a": "b773041ee4988ad4",
+"sha256": "422223cca1aad1db68999b0b967d467ee5c43c3aa0a0c21c1fc324c976119741",
+"variables": {
+"APCP": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:30Z",
+"fullName": "APCP",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "APCP",
+"startTime": "2000-01-01T03:30Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T10:30Z",
+"fullName": "APCP",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "APCP",
+"startTime": "2000-01-01T06:30Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T13:30Z",
+"fullName": "APCP",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "APCP",
+"startTime": "2000-01-01T09:30Z",
+"step": 2,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"albers_ellipsoid.nc": {
+"bytes_fnv1a": "732934f18673ef50",
+"sha256": "076729a87ae5b8422c52cc9b6d78f8db847c37851bc6bdaad97485e91fb036c6",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"Albers Equal Area Conic\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"albers_false_origin.nc": {
+"bytes_fnv1a": "118a50620cab0dc9",
+"sha256": "c0a824940f9193c59056f61733e907227a1f782d583233f98474ef6472d1ef39",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"Albers Equal Area\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",1],\n    PARAMETER[\"false_northing\",2],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"Albers Equal Area\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",1],\n    PARAMETER[\"false_northing\",2],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"albers_sphere.nc": {
+"bytes_fnv1a": "ceaa003db3640be3",
+"sha256": "d6291e804a04a4900db78f7e60398faaf384ff79c12e25e3c2784c21bf9f542f",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"Albers Equal Area\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"Albers Equal Area\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Albers_Conic_Equal_Area\"],\n    PARAMETER[\"latitude_of_center\",23],\n    PARAMETER[\"longitude_of_center\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"bare_mean.nc": {
+"bytes_fnv1a": "a5aa6b7b48a3dc15",
+"sha256": "7b3808840b1e01f80ef167a76bf0501089ff27584b54698445a7a9145dacf75a",
+"variables": {
+"SWE_Post": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 4,
+"cells_fnv1a": "8faa0a18faf0fb98",
+"dataType": "AVERAGE",
+"description": "lwe_thickness_of_surface_snow_amount",
+"dx": "1000.0",
+"dy": "-1000.0",
+"endTime": "2002-10-02T00:00Z",
+"fullName": "SWE_Post",
+"noDataValue": "9.969209968386869e+36",
+"nx": 2,
+"ny": 2,
+"originX": "177000.0",
+"originY": "4722000.0",
+"shortName": "SWE_Post",
+"startTime": "2002-10-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",75],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 4,
+"cells_fnv1a": "6a4cc67ea849dd72",
+"dataType": "AVERAGE",
+"description": "lwe_thickness_of_surface_snow_amount",
+"dx": "1000.0",
+"dy": "-1000.0",
+"endTime": "2002-10-03T00:00Z",
+"fullName": "SWE_Post",
+"noDataValue": "9.969209968386869e+36",
+"nx": 2,
+"ny": 2,
+"originX": "177000.0",
+"originY": "4722000.0",
+"shortName": "SWE_Post",
+"startTime": "2002-10-02T00:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",75],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 4,
+"cells_fnv1a": "8f3d1cbea1a67865",
+"dataType": "AVERAGE",
+"description": "lwe_thickness_of_surface_snow_amount",
+"dx": "1000.0",
+"dy": "-1000.0",
+"endTime": "2002-10-04T00:00Z",
+"fullName": "SWE_Post",
+"noDataValue": "9.969209968386869e+36",
+"nx": 2,
+"ny": 2,
+"originX": "177000.0",
+"originY": "4722000.0",
+"shortName": "SWE_Post",
+"startTime": "2002-10-03T00:00Z",
+"step": 2,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",75],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"cell_methods.nc": {
+"bytes_fnv1a": "113b7b60ed3d13e2",
+"sha256": "f4eb04c46d8ff05c79a884d127d4798539f95a54b08008a6250c1886c75e10a8",
+"variables": {
+"area_only": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "0438268b9bd5fd91",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "area_only",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "area_only",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "becc7d740bd3caee",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "area_only",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "area_only",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"bare_mean": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "becc7d740bd3caee",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "bare_mean",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "bare_mean",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "68fd79c9d8f7ae46",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "bare_mean",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "bare_mean",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"bare_point": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "efa794d775687daf",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "bare_point",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "bare_point",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "8dac76531c9cbaa2",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "bare_point",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "bare_point",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"bare_sum": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "68fd79c9d8f7ae46",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "bare_sum",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "bare_sum",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "efa794d775687daf",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "bare_sum",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "bare_sum",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"dss": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "534bdf7c07a1cf6e",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "dss",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "dss",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "0e4538f654aa5601",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "dss",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "dss",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"empty": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "0e4538f654aa5601",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "empty",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "empty",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "c5fa15c396be9f79",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "empty",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "empty",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"mean_q": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "mean_q",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "mean_q",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "mean_q",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "mean_q",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"named_var": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "c5fa15c396be9f79",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "named_var",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "named_var",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "1ae7126b7869ff61",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "named_var",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "named_var",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"other_axis": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "965b76b899a1324e",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "other_axis",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "other_axis",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "534bdf7c07a1cf6e",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "other_axis",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "other_axis",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"point": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "7eb84e3e2ff8dc16",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "point",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "point",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "0438268b9bd5fd91",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "point",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "point",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"precipitation": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "precipitation",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "precipitation",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "precipitation",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "precipitation",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"sum": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "sum",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "sum",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "sum",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "sum",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"temperature": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "temperature",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "temperature",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "temperature",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "temperature",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"two": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "two",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "two",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "7eb84e3e2ff8dc16",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "two",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "two",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"upper": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "8dac76531c9cbaa2",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "upper",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "upper",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "965b76b899a1324e",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:00Z",
+"fullName": "upper",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "upper",
+"startTime": "2000-01-01T06:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"cf_style.nc": {
+"bytes_fnv1a": "4dbdc6b897e44cec",
+"sha256": "9d465ac879caa8aaaae927d7246f01c569a485e8669d2bb7a2898062dce8a4f3",
+"variables": {
+"SWE_Post": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 4,
+"cells_fnv1a": "8faa0a18faf0fb98",
+"dataType": "AVERAGE",
+"description": "lwe_thickness_of_surface_snow_amount",
+"dx": "1000.0",
+"dy": "-1000.0",
+"endTime": "2002-10-02T00:00Z",
+"fullName": "SWE_Post",
+"noDataValue": "9.969209968386869e+36",
+"nx": 2,
+"ny": 2,
+"originX": "177000.0",
+"originY": "4722000.0",
+"shortName": "SWE_Post",
+"startTime": "2002-10-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",75],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 4,
+"cells_fnv1a": "6a4cc67ea849dd72",
+"dataType": "AVERAGE",
+"description": "lwe_thickness_of_surface_snow_amount",
+"dx": "1000.0",
+"dy": "-1000.0",
+"endTime": "2002-10-03T00:00Z",
+"fullName": "SWE_Post",
+"noDataValue": "9.969209968386869e+36",
+"nx": 2,
+"ny": 2,
+"originX": "177000.0",
+"originY": "4722000.0",
+"shortName": "SWE_Post",
+"startTime": "2002-10-02T00:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",75],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 4,
+"cells_fnv1a": "8f3d1cbea1a67865",
+"dataType": "AVERAGE",
+"description": "lwe_thickness_of_surface_snow_amount",
+"dx": "1000.0",
+"dy": "-1000.0",
+"endTime": "2002-10-04T00:00Z",
+"fullName": "SWE_Post",
+"noDataValue": "9.969209968386869e+36",
+"nx": 2,
+"ny": 2,
+"originX": "177000.0",
+"originY": "4722000.0",
+"shortName": "SWE_Post",
+"startTime": "2002-10-03T00:00Z",
+"step": 2,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",75],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"coards.nc": {
+"bytes_fnv1a": "0c5d8938151f1d2c",
+"sha256": "aaa52906707a81ce45d59e8faff29c849c3a4433df595ade7b83328413172496",
+"variables": {
+"data": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"extra_dim.nc": {
+"bytes_fnv1a": "5b2cb91d3a4df655",
+"sha256": "e30f343d47889de267e9bc3d13684d04663f2f722b63ab58d4b05109fb58d65e",
+"variables": {}
+},
+"forecast_hour.nc": {
+"bytes_fnv1a": "fec3df1b235ce7d3",
+"sha256": "761e774d97e7acdc98d90bb54b0ffeb4b15fecc7da420801dcc3b305fee77660",
+"variables": {
+"data": {
+"error": "java.lang.NullPointerException: Cannot invoke \"ucar.nc2.dt.GridDatatype.getCoordinateSystem()\" because \"this.gridDatatyp"
+}
+}
+},
+"ge01.pgrb2.0p50.f003.x": {
+"bytes_fnv1a": "b773041ee4988ad4",
+"sha256": "422223cca1aad1db68999b0b967d467ee5c43c3aa0a0c21c1fc324c976119741",
+"variables": {
+"APCP": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T07:30Z",
+"fullName": "APCP",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "APCP",
+"startTime": "2000-01-01T04:30Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T10:30Z",
+"fullName": "APCP",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "APCP",
+"startTime": "2000-01-01T07:30Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T13:30Z",
+"fullName": "APCP",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "APCP",
+"startTime": "2000-01-01T10:30Z",
+"step": 2,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"gfs.nc": {
+"bytes_fnv1a": "809eb3585b81ec9e",
+"sha256": "519ceec1366554aef550c9888ecdcaf563e860f897249bcbae0684b410750938",
+"variables": {
+"Precipitation_rate_surface": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T09:00Z",
+"fullName": "Precipitation_rate_surface",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "Precipitation_rate_surface",
+"startTime": "2000-01-01T06:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T12:00Z",
+"fullName": "Precipitation_rate_surface",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "Precipitation_rate_surface",
+"startTime": "2000-01-01T09:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T15:00Z",
+"fullName": "Precipitation_rate_surface",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "Precipitation_rate_surface",
+"startTime": "2000-01-01T12:00Z",
+"step": 2,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"group_x_first.nc4": {
+"bytes_fnv1a": "d0d4262eb0324478",
+"sha256": "f10fe5f3ed833ba52ca9e27873fa86ab6001f79dc7abd10fc620c235e5eab7b3",
+"variables": {
+"Grid/Intermediate/source": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "bbf6aa0871493028",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.09999974568684895",
+"dy": "0.10000038146972656",
+"endTime": "2010-01-01T01:30Z",
+"fullName": "Grid/Intermediate/source",
+"noDataValue": "-9999.0",
+"nx": 6,
+"ny": 4,
+"originX": "-90.0999984741211",
+"originY": "29.999999046325684",
+"shortName": "source",
+"startTime": "2010-01-01T01:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"Grid/precipitation": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "4591dd4e5b3ef08e",
+"dataType": "ACCUMULATION",
+"description": "calibrated precipitation",
+"dx": "0.09999974568684895",
+"dy": "0.10000038146972656",
+"endTime": "2010-01-01T01:30Z",
+"fullName": "Grid/precipitation",
+"noDataValue": "-9999.900390625",
+"nx": 6,
+"ny": 4,
+"originX": "-90.0999984741211",
+"originY": "29.999999046325684",
+"shortName": "precipitation",
+"startTime": "2010-01-01T01:00Z",
+"step": 0,
+"units": "mm/hr",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"hrrr_wrfsfcf01.nc": {
+"bytes_fnv1a": "b773041ee4988ad4",
+"sha256": "422223cca1aad1db68999b0b967d467ee5c43c3aa0a0c21c1fc324c976119741",
+"variables": {
+"APCP": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T05:30Z",
+"fullName": "APCP",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "APCP",
+"startTime": "2000-01-01T04:30Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T08:30Z",
+"fullName": "APCP",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "APCP",
+"startTime": "2000-01-01T07:30Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T11:30Z",
+"fullName": "APCP",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "APCP",
+"startTime": "2000-01-01T10:30Z",
+"step": 2,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"instants.nc": {
+"bytes_fnv1a": "6f352ee2d4277b4c",
+"sha256": "7d6cd557cd11d25f6fdc50484ce9ae91d4dc061e73ecb066dc530f6102bbe297",
+"variables": {
+"rain": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "-0.25",
+"endTime": "2000-01-02T00:00Z",
+"fullName": "rain",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "40.125",
+"shortName": "rain",
+"startTime": "2000-01-02T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "-0.25",
+"endTime": "2000-01-03T00:00Z",
+"fullName": "rain",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "40.125",
+"shortName": "rain",
+"startTime": "2000-01-03T00:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "-0.25",
+"endTime": "2000-01-04T00:00Z",
+"fullName": "rain",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "40.125",
+"shortName": "rain",
+"startTime": "2000-01-04T00:00Z",
+"step": 2,
+"units": "mm",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"temperature": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "-0.25",
+"endTime": "2000-01-02T00:00Z",
+"fullName": "temperature",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "40.125",
+"shortName": "temperature",
+"startTime": "2000-01-02T00:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "-0.25",
+"endTime": "2000-01-03T00:00Z",
+"fullName": "temperature",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "40.125",
+"shortName": "temperature",
+"startTime": "2000-01-03T00:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "-0.25",
+"endTime": "2000-01-04T00:00Z",
+"fullName": "temperature",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "40.125",
+"shortName": "temperature",
+"startTime": "2000-01-04T00:00Z",
+"step": 2,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"julian.nc": {
+"bytes_fnv1a": "d0e7c7db91d874b4",
+"sha256": "5587cc5c268b27b9cf627547485695b660e1da4557dfcb21af36579b4b6c65e5",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2019-01-01T00:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2019-01-01T00:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2019-01-02T12:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2019-01-02T12:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"lambert_ellipsoid.nc": {
+"bytes_fnv1a": "905e311563e9ae4e",
+"sha256": "5da9ed774a80b3fc540af3a7645ec563aa7b3441a7ae0152414248887c7a6fc4",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"Lambert Conformal Conic 2SP\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],\n    PARAMETER[\"latitude_of_origin\",23],\n    PARAMETER[\"central_meridian\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"Lambert Conformal Conic 2SP\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],\n    PARAMETER[\"latitude_of_origin\",23],\n    PARAMETER[\"central_meridian\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"lambert_false_origin.nc": {
+"bytes_fnv1a": "39f3f6b0e52a3473",
+"sha256": "1a2eab75ff7abadc62281963816592cf5e91faeca4fc27c9c689590bfab1a8d7",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"Lambert Conformal Conic 2SP\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],\n    PARAMETER[\"latitude_of_origin\",23],\n    PARAMETER[\"central_meridian\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",1000],\n    PARAMETER[\"false_northing\",2000],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"Lambert Conformal Conic 2SP\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],\n    PARAMETER[\"latitude_of_origin\",23],\n    PARAMETER[\"central_meridian\",-96],\n    PARAMETER[\"standard_parallel_1\",29.5],\n    PARAMETER[\"standard_parallel_2\",45.5],\n    PARAMETER[\"false_easting\",1000],\n    PARAMETER[\"false_northing\",2000],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"lambert_km.nc": {
+"bytes_fnv1a": "e55e15972e15a6f1",
+"sha256": "7854069374cc41fba11a122563e4833f8efac62672cffbcd139ba2a54234a5b7",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"Lambert Conformal Conic 2SP\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],\n    PARAMETER[\"latitude_of_origin\",25],\n    PARAMETER[\"central_meridian\",265],\n    PARAMETER[\"standard_parallel_1\",25],\n    PARAMETER[\"standard_parallel_2\",25],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"Lambert Conformal Conic 2SP\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],\n    PARAMETER[\"latitude_of_origin\",25],\n    PARAMETER[\"central_meridian\",265],\n    PARAMETER[\"standard_parallel_1\",25],\n    PARAMETER[\"standard_parallel_2\",25],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"lambert_two_parallels.nc": {
+"bytes_fnv1a": "eeb6d82dc6b35e7b",
+"sha256": "0f6fa440c5ff3923abe92a78295d7ffc7f3b8175aa2f50ea8dbf9cbd70355903",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"Lambert Conformal Conic 2SP\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],\n    PARAMETER[\"latitude_of_origin\",38.5],\n    PARAMETER[\"central_meridian\",-97.5],\n    PARAMETER[\"standard_parallel_1\",33],\n    PARAMETER[\"standard_parallel_2\",45],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"Lambert Conformal Conic 2SP\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],\n    PARAMETER[\"latitude_of_origin\",38.5],\n    PARAMETER[\"central_meridian\",-97.5],\n    PARAMETER[\"standard_parallel_1\",33],\n    PARAMETER[\"standard_parallel_2\",45],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"latlon_on_xy.nc": {
+"bytes_fnv1a": "5634d4ad9d4fd613",
+"sha256": "f35d837b23400e00b66fd9c51cba3c5aaf51a942714f8a05b306f5df2f236545",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z[UTC]",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z[UTC]",
+"step": 0,
+"units": "mm",
+"wkt": ""
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z[UTC]",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z[UTC]",
+"step": 1,
+"units": "mm",
+"wkt": ""
+}
+]
+}
+}
+},
+"levels.nc": {
+"bytes_fnv1a": "e2ae1600bfeb64c4",
+"sha256": "89feea0e0ff5c4a7ab5283fa3cf559ae91881f298f11fb05368bc81c1f056029",
+"variables": {
+"data": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 72,
+"cells_fnv1a": "4c4c7aa8b9262417",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"one_level": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "one_level",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "one_level",
+"startTime": "2000-01-01T01:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"lon_0_360.nc": {
+"bytes_fnv1a": "b05dcbc1ce6ecd82",
+"sha256": "61ec2437c184f0c18839fa3d77c1e05a2a5a7aaa988bf4c1e996700a4bbc2344",
+"variables": {
+"data": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "e5004376156cbd99",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "45.0",
+"dy": "-10.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 8,
+"ny": 3,
+"originX": "-382.5",
+"originY": "85.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"lon_wrap.nc": {
+"bytes_fnv1a": "00a993606c1307a9",
+"sha256": "add8c46732f7e94b51f3eedb1fa691bb0b86ce01cdadddc545f74ab7aaded28c",
+"variables": {
+"data": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 12,
+"cells_fnv1a": "56dc70505a18706e",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "1.0",
+"dy": "1.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 4,
+"ny": 3,
+"originX": "-182.5",
+"originY": "9.5",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"mercator.nc": {
+"bytes_fnv1a": "99f2586e888e9589",
+"sha256": "8f27fe43d899033699562516a7838c86a5b0e5a9221386ab469aa0cbe593a6e8",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Mercator_2SP\"],\n    PARAMETER[\"standard_parallel_1\",20],\n    PARAMETER[\"central_meridian\",-90],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Mercator_2SP\"],\n    PARAMETER[\"standard_parallel_1\",20],\n    PARAMETER[\"central_meridian\",-90],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"nb731_float32.nc": {
+"bytes_fnv1a": "e00c90c8eb1c5e8f",
+"sha256": "51017c8c24a4fa9c1d314adf8b72bd893d22d739700c84cc6b6178a73e6d3f26",
+"variables": {
+"precip_incremental": {
+"dto_count": 4,
+"dtos": [
+{
+"cells": 35,
+"cells_fnv1a": "21cdb745f5f471d1",
+"dataType": "ACCUMULATION",
+"description": "precipitation",
+"dx": "0.00833333329999927",
+"dy": "-0.008333333300000589",
+"endTime": "2020-06-01T06:30Z",
+"fullName": "precip_incremental",
+"noDataValue": "nan",
+"nx": 7,
+"ny": 5,
+"originX": "-97.50416666665001",
+"originY": "30.50416666665",
+"shortName": "precip_incremental",
+"startTime": "2020-06-01T06:00Z",
+"step": 0,
+"units": "in",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 35,
+"cells_fnv1a": "f3f785aed3457b01",
+"dataType": "ACCUMULATION",
+"description": "precipitation",
+"dx": "0.00833333329999927",
+"dy": "-0.008333333300000589",
+"endTime": "2020-06-01T07:00Z",
+"fullName": "precip_incremental",
+"noDataValue": "nan",
+"nx": 7,
+"ny": 5,
+"originX": "-97.50416666665001",
+"originY": "30.50416666665",
+"shortName": "precip_incremental",
+"startTime": "2020-06-01T06:30Z",
+"step": 1,
+"units": "in",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 35,
+"cells_fnv1a": "273a686af857ada3",
+"dataType": "ACCUMULATION",
+"description": "precipitation",
+"dx": "0.00833333329999927",
+"dy": "-0.008333333300000589",
+"endTime": "2020-06-01T07:30Z",
+"fullName": "precip_incremental",
+"noDataValue": "nan",
+"nx": 7,
+"ny": 5,
+"originX": "-97.50416666665001",
+"originY": "30.50416666665",
+"shortName": "precip_incremental",
+"startTime": "2020-06-01T07:00Z",
+"step": 2,
+"units": "in",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 35,
+"cells_fnv1a": "73eecf4c9bd48787",
+"dataType": "ACCUMULATION",
+"description": "precipitation",
+"dx": "0.00833333329999927",
+"dy": "-0.008333333300000589",
+"endTime": "2020-06-01T08:00Z",
+"fullName": "precip_incremental",
+"noDataValue": "nan",
+"nx": 7,
+"ny": 5,
+"originX": "-97.50416666665001",
+"originY": "30.50416666665",
+"shortName": "precip_incremental",
+"startTime": "2020-06-01T07:30Z",
+"step": 3,
+"units": "in",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"no_conventions.nc": {
+"bytes_fnv1a": "89435429175da908",
+"sha256": "a8458e8a4d7e1e69940e1f3389a8bcda1c27b07eb6215667a1db6354b8d4d429",
+"variables": {
+"data": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "f29714198cd96500",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2009-07-08T00:00Z",
+"fullName": "data",
+"noDataValue": "-999.0",
+"nx": 6,
+"ny": 4,
+"originX": "-120.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2009-07-08T00:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"no_steps.nc": {
+"bytes_fnv1a": "884c617b5e251b11",
+"sha256": "0d001e00f3586e9d792d39bced5f78cc04d0f79e135a9208e79a0a719b91cc13",
+"variables": {
+"data": {
+"dto_count": 0,
+"dtos": []
+}
+}
+},
+"nominal_time.nc": {
+"bytes_fnv1a": "909efce7010da2b8",
+"sha256": "f0548b2c22d260f6a5b72aa4e8d42de1d0c0e37f919d75163536cb5abcd5404f",
+"variables": {
+"data": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2015-07-04T06:30Z[UTC]",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2015-07-04T06:30Z[UTC]",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"packed.nc4": {
+"bytes_fnv1a": "98ac0724c4b4311e",
+"sha256": "4c451a0dcf9ca36c5bbf9e1040b154aa6ed8bc5af43d2bcd9eb205e14b6dfc13",
+"variables": {
+"byte_no_fill": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "2ec4f716f3789fd6",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "byte_no_fill",
+"noDataValue": "-127.0",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "byte_no_fill",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"byte_unsigned": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "ad7bfb818a99edce",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "byte_unsigned",
+"noDataValue": "-1.0",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "byte_unsigned",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"double_cast": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "e3172ddad39eab61",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "double_cast",
+"noDataValue": "-1.0",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "double_cast",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"float_default_fill": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "faf5d8e697d1ab58",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "float_default_fill",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "float_default_fill",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"float_missing": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "8ea5e3fb30dde8f8",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "float_missing",
+"noDataValue": "1.0000000200408773e+20",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "float_missing",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"float_missing_two": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "0c1e79c726a87161",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "float_missing_two",
+"noDataValue": "1.0000000200408773e+20",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "float_missing_two",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"float_valid_max": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "8ea5e3fb30dde8f8",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "float_valid_max",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "float_valid_max",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"float_valid_min": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "ee08f50bb8c1ceed",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "float_valid_min",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "float_valid_min",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"float_valid_range": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "0c1e79c726a87161",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "float_valid_range",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "float_valid_range",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"int_plain": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "0ea31e8edb4fb497",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "int_plain",
+"noDataValue": "-2147483647.0",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "int_plain",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"packed_valid": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "5aea726452a62195",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "packed_valid",
+"noDataValue": "-0.5",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "packed_valid",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"short_no_scale": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "5942338535cdd08e",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "short_no_scale",
+"noDataValue": "-999.0",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "short_no_scale",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"short_scaled_double": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "7692d44eb979b594",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "short_scaled_double",
+"noDataValue": "-3.156808679564971e-06",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "short_scaled_double",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": "m",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"short_scaled_float": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1dbdaf4dd5d3f79e",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "short_scaled_float",
+"noDataValue": "-3276.800048828125",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "short_scaled_float",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": "kg/m^2",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"short_scaled_int": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "0f35620713acc75f",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "short_scaled_int",
+"noDataValue": "-98303.0",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "short_scaled_int",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"ubyte": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "f29714198cd96500",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "ubyte",
+"noDataValue": "-1.0",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "ubyte",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"ubyte_scaled": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "f73ea685df75ebb6",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "ubyte_scaled",
+"noDataValue": "127.5",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "ubyte_scaled",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"ushort_scaled": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "eac99e7448f65672",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "ushort_scaled",
+"noDataValue": "-0.009999999776482582",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "ushort_scaled",
+"startTime": "2000-01-01T05:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"polar_ellipsoid.nc": {
+"bytes_fnv1a": "b44edd8f8bf3d454",
+"sha256": "97b00810335ed850e646d228456f4875b9b60ea66ddeaf30fb481c3b65904509",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Polar_Stereographic\"],\n    PARAMETER[\"latitude_of_origin\",90],\n    PARAMETER[\"central_meridian\",-45],\n    PARAMETER[\"scale_factor\",0.969846310392954],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",SOUTH],\n    AXIS[\"Northing\",SOUTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Polar_Stereographic\"],\n    PARAMETER[\"latitude_of_origin\",90],\n    PARAMETER[\"central_meridian\",-45],\n    PARAMETER[\"scale_factor\",0.969846310392954],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",SOUTH],\n    AXIS[\"Northing\",SOUTH]]"
+}
+]
+}
+}
+},
+"polar_parallel.nc": {
+"bytes_fnv1a": "bd44750560ba900a",
+"sha256": "01a7204af5fc1d34351a750821d2ab8ae16502a02969934e8242b2a85c401d2a",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Stereographic\"],\n    PARAMETER[\"latitude_of_origin\",90],\n    PARAMETER[\"central_meridian\",-105],\n    PARAMETER[\"scale_factor\",0.933012701892219],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Stereographic\"],\n    PARAMETER[\"latitude_of_origin\",90],\n    PARAMETER[\"central_meridian\",-105],\n    PARAMETER[\"scale_factor\",0.933012701892219],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"polar_scale.nc": {
+"bytes_fnv1a": "81ad98e28c3f7346",
+"sha256": "a2c6fb07d88841e0d7a1bf1c545990cd10e6e6760984149211d35dcdb479cd93",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Stereographic\"],\n    PARAMETER[\"latitude_of_origin\",90],\n    PARAMETER[\"central_meridian\",-105],\n    PARAMETER[\"scale_factor\",0.933],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Stereographic\"],\n    PARAMETER[\"latitude_of_origin\",90],\n    PARAMETER[\"central_meridian\",-105],\n    PARAMETER[\"scale_factor\",0.933],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"prec.2000.nc": {
+"bytes_fnv1a": "03b03b7649ea56f5",
+"sha256": "45b1b437d463301f83de2deee01998bda2bef3cb13ac850134ea7f2ab2f07066",
+"variables": {
+"prec": {
+"dto_count": 3,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-02T06:00Z",
+"fullName": "prec",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "prec",
+"startTime": "2000-01-01T06:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-02T09:00Z",
+"fullName": "prec",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "prec",
+"startTime": "2000-01-01T09:00Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "b4f9b970bf0187f1",
+"dataType": "ACCUMULATION",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-02T12:00Z",
+"fullName": "prec",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "prec",
+"startTime": "2000-01-01T12:00Z",
+"step": 2,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"proleptic.nc": {
+"bytes_fnv1a": "672b9b723c83e10c",
+"sha256": "e89bb18a467bde12a96881cf23e183840d4d7598b1ef82743ae9da696f1ccf70",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T01:30Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2000-01-01T01:30Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T02:15Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2000-01-01T02:15Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"rotated_pole.nc": {
+"bytes_fnv1a": "0c860bd289bb53ec",
+"sha256": "e459149143dd2bf4b05c8fa2af5f833e94ee0d0ed98ad1b5e7f9a10af65ab6ca",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.0030000000000000248",
+"dy": "-0.0030000000000000027",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "0.9984999999999999",
+"originY": "2.0015",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "GEOGCRS[\"unnamed\",\n    BASEGEOGCRS[\"unknown\",\n        DATUM[\"unknown\",\n            ELLIPSOID[\"WGS 84\",6378137,298.257223562997,\n                LENGTHUNIT[\"metre\",1,\n                    ID[\"EPSG\",9001]]]],\n        PRIMEM[\"Greenwich\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8901]]],\n    DERIVINGCONVERSION[\"unknown\",\n        METHOD[\"PROJ ob_tran o_proj=longlat\"],\n        PARAMETER[\"lon_0\",18,\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]],\n        PARAMETER[\"o_lon_p\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]],\n        PARAMETER[\"o_lat_p\",39.25,\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]]],\n    CS[ellipsoidal,2],\n        AXIS[\"longitude\",east,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]],\n        AXIS[\"latitude\",north,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.0030000000000000248",
+"dy": "-0.0030000000000000027",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "0.9984999999999999",
+"originY": "2.0015",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "GEOGCRS[\"unnamed\",\n    BASEGEOGCRS[\"unknown\",\n        DATUM[\"unknown\",\n            ELLIPSOID[\"WGS 84\",6378137,298.257223562997,\n                LENGTHUNIT[\"metre\",1,\n                    ID[\"EPSG\",9001]]]],\n        PRIMEM[\"Greenwich\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8901]]],\n    DERIVINGCONVERSION[\"unknown\",\n        METHOD[\"PROJ ob_tran o_proj=longlat\"],\n        PARAMETER[\"lon_0\",18,\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]],\n        PARAMETER[\"o_lon_p\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]],\n        PARAMETER[\"o_lat_p\",39.25,\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]]],\n    CS[ellipsoidal,2],\n        AXIS[\"longitude\",east,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]],\n        AXIS[\"latitude\",north,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]]]"
+}
+]
+}
+}
+},
+"scalar_time.nc": {
+"bytes_fnv1a": "42099b615bd5ffa0",
+"sha256": "6466b11014c11c671785d89870cc4a333c27996b5ae933e56bb94f25ef1b4cb4",
+"variables": {
+"data": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2000-01-01T06:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"seconds_float.nc": {
+"bytes_fnv1a": "d3650ced459906ea",
+"sha256": "e3eadf275d93a19b6f0d23bc29514bfdad04226998c685a1f01f87791ac50f32",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2001-09-09T01:46:40.400Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2001-09-09T01:46:40.400Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2001-09-09T01:46:40.500Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2001-09-09T01:46:40.500Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"sinusoidal.nc": {
+"bytes_fnv1a": "575352da5a0ab194",
+"sha256": "b51f6ed1bf5a4d77466111f8573bdf27ab88d4649547a4d966d43b6ebb89a8b8",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Sinusoidal\"],\n    PARAMETER[\"longitude_of_center\",0],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Sinusoidal\"],\n    PARAMETER[\"longitude_of_center\",0],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"start_stop.nc": {
+"bytes_fnv1a": "c9936f4b0cc6f95d",
+"sha256": "60cb1c59349f0914cc1bf760b91264df28f1add7f77f5503872401b04c69439f",
+"variables": {
+"data": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2010-03-01T12:00Z[UTC]",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2010-02-28T12:00Z[UTC]",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+},
+"no_time": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "None",
+"fullName": "no_time",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "no_time",
+"startTime": "None",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"stereographic.nc": {
+"bytes_fnv1a": "1cde3a9dc2d9df40",
+"sha256": "4f402f4d8ba9559af26f0d78e1e9288db2eec8a98525b327de893645f4a83407",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Stereographic\"],\n    PARAMETER[\"latitude_of_origin\",40],\n    PARAMETER[\"central_meridian\",-90],\n    PARAMETER[\"scale_factor\",1],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Stereographic\"],\n    PARAMETER[\"latitude_of_origin\",40],\n    PARAMETER[\"central_meridian\",-90],\n    PARAMETER[\"scale_factor\",1],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"text_missing.nc": {
+"bytes_fnv1a": "59e23be056b7a638",
+"sha256": "7bbd03057a7378c21a2685480c358caba1cb5b6a1d0540c1d3afb5d6d4301fe9",
+"variables": {
+"data": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "96217ba3689bb9e6",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "-99.5",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"tm_km.nc": {
+"bytes_fnv1a": "bb48f98dc4800e44",
+"sha256": "a05bb14c1c37cabbcf0c9724f9325268597b1e1f9d66eeceb5e46367b76080e9",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",-93],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",-93],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"tm_m.nc": {
+"bytes_fnv1a": "7df5115c33bed6f9",
+"sha256": "ae6a6357489cbdcdfab5fc3aa29dc02c72fb605f3e59db701418ab4b0b331203",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",-93],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",-93],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"tm_m_float.nc": {
+"bytes_fnv1a": "9de92e5c3cf9e987",
+"sha256": "c13a5749b8249c3c35b1868713cf504e3c32c22903300e4ca4d2290d3d4c9f86",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",-93],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223563]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",-93],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"tm_minor_axis.nc": {
+"bytes_fnv1a": "0a22153b00201594",
+"sha256": "cccfa4781c6e373e6a9f671e992d6d10d9219e20348e902f414a2d3400ec92e1",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223560493]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",-93],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"spheroid\",6378137,298.257223560493]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",-93],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"tm_sphere.nc": {
+"bytes_fnv1a": "b37b6d9609712c85",
+"sha256": "5265ac88966f6f94c7c6e5070983efb7f2afe377688907e19387b7803c8f136a",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",-93],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "3000.0",
+"dy": "-3000.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "998500.0",
+"originY": "2001500.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"unnamed\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",-93],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
+"two_d_axes.nc": {
+"bytes_fnv1a": "dbd9afdfbc99f8c9",
+"sha256": "135f211f32a5ff428d1b0e9190dd2c49a78fdc72174f50d14571a67a6bd61d98",
+"variables": {
+"data": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 12,
+"cells_fnv1a": "56dc70505a18706e",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.08281249999999929",
+"dy": "0.07361111111111167",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 4,
+"ny": 3,
+"originX": "-90.03",
+"originY": "30.0",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"uneven_axis.nc": {
+"bytes_fnv1a": "abb3e1a8937bac2a",
+"sha256": "161867c5ec66b8348e1768c52491c3aa9a7c57226ae362235ad2f503b4af31b9",
+"variables": {
+"data": {
+"dto_count": 1,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "d9ea2947965e1453",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "1.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.75",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+},
+"zone_offset.nc": {
+"bytes_fnv1a": "e06dfc19579021e8",
+"sha256": "e5d3fe8e56c7c919576d3881a7fb715677cb59e2596216739917b011acfcb5f8",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 24,
+"cells_fnv1a": "1bb0e3a7a7378d4c",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:40Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2000-01-01T06:40Z",
+"step": 0,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+},
+{
+"cells": 24,
+"cells_fnv1a": "caa03ed30b9c603e",
+"dataType": "INSTANTANEOUS",
+"description": null,
+"dx": "0.25",
+"dy": "0.25",
+"endTime": "2000-01-01T06:50Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 6,
+"ny": 4,
+"originX": "-100.125",
+"originY": "29.875",
+"shortName": "data",
+"startTime": "2000-01-01T06:50Z",
+"step": 1,
+"units": null,
+"wkt": "GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"sphere\",6371229,0]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST]]"
+}
+]
+}
+}
+}
+}

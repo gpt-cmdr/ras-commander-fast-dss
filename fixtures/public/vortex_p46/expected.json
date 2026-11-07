@@ -1,0 +1,1263 @@
+{
+ "source": "Vortex 1.1.0 BatchImporter",
+ "cases": [
+  {
+   "id": "inputs.apcp.near",
+   "inputs": [
+    "apcp_a.grib2",
+    "apcp_b.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "near",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094566543,
+     "mean": 1084204198,
+     "grid_type": "albers",
+     "digest": "081ed052bbbfde12"
+    },
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094598001,
+     "mean": 1084291024,
+     "grid_type": "albers",
+     "digest": "325ea452e72bbecf"
+    }
+   ]
+  },
+  {
+   "id": "joined.apcp.near",
+   "inputs": [
+    "apcp_joined.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "near",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2200/14JUN2024:2300/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094430228,
+     "mean": 1084265184,
+     "grid_type": "albers",
+     "digest": "d3f3f9b10c28d89c"
+    },
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094545572,
+     "mean": 1083988458,
+     "grid_type": "albers",
+     "digest": "b4f791dd236e9f97"
+    },
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094650429,
+     "mean": 1084152386,
+     "grid_type": "albers",
+     "digest": "bd3801088ab62f56"
+    }
+   ]
+  },
+  {
+   "id": "instant.tmp.near",
+   "inputs": [
+    "tmp_instant.grib2"
+   ],
+   "variable": "Temperature_height_above_ground",
+   "method": "near",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:1200//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1088526784,
+     "max": 1101429472,
+     "mean": 1096719951,
+     "grid_type": "albers",
+     "digest": "fcccc6d1f83ee700"
+    }
+   ]
+  },
+  {
+   "id": "rule.hrrr.near",
+   "inputs": [
+    "hrrr.t06z.wrfsfcf01.tmp.grib2"
+   ],
+   "variable": "Temperature_height_above_ground",
+   "method": "near",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:0600/15JUN2024:0700/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 0,
+     "cell_size": 1157234688,
+     "min": 1088191232,
+     "max": 1101413744,
+     "mean": 1096718897,
+     "grid_type": "albers",
+     "digest": "b7cc2f0703ab65c3"
+    }
+   ]
+  },
+  {
+   "id": "inputs.mrms.near",
+   "inputs": [
+    "MRMS_MultiSensor_QPE_01H_Pass2_00.00_20240615-000000.grib2",
+    "MRMS_MultiSensor_QPE_01H_Pass2_00.00_20240615-010000.grib2"
+   ],
+   "variable": "MultiSensor_QPE_01H_Pass2_altitude_above_msl",
+   "method": "near",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094608486,
+     "mean": 1084278472,
+     "grid_type": "albers",
+     "digest": "f87e4cced46b4dac"
+    },
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094503629,
+     "mean": 1084312394,
+     "grid_type": "albers",
+     "digest": "3b650ed6c2ed8c0a"
+    }
+   ]
+  },
+  {
+   "id": "joined.tmp.near",
+   "inputs": [
+    "tmp_joined.grib2"
+   ],
+   "variable": "Temperature_height_above_ground",
+   "method": "near",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:1100//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1088128320,
+     "max": 1101387536,
+     "mean": 1096717107,
+     "grid_type": "albers",
+     "digest": "6eae25fe4ecaea22"
+    },
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:1200//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1088212160,
+     "max": 1101429472,
+     "mean": 1096716729,
+     "grid_type": "albers",
+     "digest": "17dd8ef618dca095"
+    },
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:1300//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1088589696,
+     "max": 1101434720,
+     "mean": 1096715789,
+     "grid_type": "albers",
+     "digest": "60e020b673a3fd9a"
+    }
+   ]
+  },
+  {
+   "id": "inputs.apcp.bilinear",
+   "inputs": [
+    "apcp_a.grib2",
+    "apcp_b.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "bilinear",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094164250,
+     "mean": 1084209541,
+     "grid_type": "albers",
+     "digest": "5472dc20d9832fbf"
+    },
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094342158,
+     "mean": 1084289752,
+     "grid_type": "albers",
+     "digest": "764882d906b51400"
+    }
+   ]
+  },
+  {
+   "id": "joined.apcp.bilinear",
+   "inputs": [
+    "apcp_joined.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "bilinear",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2200/14JUN2024:2300/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094209050,
+     "mean": 1084273008,
+     "grid_type": "albers",
+     "digest": "9b8aa5da8be8ce59"
+    },
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094278218,
+     "mean": 1084042282,
+     "grid_type": "albers",
+     "digest": "9eda8d8377e557be"
+    },
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094211454,
+     "mean": 1084156375,
+     "grid_type": "albers",
+     "digest": "63b65ce3aa92f887"
+    }
+   ]
+  },
+  {
+   "id": "instant.tmp.bilinear",
+   "inputs": [
+    "tmp_instant.grib2"
+   ],
+   "variable": "Temperature_height_above_ground",
+   "method": "bilinear",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:1200//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1089293056,
+     "max": 1101196224,
+     "mean": 1096720527,
+     "grid_type": "albers",
+     "digest": "9455a708f8f5f10e"
+    }
+   ]
+  },
+  {
+   "id": "rule.hrrr.bilinear",
+   "inputs": [
+    "hrrr.t06z.wrfsfcf01.tmp.grib2"
+   ],
+   "variable": "Temperature_height_above_ground",
+   "method": "bilinear",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:0600/15JUN2024:0700/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 0,
+     "cell_size": 1157234688,
+     "min": 1088985600,
+     "max": 1101197056,
+     "mean": 1096720732,
+     "grid_type": "albers",
+     "digest": "ed67534ffdcd44ba"
+    }
+   ]
+  },
+  {
+   "id": "inputs.mrms.bilinear",
+   "inputs": [
+    "MRMS_MultiSensor_QPE_01H_Pass2_00.00_20240615-000000.grib2",
+    "MRMS_MultiSensor_QPE_01H_Pass2_00.00_20240615-010000.grib2"
+   ],
+   "variable": "MultiSensor_QPE_01H_Pass2_altitude_above_msl",
+   "method": "bilinear",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1093441054,
+     "mean": 1083081502,
+     "grid_type": "albers",
+     "digest": "e175aa8c1ac36d18"
+    },
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1093440476,
+     "mean": 1083244061,
+     "grid_type": "albers",
+     "digest": "44d92ee1ab303da6"
+    }
+   ]
+  },
+  {
+   "id": "joined.tmp.bilinear",
+   "inputs": [
+    "tmp_joined.grib2"
+   ],
+   "variable": "Temperature_height_above_ground",
+   "method": "bilinear",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:1100//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1089023872,
+     "max": 1101115168,
+     "mean": 1096720997,
+     "grid_type": "albers",
+     "digest": "aa0171edf30b9baf"
+    },
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:1200//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1088995904,
+     "max": 1101194976,
+     "mean": 1096720951,
+     "grid_type": "albers",
+     "digest": "ae781b4a7f3b8f9a"
+    },
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:1300//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1089240576,
+     "max": 1101217296,
+     "mean": 1096720873,
+     "grid_type": "albers",
+     "digest": "9901119459933ce3"
+    }
+   ]
+  },
+  {
+   "id": "inputs.apcp.average",
+   "inputs": [
+    "apcp_a.grib2",
+    "apcp_b.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "average",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094310239,
+     "mean": 1084240229,
+     "grid_type": "albers",
+     "digest": "90341385e793c6a2"
+    },
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094529600,
+     "mean": 1084296809,
+     "grid_type": "albers",
+     "digest": "7a33a841b6fc9f10"
+    }
+   ]
+  },
+  {
+   "id": "joined.apcp.average",
+   "inputs": [
+    "apcp_joined.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "average",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2200/14JUN2024:2300/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094352439,
+     "mean": 1084279654,
+     "grid_type": "albers",
+     "digest": "a4da664c9c45e3da"
+    },
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094435394,
+     "mean": 1084211280,
+     "grid_type": "albers",
+     "digest": "e15103a574743461"
+    },
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094375768,
+     "mean": 1084162088,
+     "grid_type": "albers",
+     "digest": "243fba40d261227c"
+    }
+   ]
+  },
+  {
+   "id": "instant.tmp.average",
+   "inputs": [
+    "tmp_instant.grib2"
+   ],
+   "variable": "Temperature_height_above_ground",
+   "method": "average",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:1200//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1088998848,
+     "max": 1101285568,
+     "mean": 1096723782,
+     "grid_type": "albers",
+     "digest": "85785de86666fc19"
+    }
+   ]
+  },
+  {
+   "id": "rule.hrrr.average",
+   "inputs": [
+    "hrrr.t06z.wrfsfcf01.tmp.grib2"
+   ],
+   "variable": "Temperature_height_above_ground",
+   "method": "average",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:0600/15JUN2024:0700/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 0,
+     "cell_size": 1157234688,
+     "min": 1088705472,
+     "max": 1101285456,
+     "mean": 1096723949,
+     "grid_type": "albers",
+     "digest": "e8742e46572da345"
+    }
+   ]
+  },
+  {
+   "id": "inputs.mrms.average",
+   "inputs": [
+    "MRMS_MultiSensor_QPE_01H_Pass2_00.00_20240615-000000.grib2",
+    "MRMS_MultiSensor_QPE_01H_Pass2_00.00_20240615-010000.grib2"
+   ],
+   "variable": "MultiSensor_QPE_01H_Pass2_altitude_above_msl",
+   "method": "average",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094408558,
+     "mean": 1083910172,
+     "grid_type": "albers",
+     "digest": "d545a349e1072811"
+    },
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094099928,
+     "mean": 1083955338,
+     "grid_type": "albers",
+     "digest": "057c2551a7e7cd6e"
+    }
+   ]
+  },
+  {
+   "id": "joined.tmp.average",
+   "inputs": [
+    "tmp_joined.grib2"
+   ],
+   "variable": "Temperature_height_above_ground",
+   "method": "average",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:1100//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1088682944,
+     "max": 1101226912,
+     "mean": 1096724138,
+     "grid_type": "albers",
+     "digest": "8de0a5c062fdb0de"
+    },
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:1200//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1088652544,
+     "max": 1101305152,
+     "mean": 1096724045,
+     "grid_type": "albers",
+     "digest": "0b6cf15b9f2d9eda"
+    },
+    {
+     "pathname": "/SHG/P46/TEMPERATURE/15JUN2024:1300//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1088900736,
+     "max": 1101328064,
+     "mean": 1096723915,
+     "grid_type": "albers",
+     "digest": "308df4f6e711c64d"
+    }
+   ]
+  },
+  {
+   "id": "write.partc",
+   "inputs": [
+    "apcp_a.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "bilinear",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "a",
+    "partB": "Mixed",
+    "partC": "MY-C",
+    "partF": "f f"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/a/Mixed/MY-C/14JUN2024:2300/14JUN2024:2400/f f/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094164250,
+     "mean": 1084209541,
+     "grid_type": "albers",
+     "digest": "5472dc20d9832fbf"
+    }
+   ]
+  },
+  {
+   "id": "write.inst",
+   "inputs": [
+    "apcp_a.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "bilinear",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI",
+    "dataType": "INST-VAL"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2400//CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094164250,
+     "mean": 1084209541,
+     "grid_type": "albers",
+     "digest": "5472dc20d9832fbf"
+    }
+   ]
+  },
+  {
+   "id": "write.aver",
+   "inputs": [
+    "apcp_a.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "bilinear",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI",
+    "dataType": "PER-AVER"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "MM",
+     "data_type": 0,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094164250,
+     "mean": 1084209541,
+     "grid_type": "albers",
+     "digest": "5472dc20d9832fbf"
+    }
+   ]
+  },
+  {
+   "id": "write.units",
+   "inputs": [
+    "apcp_a.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "bilinear",
+   "cell": 2000,
+   "envelope": [
+    -90.2,
+    -89.8,
+    34.9,
+    35.1
+   ],
+   "envelope_wkt": "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]",
+   "write": {
+    "partA": "SHG",
+    "partB": "P46",
+    "partF": "CI",
+    "units": "IN"
+   },
+   "native": {},
+   "records": [
+    {
+     "pathname": "/SHG/P46/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 420,
+     "nx": 20,
+     "ny": 14,
+     "lower_left_cell_x": 261,
+     "lower_left_cell_y": 665,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "IN",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094164250,
+     "mean": 1084209541,
+     "grid_type": "albers",
+     "digest": "5472dc20d9832fbf"
+    }
+   ]
+  }
+ ]
+}

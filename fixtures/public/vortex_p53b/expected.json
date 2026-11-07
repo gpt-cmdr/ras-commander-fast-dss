@@ -1,0 +1,953 @@
+{
+ "source": "Vortex 1.1.0 BatchImporter",
+ "cases": [
+  {
+   "id": "target.utm.near",
+   "inputs": [
+    "../vortex_p46/apcp_a.grib2",
+    "../vortex_p46/apcp_b.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "near",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI"
+   },
+   "native": {},
+   "target": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+   "cell": 2000,
+   "envelope": [
+    750000.0,
+    790000.0,
+    3860000.0,
+    3890000.0
+   ],
+   "envelope_wkt": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+   "align": "refuse",
+   "records": [
+    {
+     "pathname": "/TM/P53B/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 430,
+     "nx": 20,
+     "ny": 15,
+     "lower_left_cell_x": 375,
+     "lower_left_cell_y": 1930,
+     "srs_name": "NAD83 / UTM zone 15N",
+     "srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094681887,
+     "mean": 1083800542,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+     "digest": "f4c33d3878e620d5"
+    },
+    {
+     "pathname": "/TM/P53B/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 430,
+     "nx": 20,
+     "ny": 15,
+     "lower_left_cell_x": 375,
+     "lower_left_cell_y": 1930,
+     "srs_name": "NAD83 / UTM zone 15N",
+     "srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094660915,
+     "mean": 1083802072,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+     "digest": "a0eb094ac73ab6d7"
+    }
+   ]
+  },
+  {
+   "id": "target.utm.bilinear",
+   "inputs": [
+    "../vortex_p46/apcp_a.grib2",
+    "../vortex_p46/apcp_b.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "bilinear",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI"
+   },
+   "native": {},
+   "target": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+   "cell": 2000,
+   "envelope": [
+    750000.0,
+    790000.0,
+    3860000.0,
+    3890000.0
+   ],
+   "envelope_wkt": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+   "align": "refuse",
+   "records": [
+    {
+     "pathname": "/TM/P53B/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 430,
+     "nx": 20,
+     "ny": 15,
+     "lower_left_cell_x": 375,
+     "lower_left_cell_y": 1930,
+     "srs_name": "NAD83 / UTM zone 15N",
+     "srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094310622,
+     "mean": 1083906687,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+     "digest": "727d805adf370014"
+    },
+    {
+     "pathname": "/TM/P53B/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 430,
+     "nx": 20,
+     "ny": 15,
+     "lower_left_cell_x": 375,
+     "lower_left_cell_y": 1930,
+     "srs_name": "NAD83 / UTM zone 15N",
+     "srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094243610,
+     "mean": 1084058356,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+     "digest": "e63394718ed10abf"
+    }
+   ]
+  },
+  {
+   "id": "target.utm.average",
+   "inputs": [
+    "../vortex_p46/apcp_a.grib2",
+    "../vortex_p46/apcp_b.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "average",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI"
+   },
+   "native": {},
+   "target": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+   "cell": 2000,
+   "envelope": [
+    750000.0,
+    790000.0,
+    3860000.0,
+    3890000.0
+   ],
+   "envelope_wkt": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+   "align": "refuse",
+   "records": [
+    {
+     "pathname": "/TM/P53B/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 430,
+     "nx": 20,
+     "ny": 15,
+     "lower_left_cell_x": 375,
+     "lower_left_cell_y": 1930,
+     "srs_name": "NAD83 / UTM zone 15N",
+     "srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094469328,
+     "mean": 1084023378,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+     "digest": "bbd629ebe8de1057"
+    },
+    {
+     "pathname": "/TM/P53B/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 430,
+     "nx": 20,
+     "ny": 15,
+     "lower_left_cell_x": 375,
+     "lower_left_cell_y": 1930,
+     "srs_name": "NAD83 / UTM zone 15N",
+     "srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1157234688,
+     "min": 0,
+     "max": 1094384853,
+     "mean": 1084050602,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]",
+     "digest": "00ef3a446bca3fe3"
+    }
+   ]
+  },
+  {
+   "id": "target.ft.bilinear",
+   "inputs": [
+    "../vortex_p46/tmp_instant.grib2"
+   ],
+   "variable": "Temperature_height_above_ground",
+   "method": "bilinear",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI"
+   },
+   "native": {},
+   "target": "PROJCS[\"Transverse Mercator in international feet\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",30],PARAMETER[\"central_meridian\",-90],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+   "cell": 3048,
+   "envelope": [
+    620000.0,
+    780000.0,
+    1780000.0,
+    1850000.0
+   ],
+   "envelope_wkt": "PROJCS[\"Transverse Mercator in international feet\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",30],PARAMETER[\"central_meridian\",-90],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+   "align": "refuse",
+   "records": [
+    {
+     "pathname": "/TM/P53B/TEMPERATURE/15JUN2024:1200//CI/",
+     "record_type": 430,
+     "nx": 16,
+     "ny": 7,
+     "lower_left_cell_x": 62,
+     "lower_left_cell_y": 178,
+     "srs_name": "Transverse Mercator in international feet",
+     "srs_definition": "PROJCS[\"Transverse Mercator in international feet\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",30],PARAMETER[\"central_meridian\",-90],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1176256512,
+     "min": 1090281408,
+     "max": 1100908400,
+     "mean": 1096654304,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"Transverse Mercator in international feet\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",30],PARAMETER[\"central_meridian\",-90],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+     "digest": "a12f6a85d331342b"
+    }
+   ]
+  },
+  {
+   "id": "target.ft.near",
+   "inputs": [
+    "../vortex_p46/apcp_a.grib2",
+    "../vortex_p46/apcp_b.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "near",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI"
+   },
+   "native": {},
+   "target": "PROJCS[\"Transverse Mercator in international feet\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",30],PARAMETER[\"central_meridian\",-90],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+   "cell": 3048,
+   "envelope": [
+    620000.0,
+    780000.0,
+    1780000.0,
+    1850000.0
+   ],
+   "envelope_wkt": "PROJCS[\"Transverse Mercator in international feet\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",30],PARAMETER[\"central_meridian\",-90],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+   "align": "refuse",
+   "records": [
+    {
+     "pathname": "/TM/P53B/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 430,
+     "nx": 16,
+     "ny": 7,
+     "lower_left_cell_x": 62,
+     "lower_left_cell_y": 178,
+     "srs_name": "Transverse Mercator in international feet",
+     "srs_definition": "PROJCS[\"Transverse Mercator in international feet\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",30],PARAMETER[\"central_meridian\",-90],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1176256512,
+     "min": 0,
+     "max": 1094566543,
+     "mean": 1084457470,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"Transverse Mercator in international feet\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",30],PARAMETER[\"central_meridian\",-90],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+     "digest": "879c7b0f784f1e9f"
+    },
+    {
+     "pathname": "/TM/P53B/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 430,
+     "nx": 16,
+     "ny": 7,
+     "lower_left_cell_x": 62,
+     "lower_left_cell_y": 178,
+     "srs_name": "Transverse Mercator in international feet",
+     "srs_definition": "PROJCS[\"Transverse Mercator in international feet\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",30],PARAMETER[\"central_meridian\",-90],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1176256512,
+     "min": 0,
+     "max": 1094660915,
+     "mean": 1085336639,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"Transverse Mercator in international feet\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",30],PARAMETER[\"central_meridian\",-90],PARAMETER[\"scale_factor\",0.9999],PARAMETER[\"false_easting\",700000],PARAMETER[\"false_northing\",0],UNIT[\"Foot\",0.3048]]",
+     "digest": "be5f9cc7b1f094bf"
+    }
+   ]
+  },
+  {
+   "id": "target.ftus.vortex_rule",
+   "inputs": [
+    "../vortex_p46/tmp_instant.grib2"
+   ],
+   "variable": "Temperature_height_above_ground",
+   "method": "bilinear",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI"
+   },
+   "native": {
+    "align": "vortex"
+   },
+   "target": "PROJCS[\"NAD83 / Mississippi West (ftUS)\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",29.5],PARAMETER[\"central_meridian\",-90.3333333333333],PARAMETER[\"scale_factor\",0.99995],PARAMETER[\"false_easting\",2296583.333],PARAMETER[\"false_northing\",0],UNIT[\"US survey foot\",0.304800609601219]]",
+   "cell": 6096,
+   "envelope": [
+    2300000.0,
+    2460000.0,
+    1960000.0,
+    2060000.0
+   ],
+   "envelope_wkt": "PROJCS[\"NAD83 / Mississippi West (ftUS)\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",29.5],PARAMETER[\"central_meridian\",-90.3333333333333],PARAMETER[\"scale_factor\",0.99995],PARAMETER[\"false_easting\",2296583.333],PARAMETER[\"false_northing\",0],UNIT[\"US survey foot\",0.304800609601219]]",
+   "align": "vortex",
+   "records": [
+    {
+     "pathname": "/TM/P53B/TEMPERATURE/15JUN2024:1200//CI/",
+     "record_type": 430,
+     "nx": 8,
+     "ny": 5,
+     "lower_left_cell_x": 115,
+     "lower_left_cell_y": 98,
+     "srs_name": "NAD83 / Mississippi West (ftUS)",
+     "srs_definition": "PROJCS[\"NAD83 / Mississippi West (ftUS)\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",29.5],PARAMETER[\"central_meridian\",-90.3333333333333],PARAMETER[\"scale_factor\",0.99995],PARAMETER[\"false_easting\",2296583.333],PARAMETER[\"false_northing\",0],UNIT[\"US survey foot\",0.304800609601219],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "DEG C",
+     "data_type": 2,
+     "cell_size": 1184645120,
+     "min": 1092244448,
+     "max": 1099948592,
+     "mean": 1096658310,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"NAD83 / Mississippi West (ftUS)\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",29.5],PARAMETER[\"central_meridian\",-90.3333333333333],PARAMETER[\"scale_factor\",0.99995],PARAMETER[\"false_easting\",2296583.333],PARAMETER[\"false_northing\",0],UNIT[\"US survey foot\",0.304800609601219]]",
+     "digest": "48984093f64eef4a"
+    }
+   ]
+  },
+  {
+   "id": "target.ftus.vortex_rule.average",
+   "inputs": [
+    "../vortex_p46/apcp_a.grib2",
+    "../vortex_p46/apcp_b.grib2"
+   ],
+   "variable": "Total_precipitation_surface_1_Hour_Accumulation",
+   "method": "average",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI"
+   },
+   "native": {
+    "align": "vortex"
+   },
+   "target": "PROJCS[\"NAD83 / Mississippi West (ftUS)\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",29.5],PARAMETER[\"central_meridian\",-90.3333333333333],PARAMETER[\"scale_factor\",0.99995],PARAMETER[\"false_easting\",2296583.333],PARAMETER[\"false_northing\",0],UNIT[\"US survey foot\",0.304800609601219]]",
+   "cell": 6096,
+   "envelope": [
+    2300000.0,
+    2460000.0,
+    1960000.0,
+    2060000.0
+   ],
+   "envelope_wkt": "PROJCS[\"NAD83 / Mississippi West (ftUS)\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",29.5],PARAMETER[\"central_meridian\",-90.3333333333333],PARAMETER[\"scale_factor\",0.99995],PARAMETER[\"false_easting\",2296583.333],PARAMETER[\"false_northing\",0],UNIT[\"US survey foot\",0.304800609601219]]",
+   "align": "vortex",
+   "records": [
+    {
+     "pathname": "/TM/P53B/PRECIPITATION/14JUN2024:2300/14JUN2024:2400/CI/",
+     "record_type": 430,
+     "nx": 8,
+     "ny": 5,
+     "lower_left_cell_x": 115,
+     "lower_left_cell_y": 98,
+     "srs_name": "NAD83 / Mississippi West (ftUS)",
+     "srs_definition": "PROJCS[\"NAD83 / Mississippi West (ftUS)\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",29.5],PARAMETER[\"central_meridian\",-90.3333333333333],PARAMETER[\"scale_factor\",0.99995],PARAMETER[\"false_easting\",2296583.333],PARAMETER[\"false_northing\",0],UNIT[\"US survey foot\",0.304800609601219],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1184645120,
+     "min": 1068559461,
+     "max": 1092706407,
+     "mean": 1084171035,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"NAD83 / Mississippi West (ftUS)\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",29.5],PARAMETER[\"central_meridian\",-90.3333333333333],PARAMETER[\"scale_factor\",0.99995],PARAMETER[\"false_easting\",2296583.333],PARAMETER[\"false_northing\",0],UNIT[\"US survey foot\",0.304800609601219]]",
+     "digest": "2e9353808ea4c55e"
+    },
+    {
+     "pathname": "/TM/P53B/PRECIPITATION/15JUN2024:0000/15JUN2024:0100/CI/",
+     "record_type": 430,
+     "nx": 8,
+     "ny": 5,
+     "lower_left_cell_x": 115,
+     "lower_left_cell_y": 98,
+     "srs_name": "NAD83 / Mississippi West (ftUS)",
+     "srs_definition": "PROJCS[\"NAD83 / Mississippi West (ftUS)\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",29.5],PARAMETER[\"central_meridian\",-90.3333333333333],PARAMETER[\"scale_factor\",0.99995],PARAMETER[\"false_easting\",2296583.333],PARAMETER[\"false_northing\",0],UNIT[\"US survey foot\",0.304800609601219],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "MM",
+     "data_type": 1,
+     "cell_size": 1184645120,
+     "min": 1064810059,
+     "max": 1092380761,
+     "mean": 1084161145,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"NAD83 / Mississippi West (ftUS)\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",29.5],PARAMETER[\"central_meridian\",-90.3333333333333],PARAMETER[\"scale_factor\",0.99995],PARAMETER[\"false_easting\",2296583.333],PARAMETER[\"false_northing\",0],UNIT[\"US survey foot\",0.304800609601219]]",
+     "digest": "74fbb635f6fde9e2"
+    }
+   ]
+  },
+  {
+   "id": "source.utm.asis",
+   "inputs": [
+    "../raster/crs_utm.tif"
+   ],
+   "variable": "",
+   "method": "bilinear",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "refuse"
+   },
+   "target": null,
+   "align": "refuse",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 430,
+     "nx": 37,
+     "ny": 29,
+     "lower_left_cell_x": -323,
+     "lower_left_cell_y": 1033,
+     "srs_name": "NAD83 / UTM zone 15N",
+     "srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101,AUTHORITY[\"EPSG\",\"7019\"]],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4269\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-93],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"26915\"]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1040187392,
+     "max": 1101895565,
+     "mean": 1092328832,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"NAD83 / UTM zone 15N\",\n    GEOGCS[\"NAD83\",\n        DATUM[\"North_American_Datum_1983\",\n            SPHEROID[\"GRS 1980\",6378137,298.257222101]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Transverse_Mercator\"],\n    PARAMETER[\"latitude_of_origin\",0],\n    PARAMETER[\"central_meridian\",-93],\n    PARAMETER[\"scale_factor\",0.9996],\n    PARAMETER[\"false_easting\",500000],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]",
+     "digest": "cea366d6ba68f5ba"
+    }
+   ]
+  },
+  {
+   "id": "source.utm.shg.near",
+   "inputs": [
+    "../raster/crs_utm.tif"
+   ],
+   "variable": "",
+   "method": "near",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "vortex"
+   },
+   "target": "shg",
+   "cell": 2000,
+   "align": "vortex",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 420,
+     "nx": 38,
+     "ny": 28,
+     "lower_left_cell_x": -427,
+     "lower_left_cell_y": -232,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1040187392,
+     "max": 1101895565,
+     "mean": 1092204304,
+     "grid_type": "albers",
+     "engine_srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "digest": "8e37c327a6c42cb4"
+    }
+   ]
+  },
+  {
+   "id": "source.utm.shg.bilinear",
+   "inputs": [
+    "../raster/crs_utm.tif"
+   ],
+   "variable": "",
+   "method": "bilinear",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "vortex"
+   },
+   "target": "shg",
+   "cell": 2000,
+   "align": "vortex",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 420,
+     "nx": 38,
+     "ny": 28,
+     "lower_left_cell_x": -427,
+     "lower_left_cell_y": -232,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1040205705,
+     "max": 1101748403,
+     "mean": 1092217583,
+     "grid_type": "albers",
+     "engine_srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "digest": "61528dd03233c47c"
+    }
+   ]
+  },
+  {
+   "id": "source.utm.shg.average",
+   "inputs": [
+    "../raster/crs_utm.tif"
+   ],
+   "variable": "",
+   "method": "average",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "vortex"
+   },
+   "target": "shg",
+   "cell": 2000,
+   "align": "vortex",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 420,
+     "nx": 38,
+     "ny": 28,
+     "lower_left_cell_x": -427,
+     "lower_left_cell_y": -232,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1040214513,
+     "max": 1101772358,
+     "mean": 1092218714,
+     "grid_type": "albers",
+     "engine_srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "digest": "525a21f451452690"
+    }
+   ]
+  },
+  {
+   "id": "source.ftus.asis",
+   "inputs": [
+    "tm_ftus.tif"
+   ],
+   "variable": "",
+   "method": "bilinear",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "refuse"
+   },
+   "target": null,
+   "align": "refuse",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 430,
+     "nx": 37,
+     "ny": 29,
+     "lower_left_cell_x": -323,
+     "lower_left_cell_y": 1033,
+     "srs_name": "NAD_1983_Florida_East_ftUS",
+     "srs_definition": "PROJCS[\"NAD_1983_Florida_East_ftUS\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101004,AUTHORITY[\"EPSG\",\"7019\"]],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4269\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",24.3333333333333],PARAMETER[\"central_meridian\",-81],PARAMETER[\"scale_factor\",0.999941177],PARAMETER[\"false_easting\",656166.667],PARAMETER[\"false_northing\",0],UNIT[\"US survey foot\",0.304800609601219,AUTHORITY[\"EPSG\",\"9003\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1040187392,
+     "max": 1102089552,
+     "mean": 1092313154,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"NAD_1983_Florida_East_ftUS\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"false_easting\",656166.667],PARAMETER[\"false_northing\",0.0],PARAMETER[\"central_meridian\",-81.0],PARAMETER[\"scale_factor\",0.999941177],PARAMETER[\"latitude_of_origin\",24.3333333333333],UNIT[\"Foot_US\",0.30480060960121924]]",
+     "digest": "2b96a53b152fe673"
+    }
+   ]
+  },
+  {
+   "id": "source.ftus.shg.near",
+   "inputs": [
+    "tm_ftus.tif"
+   ],
+   "variable": "",
+   "method": "near",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "vortex"
+   },
+   "target": "shg",
+   "cell": 2000,
+   "align": "vortex",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 420,
+     "nx": 12,
+     "ny": 10,
+     "lower_left_cell_x": 523,
+     "lower_left_cell_y": 413,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1057316930,
+     "max": 1101384385,
+     "mean": 1092203576,
+     "grid_type": "albers",
+     "engine_srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "digest": "31fc5b5908415416"
+    }
+   ]
+  },
+  {
+   "id": "source.ftus.shg.bilinear",
+   "inputs": [
+    "tm_ftus.tif"
+   ],
+   "variable": "",
+   "method": "bilinear",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "vortex"
+   },
+   "target": "shg",
+   "cell": 2000,
+   "align": "vortex",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 420,
+     "nx": 12,
+     "ny": 10,
+     "lower_left_cell_x": 523,
+     "lower_left_cell_y": 413,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1059042486,
+     "max": 1101270470,
+     "mean": 1092160292,
+     "grid_type": "albers",
+     "engine_srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "digest": "f76c163a7432aabb"
+    }
+   ]
+  },
+  {
+   "id": "source.ftus.shg.average",
+   "inputs": [
+    "tm_ftus.tif"
+   ],
+   "variable": "",
+   "method": "average",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "vortex"
+   },
+   "target": "shg",
+   "cell": 2000,
+   "align": "vortex",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 420,
+     "nx": 12,
+     "ny": 10,
+     "lower_left_cell_x": 523,
+     "lower_left_cell_y": 413,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1056900944,
+     "max": 1101340079,
+     "mean": 1092332518,
+     "grid_type": "albers",
+     "engine_srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "digest": "5e04dbe0a4b67068"
+    }
+   ]
+  },
+  {
+   "id": "source.ft.asis",
+   "inputs": [
+    "tm_ft.tif"
+   ],
+   "variable": "",
+   "method": "bilinear",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "refuse"
+   },
+   "target": null,
+   "align": "refuse",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 430,
+     "nx": 37,
+     "ny": 29,
+     "lower_left_cell_x": -323,
+     "lower_left_cell_y": 1033,
+     "srs_name": "Florida_East_values_in_international_feet",
+     "srs_definition": "PROJCS[\"Florida_East_values_in_international_feet\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101004,AUTHORITY[\"EPSG\",\"7019\"]],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4269\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",24.3333333333333],PARAMETER[\"central_meridian\",-81],PARAMETER[\"scale_factor\",0.999941177],PARAMETER[\"false_easting\",656166.667],PARAMETER[\"false_northing\",0],UNIT[\"foot\",0.3048,AUTHORITY[\"EPSG\",\"9002\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1040187392,
+     "max": 1102089552,
+     "mean": 1092313154,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"Florida_East_values_in_international_feet\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"false_easting\",656166.667],PARAMETER[\"false_northing\",0.0],PARAMETER[\"central_meridian\",-81.0],PARAMETER[\"scale_factor\",0.999941177],PARAMETER[\"latitude_of_origin\",24.3333333333333],UNIT[\"Foot\",0.3048]]",
+     "digest": "2b96a53b152fe673"
+    }
+   ]
+  },
+  {
+   "id": "source.ft.shg.near",
+   "inputs": [
+    "tm_ft.tif"
+   ],
+   "variable": "",
+   "method": "near",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "vortex"
+   },
+   "target": "shg",
+   "cell": 2000,
+   "align": "vortex",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 420,
+     "nx": 12,
+     "ny": 10,
+     "lower_left_cell_x": 523,
+     "lower_left_cell_y": 413,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1057316930,
+     "max": 1101384385,
+     "mean": 1092203576,
+     "grid_type": "albers",
+     "engine_srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "digest": "31fc5b5908415416"
+    }
+   ]
+  },
+  {
+   "id": "source.ft.shg.bilinear",
+   "inputs": [
+    "tm_ft.tif"
+   ],
+   "variable": "",
+   "method": "bilinear",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "vortex"
+   },
+   "target": "shg",
+   "cell": 2000,
+   "align": "vortex",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 420,
+     "nx": 12,
+     "ny": 10,
+     "lower_left_cell_x": 523,
+     "lower_left_cell_y": 413,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1059042504,
+     "max": 1101270494,
+     "mean": 1092160317,
+     "grid_type": "albers",
+     "engine_srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "digest": "a13a0c0af08d2e2c"
+    }
+   ]
+  },
+  {
+   "id": "source.ft.shg.average",
+   "inputs": [
+    "tm_ft.tif"
+   ],
+   "variable": "",
+   "method": "average",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "vortex"
+   },
+   "target": "shg",
+   "cell": 2000,
+   "align": "vortex",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 420,
+     "nx": 12,
+     "ny": 10,
+     "lower_left_cell_x": 523,
+     "lower_left_cell_y": 413,
+     "srs_name": "WKT",
+     "srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1056900981,
+     "max": 1101340109,
+     "mean": 1092332548,
+     "grid_type": "albers",
+     "engine_srs_definition": "PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]",
+     "digest": "b15d4741d81fcb96"
+    }
+   ]
+  },
+  {
+   "id": "source.ftus_offset.asis.snapped",
+   "inputs": [
+    "tm_ftus_offset.tif"
+   ],
+   "variable": "",
+   "method": "bilinear",
+   "write": {
+    "partA": "TM",
+    "partB": "P53B",
+    "partF": "CI",
+    "partC": "RASTER"
+   },
+   "native": {
+    "align": "vortex"
+   },
+   "target": null,
+   "align": "vortex",
+   "records": [
+    {
+     "pathname": "/TM/P53B/RASTER///CI/",
+     "record_type": 430,
+     "nx": 37,
+     "ny": 29,
+     "lower_left_cell_x": -323,
+     "lower_left_cell_y": 1032,
+     "srs_name": "NAD_1983_Florida_East_ftUS",
+     "srs_definition": "PROJCS[\"NAD_1983_Florida_East_ftUS\",GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101004,AUTHORITY[\"EPSG\",\"7019\"]],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4269\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",24.3333333333333],PARAMETER[\"central_meridian\",-81],PARAMETER[\"scale_factor\",0.999941177],PARAMETER[\"false_easting\",656166.667],PARAMETER[\"false_northing\",0],UNIT[\"US survey foot\",0.304800609601219,AUTHORITY[\"EPSG\",\"9003\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+     "data_units": "UNDEF",
+     "data_type": 2,
+     "cell_size": 1157234688,
+     "min": 1040187392,
+     "max": 1102089552,
+     "mean": 1092313154,
+     "grid_type": "specified",
+     "engine_srs_definition": "PROJCS[\"NAD_1983_Florida_East_ftUS\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"false_easting\",656166.667],PARAMETER[\"false_northing\",0.0],PARAMETER[\"central_meridian\",-81.0],PARAMETER[\"scale_factor\",0.999941177],PARAMETER[\"latitude_of_origin\",24.3333333333333],UNIT[\"Foot_US\",0.30480060960121924]]",
+     "digest": "2b96a53b152fe673"
+    }
+   ]
+  }
+ ]
+}

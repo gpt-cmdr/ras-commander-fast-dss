@@ -1,0 +1,26 @@
+{
+  "scalar_time.nc": {
+    "data": "time axis is not one-dimensional"
+  },
+  "two_d_axes.nc": {
+    "data": "two-dimensional"
+  },
+  "uneven_axis.nc": {
+    "data": "not evenly spaced"
+  },
+  "levels.nc": {
+    "data": "several vertical levels"
+  },
+  "albers_false_origin.nc": {
+    "data": "Observed behaviour we did not implement"
+  },
+  "lambert_false_origin.nc": {
+    "data": "Observed behaviour we did not implement"
+  },
+  "polar_ellipsoid.nc": {
+    "data": "ellipsoidal polar stereographic"
+  },
+  "latlon_on_xy.nc": {
+    "data": "not a grid"
+  }
+}

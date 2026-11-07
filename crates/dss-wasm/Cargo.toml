@@ -1,0 +1,25 @@
+[package]
+name = "dss-wasm"
+description = "Read-only WebAssembly bindings for dss-core"
+version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+dss-core.workspace = true
+wasm-bindgen = "0.2"
+# P35: typed arrays, Object/Reflect and Error for the JavaScript results.
+# MIT OR Apache-2.0, part of the wasm-bindgen project (same version train).
+js-sys = "0.3"
+
+# P35: Node tests (`wasm-pack test --node crates/dss-wasm`). MIT OR Apache-2.0.
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test = "0.3"
