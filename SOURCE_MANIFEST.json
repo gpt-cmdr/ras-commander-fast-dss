@@ -277,7 +277,7 @@
     "crates/dss-vortex/tests/nc_time_fuzz.rs": "d147c3e747f23830ced683ec8bec5224dac220b42199df8c1d02eaa383b68bb5",
     "crates/dss-vortex/tests/p41_warp_cases.rs": "4462a16caf1fb3d4e362127202f743aa71e4fa7b4c98b8389ee5006d319b2a46",
     "crates/dss-vortex/tests/raster_alloc.rs": "f65c232c7ad7916c37ceb64ee9951d19da5c7a746c2da9a1e74403d12aecba2d",
-    "crates/dss-vortex/tests/raster_faults.rs": "423de06a04763d4ae9c4c1a73be6eec82114c15b25b93bc1f303381c58d9a038",
+    "crates/dss-vortex/tests/raster_faults.rs": "1f32e1a34e2276e72c774b36fbfe17345e8b3821382e2fc6246608a1fec6591b",
     "crates/dss-vortex/tests/raster_fixtures.rs": "7895d785c825c984d5934adba23bd61acb16faff79dc4b0f7e5717ff9fa1c771",
     "crates/dss-vortex/tests/raster_hostile.rs": "38f34fcc71358fc5715f2a6767a0123f89af68c82ab566542dfdfa014d95d914",
     "crates/dss-vortex/tests/raster_review.rs": "be408048a9ec8a498b128daf58bc48e9a5aee2d15b55f0352887b8395ae387c3",

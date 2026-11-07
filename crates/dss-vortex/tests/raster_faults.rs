@@ -4,8 +4,7 @@
 
 use dss_vortex::crs::CrsDef;
 use dss_vortex::sink_raster::{
-    write_asc, write_asc_with_faults, write_geotiff, write_geotiff_with_faults, AscOptions,
-    TiffOptions, WriteStep,
+    write_asc, write_asc_with_faults, write_geotiff_with_faults, AscOptions, TiffOptions, WriteStep,
 };
 use dss_vortex::source::raster::RasterFile;
 use dss_vortex::{
@@ -333,7 +332,11 @@ fn a_target_another_process_holds_open_is_an_error_that_changes_nothing() {
         let result = if name.ends_with("asc") {
             write_asc(&frame(wgs84ish()), &path, &AscOptions::default())
         } else {
-            write_geotiff(&frame(wgs84ish()), &path, &TiffOptions::default())
+            dss_vortex::sink_raster::write_geotiff(
+                &frame(wgs84ish()),
+                &path,
+                &TiffOptions::default(),
+            )
         };
         assert!(matches!(result, Err(VortexError::Io(_))), "{name}");
         drop(held);
