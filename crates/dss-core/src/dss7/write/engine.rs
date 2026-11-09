@@ -3319,7 +3319,8 @@ impl Drop for TempFile {
 /// Publish `tmp` at `dest` with an atomic rename that never replaces an
 /// existing file. `Ok(true)`: renamed; `Ok(false)`: no such primitive here (the caller
 /// fails, keeping `tmp`); an existing `dest` is `ErrorKind::AlreadyExists`.
-#[cfg(target_os = "linux")]
+// nix exposes renameat2 only for glibc targets; musl falls back to the hard link alone.
+#[cfg(all(target_os = "linux", target_env = "gnu"))]
 fn rename_noreplace(tmp: &std::path::Path, dest: &std::path::Path) -> std::io::Result<bool> {
     use nix::errno::Errno;
     use nix::fcntl::{renameat2, RenameFlags, AT_FDCWD};
@@ -3333,7 +3334,7 @@ fn rename_noreplace(tmp: &std::path::Path, dest: &std::path::Path) -> std::io::R
 
 /// No atomic no-replace rename is available to this crate here (Windows'
 /// `MoveFileExW` would need `unsafe` FFI, which `dss-core` forbids).
-#[cfg(not(target_os = "linux"))]
+#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
 fn rename_noreplace(_tmp: &std::path::Path, _dest: &std::path::Path) -> std::io::Result<bool> {
     Ok(false)
 }
