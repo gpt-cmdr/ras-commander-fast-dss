@@ -1,4 +1,4 @@
-//! P06 acceptance check 1: DSS7 header parse with typed errors (dss7.md §2, §9 step 1–2).
+//! DSS7 header parse with typed errors (dss7.md §2, §9 step 1–2).
 
 mod dss7_common;
 

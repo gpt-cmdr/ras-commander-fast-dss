@@ -1,4 +1,4 @@
-//! DSS7 time-series harness for oracle comparison and corpus runs (packet P08a).
+//! DSS7 time-series harness for comparisons with HEC software and runs over many files.
 //!
 //! ```text
 //! dss7_ts_dump records <file.dss> <outdir>
@@ -444,7 +444,7 @@ fn timing(file: &str) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Check the info block's first/last valid-value stamps (`kinfoFirstDate`,
-/// `kinfoLastDate`) against the decoded values (P06 open item).
+/// `kinfoLastDate`) against the decoded values.
 fn dates(file: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut f = Dss7File::open(file)?;
     let paths = ts_paths(&mut f)?;

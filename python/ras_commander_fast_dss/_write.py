@@ -1,12 +1,12 @@
-"""DSS7 time-series writer: regular series (packet P20) and irregular series (P21).
+"""DSS7 time-series writer: regular series and irregular series.
 
 ``create`` makes an empty DSS7 file; ``write_timeseries`` stores a regular-interval
 series with HEC's default store semantics (storage flag 0): values replace the stored
 values at the same times, the rest of each block is kept, and blocks follow HEC's
-standard layout (``packets/P20_dss7_ts_writer.md``). An ``IR-`` E part
+standard layout (``docs/format/dss7.md`` §7.2). An ``IR-`` E part
 (``IR-Day`` .. ``IR-Century``) selects the irregular writer, which takes one time per
 value and follows heclib's "replace" semantics (storage flag 1, what hecdss uses;
-``packets/P21_dss7_its_writer.md``).
+``docs/format/dss7.md`` §7.3).
 
 Before every write the HEC lock words are tested; the write is refused with
 :class:`~ras_commander_fast_dss.exceptions.DssLockedError` when any HEC process (HEC-RAS,
@@ -39,7 +39,7 @@ _EPOCH = np.datetime64("1899-12-31T00:00:00", "s")
 
 def _check_version(version: int) -> None:
     if version == 6:
-        raise NotImplementedError("writing DSS6 files is not supported yet (packet P22)")
+        raise NotImplementedError("writing DSS6 files is not supported yet")
     if version != 7:
         raise ValueError(f"version must be 7, not {version!r}")
 
@@ -52,8 +52,7 @@ def create(path: PathLike, version: int = 7) -> Path:
     replaced: ``FileExistsError``.
 
     ``version=6`` creates an empty DSS6 file with the layout HEC Monolith 3.3.27 gives a
-    new DSS6 file (version string ``6-YO``, 2048 hash codes, 32 bins of 127 words a block;
-    packet P22).
+    new DSS6 file (version string ``6-YO``, 2048 hash codes, 32 bins of 127 words a block).
     """
     if version == 6:
         return _create6(path)
@@ -61,6 +60,69 @@ def create(path: PathLike, version: int = 7) -> Path:
     p = Path(os.fspath(path))
     _native.create_dss7(str(p))
     return p
+
+
+def repair(src: PathLike, dest: PathLike) -> dict:
+    """Copy the readable records of the DSS7 file ``src`` that its discovery procedure
+    reaches into a new DSS7 file ``dest``, and report what was not copied.
+
+    This is the safe path for a damaged file. Native writes reconcile an interrupted
+    write exactly when the file was consistent before it; independent extra damage is
+    refused only when cheap checks detect it (``docs/format/dss7.md`` §6: threat model
+    and known limitations).
+
+    ``src`` is opened read-only and never written. The records are found by one
+    bounded discovery procedure: every bin of the bin-block chain and every hash-table
+    slot, then the overflow word of every bin reached (empty bins included), as a hash
+    lookup follows it. They are then read with the normal readers. ``complete`` means
+    that every readable record this procedure reaches was copied and verified, equals
+    one that was, or is listed in ``not_copied``. A pointer target it cannot classify
+    is listed as not copied; bytes that no pointer reaches are out of scope. A bin
+    block whose declared span does not fit in the file is reported as unclassified in
+    ``not_copied`` and none of its bins is searched, whereas the catalog walk still
+    lists whole bins from such a partial block, so records the catalog lists can be
+    missing from ``dest``. Always check ``complete``. Each record's data areas, record type,
+    dates and value counts are written unchanged with the normal writer into a new file;
+    the write time, program name and version count are the new write's. The new file is
+    read back, and every copied record must equal the source record it was copied from
+    bit for bit, and decode identically where a decoder exists and either file's
+    decodes, before the file is published. Write time, creation time, program name and
+    version count are the new write's. For a pathname with several copies the lookup's
+    is tried first, then each catalog copy; an alias counts only when its primary record
+    is copied (``fallback_copies`` lists copies other than the preferred one). Time series in a source older than DSS
+    version 7-HA use a deprecated layout and are reported in ``not_copied``.
+
+    The new file is built under a temporary name next to ``dest`` and published at
+    ``dest`` once every record selected for copying has been written and verified.
+
+    **A partial recovery is published.** A successful return means the selected
+    records were copied and verified and ``dest`` exists. It does not mean everything
+    found was copied: records that could not be copied, or not kept under one pathname
+    (a readable duplicate or identity conflict with a different payload), are listed in
+    ``not_copied``. ``complete`` is then ``False`` and ``dest`` is still published.
+    Always check ``complete`` and ``not_copied``. An existing ``dest`` raises
+    ``FileExistsError``; nothing is ever replaced (hard link, else an atomic no-replace
+    rename where available, else an ``OSError`` naming the kept, verified copy). Other
+    errors remove the temporary file. A copy killed before publication leaves ``src``
+    unchanged, no ``dest``, and a ``.<name>.<pid>.<nanos>.partial`` file that can be
+    deleted. Each record is written under its own identity (the pathname its info block
+    stores; an alias's primary). Only an alias or a pure case difference may change the
+    name; a record whose info block names another record, or a duplicate with a
+    different payload, is listed in ``not_copied`` (``complete`` is then false).
+
+    Returns a dict: ``records_copied``, ``hidden_records_copied`` (records the source's
+    catalog did not list), ``not_copied`` (``(pathname, reason)`` pairs),
+    ``aliases_skipped``, ``duplicates_skipped``, ``fallback_copies``
+    (``(pathname, source info address, reason)``), ``variants_copied``
+    (``(found as, written as, "alias" | "case variant")``), ``ledger`` (one
+    ``(pathname, info address or None, alias, outcome, detail)`` tuple per source
+    candidate; ``outcome`` is ``"copied"``, ``"equal_to_copied"``,
+    ``"unreadable_covered"`` or ``"not_copied"``), ``src_listed_records``,
+    ``src_interrupted_write`` and ``complete`` (true exactly when no ledger entry is
+    ``"not_copied"``). Whether hidden records come back is reported, not guaranteed; a
+    complete copy is not an integrity certificate for ``src``.
+    """
+    return _native.repair_dss7(str(Path(os.fspath(src))), str(Path(os.fspath(dest))))
 
 
 def _values_array(values: Any, value_type: str, raw: bool) -> np.ndarray:
@@ -77,7 +139,7 @@ def _values_array(values: Any, value_type: str, raw: bool) -> np.ndarray:
         dtype = np.float64
     else:
         raise ValueError('value_type must be "auto", "float" or "double"')
-    # Refuse rather than convert silently (P20 §2.3): no float overflow to inf, no
+    # Refuse rather than convert silently: no float overflow to inf, no
     # integer that the target type cannot hold exactly, no infinities unless raw.
     with np.errstate(over="ignore", invalid="ignore"):
         out = np.ascontiguousarray(arr, dtype=dtype).copy()
@@ -171,6 +233,14 @@ def _precision(precision: Any) -> int:
     return int(precision)
 
 
+def _sync_flag(sync: Any) -> bool:
+    """The ``sync=`` flush policy of the public writers: a bool, nothing else,
+    so a string such as ``"false"`` cannot weaken the default by accident."""
+    if not isinstance(sync, (bool, np.bool_)):
+        raise TypeError(f"sync must be True or False, not {sync!r}")
+    return bool(sync)
+
+
 def write_timeseries(
     dss_file: PathLike,
     pathname: str,
@@ -189,6 +259,7 @@ def write_timeseries(
     allow_undetectable_readers: bool = True,
     time_granularity: Optional[int] = None,
     notes: Any = None,
+    sync: bool = True,
 ) -> Dict[str, Any]:
     """Store a regular- or irregular-interval time series in an existing DSS7 file.
 
@@ -221,9 +292,9 @@ def write_timeseries(
         HEC units and type (``INST-VAL``, ``PER-AVER``, ``PER-CUM``, ``INST-CUM``).
     quality:
         Optional integer quality flag per value. A 2-D array of shape ``(n, k)`` stores
-        ``k`` quality words per value (DSS7 only; packet P38).
+        ``k`` quality words per value (DSS7 only).
     notes:
-        DSS7 only (P38; DSS6 has no notes). One string per value (``""`` for no note,
+        DSS7 only (DSS6 has no notes). One string per value (``""`` for no note,
         Latin-1, no NUL) stores character notes; an integer array of shape ``(n, k)``
         stores ``k`` integer-note words per value. As heclib stores them, notes make the
         block full length. A write without notes keeps stored character notes and drops
@@ -235,28 +306,52 @@ def write_timeseries(
         stored as given; HEC treats them as missing.
     allow_undetectable_readers:
         Old-scheme DSS7 files cannot show whether HEC software has them open. By default
-        (maintainer decision 2026-10-28, P19) the write goes ahead while the writer holds
-        the lock, with a ``RuntimeWarning``. ``False`` refuses such files with
+        the write goes ahead while the writer holds the lock, with a ``RuntimeWarning``. ``False`` refuses such files with
         :class:`~ras_commander_fast_dss.exceptions.DssLockedError` (``readers_undetectable``).
     time_granularity:
-        Irregular series only (P21): seconds per stored time unit, 1, 60, 3600 or 86400.
+        Irregular series only: seconds per stored time unit, 1, 60, 3600 or 86400.
         ``None`` (default) chooses 60 when every time is a whole minute (always for
         ``IR-Century``) and 1 otherwise. Every time must be a whole multiple of an
         explicit granularity; nothing is rounded.
+    sync:
+        Flush policy. ``True`` (the default, unchanged): the writer calls
+        ``fsync`` at the transaction's existing flush points, after each write that a
+        later write of the same record depends on: the record data together with the
+        end-of-file flag (the data step has no flush of its own; its writes are flushed
+        with the end-of-file flag), the allocation header and in-progress marker, a new
+        bin block's chain word, a catalog entry's body before the word that publishes it
+        and that word itself, the counters, the link, the activation or retirement, and
+        the cleared marker. A step with nothing to write flushes nothing, and the write
+        ends with one ``sync_all``. This describes the flush points; it is not a flush
+        at every step.
 
-    Pattern records (P38, D part ``TS-...``, both versions): a regular E part stores the
+        ``False`` (opt-in): no flushes. Every write still reaches the operating system in
+        the same order, and the in-progress marker and the reconciliation by the next
+        write work as before. What it keeps: under **process death** (the writing
+        process killed at any point), the ordering of completed writes and of the
+        recovery marker, so an interrupted write leaves the same states as with ``True``
+        and the next write reconciles it the same way (killed-process matrix in
+        ``crates/dss-core/tests/p64_kill.rs``). What it gives up: nothing is forced to
+        storage, so after a power loss or an operating-system crash this write, and
+        earlier unflushed ones, may be missing, torn or out of order. **No power-loss
+        claim is made for either mode.** A normal write never repairs damage it did not
+        cause; for a damaged DSS7 file the recovery path is :func:`repair`, which copies
+        the readable records its discovery procedure reaches into a new file and reports
+        what it did not copy (check ``complete``). Suited to scratch or regenerable files.
+
+    Pattern records (D part ``TS-...``, both versions): a regular E part stores the
     values positionally, with no ``start=`` (the only time accepted is the reader's
-    convention, the first value at 01JAN3000 00:00, P25); an ``IR-`` E part needs ``times=``
+    convention, the first value at 01JAN3000 00:00); an ``IR-`` E part needs ``times=``
     as the reader returns them. The stored time offset is 0, as HEC stores it. HEC stores no
     quality or notes in a pattern, and DSS6 patterns are floats only. DSS6 irregular
     patterns are written as ``zsitsi6.f`` stores them but not confirmed by a HEC reader:
-    Monolith 3.3.27 misreads the tested records from both writers (P33 §4, P38).
+    Monolith 3.3.27 misreads the tested records from both writers.
 
-    Pseudo-regular series (P38, E part ``~1Day``, both versions): irregular data with
+    Pseudo-regular series (E part ``~1Day``, both versions): irregular data with
     ``times=``, stored as HEC stores it (``~1Day`` on DSS7; ``IR-YEAR`` with the interval
     kept in the bin on DSS6).
 
-    Irregular series (P21): an E part ``IR-Day``, ``IR-Month``, ``IR-Year``,
+    Irregular series: an E part ``IR-Day``, ``IR-Month``, ``IR-Year``,
     ``IR-Decade`` or ``IR-Century`` (any case) stores an irregular series. Give
     ``times=`` (or a ``Series`` with a ``DatetimeIndex``), one per value, strictly
     ascending; ``start=`` is refused, and so are duplicate times (heclib would store
@@ -269,7 +364,7 @@ def write_timeseries(
     (``outcome`` ``"deleted"``). Missing values are stored as given (irregular blocks are
     never trimmed). heclib 7-IU-15 and 7-JA drop some of the stored values after the
     window when more stored values precede the window than it replaces; this writer
-    keeps them all (P21 REPORT §3).
+    keeps them all.
 
     Kept values in a merged block (regular or irregular), as heclib stores them:
     a write without ``quality`` drops the quality of every value kept in the block
@@ -283,7 +378,7 @@ def write_timeseries(
     (``ValueError``, :class:`~ras_commander_fast_dss.exceptions.DssUnsupportedRecordError`)
     leaves the file unchanged.
 
-    Crash safety (P20 REPORT §4, §7): every block is its own transaction, ordered so that a
+    Crash safety (``docs/format/dss7.md`` §6): every block is its own transaction, ordered so that a
     killed process leaves the previous record intact or the new one complete; the next
     native write repairs an interrupted one (``reconciled_interrupted_write``). If a write
     is interrupted between publishing a new record's bin entry and linking a new bin, and
@@ -294,7 +389,7 @@ def write_timeseries(
     and no other record is affected. Not power-loss safe.
 
     version:
-        ``6`` writes to an existing DSS6 file (packet P22; ``DssFile.write_timeseries``
+        ``6`` writes to an existing DSS6 file (``DssFile.write_timeseries``
         passes the open file's version). DSS6 differences: E parts are the DSS6 or DSS7
         names of the minute-to-year intervals (no second intervals); an ``IR-DAY`` ..
         ``IR-CENTURY`` E part writes irregular data from ``times=`` (whole minutes), and
@@ -318,6 +413,7 @@ def write_timeseries(
     """
     if not isinstance(pathname, str):
         raise TypeError(f"pathname must be str, not {type(pathname).__name__}")
+    sync = _sync_flag(sync)
     # P38: patterns, and multi-word quality or notes, take their own paths.
     if _is_pattern(pathname):
         if version not in (6, 7):
@@ -327,7 +423,7 @@ def write_timeseries(
             data_type=data_type, quality=quality, notes=notes, time_zone=time_zone,
             precision=precision, value_type=value_type, raw=raw, version=version,
             allow_undetectable_readers=allow_undetectable_readers,
-            time_granularity=time_granularity,
+            time_granularity=time_granularity, sync=sync,
         )
     if notes is not None or _is_quality_words(quality):
         if version == 6:
@@ -343,14 +439,14 @@ def write_timeseries(
             data_type=data_type, quality=quality, notes=notes, time_zone=time_zone,
             precision=precision, value_type=value_type, raw=raw,
             allow_undetectable_readers=allow_undetectable_readers,
-            time_granularity=time_granularity,
+            time_granularity=time_granularity, sync=sync,
         )
     if version == 6:
         return _write_timeseries6(
             dss_file, pathname, values, start=start, times=times, units=units,
             data_type=data_type, quality=quality, time_zone=time_zone, precision=precision,
             value_type=value_type, raw=raw, time_granularity=time_granularity,
-            allow_undetectable_readers=allow_undetectable_readers,
+            allow_undetectable_readers=allow_undetectable_readers, sync=sync,
         )
     _check_version(version)
     if _is_irregular(pathname):
@@ -368,7 +464,7 @@ def write_timeseries(
             value_type=value_type,
             raw=raw,
             allow_undetectable_readers=allow_undetectable_readers,
-            time_granularity=time_granularity,
+            time_granularity=time_granularity, sync=sync,
         )
     if time_granularity is not None:
         raise ValueError("time_granularity applies to irregular (IR-) series only")
@@ -426,6 +522,7 @@ def write_timeseries(
         time_zone,
         _precision(precision),
         bool(allow_undetectable_readers),
+        sync=sync,
     )
     if report.get("readers_undetected"):
         warnings.warn(
@@ -444,13 +541,13 @@ def write_timeseries(
 
 def _is_irregular(pathname: str) -> bool:
     """True when the E part names an irregular block (``IR-...``, any case) or a
-    pseudo-regular interval (``~1Day``, P38)."""
+    pseudo-regular interval (``~1Day``)."""
     parts = pathname.split("/")
     return len(parts) == 8 and (parts[5].upper().startswith("IR-") or parts[5].startswith("~"))
 
 
 def _is_pattern(pathname: str) -> bool:
-    """True when the D part names a pattern record (``TS-...``, any case; P38)."""
+    """True when the D part names a pattern record (``TS-...``, any case)."""
     parts = pathname.split("/")
     return len(parts) == 8 and parts[4].upper().startswith("TS-")
 
@@ -505,8 +602,9 @@ def _write_variants(
     raw: bool,
     allow_undetectable_readers: bool,
     time_granularity: Optional[int],
+    sync: bool = True,
 ) -> Dict[str, Any]:
-    """DSS7 write with multi-word quality or notes (packet P38)."""
+    """DSS7 write with multi-word quality or notes."""
     irregular = _is_irregular(pathname)
     if isinstance(values, pd.Series):
         if start is None and times is None and isinstance(values.index, pd.DatetimeIndex):
@@ -542,7 +640,7 @@ def _write_variants(
     kw = dict(
         quality=q, quality_element_size=qes or 1, inotes=inotes, inote_element_size=nes,
         cnotes=cnotes, time_zone=time_zone, precision=_precision(precision),
-        allow_undetectable_readers=bool(allow_undetectable_readers),
+        allow_undetectable_readers=bool(allow_undetectable_readers), sync=bool(sync),
     )
     if irregular:
         if start is not None:
@@ -598,8 +696,9 @@ def _write_pattern(
     version: int,
     allow_undetectable_readers: bool,
     time_granularity: Optional[int],
+    sync: bool = True,
 ) -> Dict[str, Any]:
-    """One pattern record (packet P38; ``ztsStorePattern``, ``zsrtpa6``, ``zsitsi6``)."""
+    """One pattern record (``ztsStorePattern``, ``zsrtpa6``, ``zsitsi6``)."""
     if quality is not None or notes is not None:
         raise ValueError(
             "HEC stores no quality or notes in a pattern record (ztsStorePattern); pass neither"
@@ -641,15 +740,15 @@ def _write_pattern(
             _refuse_tz(start, "start")
             if to_hec_seconds(start) != origin:
                 raise ValueError(
-                    "a regular pattern is positional: its first value is at 01JAN3000 00:00 "
-                    "(P25); pass no start="
+                    "a regular pattern is positional: its first value is at 01JAN3000 00:00"
+                    "; pass no start="
                 )
         if times is not None:
             given = _times_array(times)
             if len(given) != n or int(given[0]) != origin:
                 raise ValueError(
                     "a regular pattern is positional: times= must be the reader's, one per "
-                    "value from 01JAN3000 00:00 (P25); pass no times="
+                    "value from 01JAN3000 00:00; pass no times="
                 )
             if (np.diff(given) <= 0).any():
                 raise ValueError("pattern times must be strictly ascending")
@@ -658,6 +757,7 @@ def _write_pattern(
         str(Path(os.fspath(dss_file))), pathname, vals, units, data_type, times=t,
         time_zone=time_zone, precision=prec, time_granularity=time_granularity,
         version=int(version), allow_undetectable_readers=bool(allow_undetectable_readers),
+        sync=bool(sync),
     )
     _warn_old_scheme(report, dss_file)
     return dict(report)
@@ -697,6 +797,7 @@ def _write_irregular(
     raw: bool,
     allow_undetectable_readers: bool,
     time_granularity: Optional[int],
+    sync: bool = True,
 ) -> Dict[str, Any]:
     if start is not None:
         raise ValueError("irregular (IR-) series take times= (one per value), not start=")
@@ -732,6 +833,7 @@ def _write_irregular(
         _precision(precision),
         time_granularity,
         bool(allow_undetectable_readers),
+        sync=bool(sync),
     )
     if report.get("readers_undetected"):
         warnings.warn(
@@ -777,8 +879,9 @@ def _write_timeseries6(
     raw: bool,
     allow_undetectable_readers: bool,
     time_granularity: Optional[int] = None,
+    sync: bool = True,
 ) -> Dict[str, Any]:
-    """DSS6 branch of :func:`write_timeseries` (packet P22). Uses the shared helpers of
+    """DSS6 branch of :func:`write_timeseries`. Uses the shared helpers of
     the DSS7 writers (``_values_array``, ``_times_array`` with its numeric-time and NaT
     refusals, ``_quality_array``, ``_precision``, ``_is_irregular``)."""
     if time_granularity is not None:
@@ -815,7 +918,7 @@ def _write_timeseries6(
             raise ValueError(f"{len(t)} times for {n} values")
         report = _native.write_its6(
             path, pathname, t, vals, units, data_type, q, "replace",
-            bool(allow_undetectable_readers),
+            bool(allow_undetectable_readers), sync=bool(sync),
         )
     else:
         if (start is None) == (times is None):
@@ -839,7 +942,7 @@ def _write_timeseries6(
             start_s = to_hec_seconds(start)
         report = _native.write_rts6(
             path, pathname, start_s, vals, units, data_type, q, None, prec,
-            bool(allow_undetectable_readers),
+            bool(allow_undetectable_readers), sync=bool(sync),
         )
     # DSS6 files before 6-M (and so every file whose readers cannot be detected, before
     # 6-K) are refused, so report["readers_undetected"] is always False here.

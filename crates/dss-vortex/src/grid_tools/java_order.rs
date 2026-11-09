@@ -4,8 +4,8 @@
 //! iterates it to build the list `Normalizer.normalize` sums in `f32`. A float sum depends on its
 //! order, so reproducing Vortex's bits needs Vortex's order: the set's, not time order.
 //!
-//! Targets JDK 21 (Vortex 1.1.0, D41). Clean-room public-API experiments on JDK 17
-//! and 21 established the spread, sizing and insertion rules (P59/P59b reports).
+//! Targets JDK 21 (Vortex 1.1.0). Clean-room public-API experiments on JDK 17
+//! and 21 established the spread, sizing and insertion rules.
 //! The initial table is the smallest power of two >= 16 holding the collection length
 //! at load 0.75, including duplicates. Bins iterate by index, then insertion order.
 //! Insertion of a ninth distinct name into a bin grows tables below 64 bins. At 64
@@ -171,9 +171,9 @@ mod tests {
         }
     }
 
-    /// Black-box equivalence with the JDK (P59): 20,000 seeded random lists, the same as
-    /// `evidence/P59/scripts/P59JavaHashSetOrder.java`, whose hash Java
-    /// 21.0.9+10 prints. The production model uses that runtime's table sizing.
+    /// Black-box equivalence with the JDK: 20,000 seeded random lists, generated as Java's
+    /// public API generates them; their hash under Java 21.0.9+10 is the constant asserted below. The production model uses that runtime's
+    /// table sizing.
     #[test]
     fn hash_set_order_equals_java_black_box() {
         const PATH: &[u8] = b"/ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_ ";

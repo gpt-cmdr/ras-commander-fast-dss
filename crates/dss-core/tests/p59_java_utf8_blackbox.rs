@@ -1,8 +1,7 @@
 //! `decode_utf8_replacing` against Java's own UTF-8 decoder with replacement, black-box
-//! (packet P59, the clean-room reimplementation).
+//! (the clean-room reimplementation).
 //!
-//! The pinned hashes are printed by
-//! `evidence/P59/scripts/P59JavaUtf8BlackBox.java`, which runs
+//! The pinned hashes were computed with Java's
 //! `new String(bytes, StandardCharsets.UTF_8)` on the same byte strings; Java 17.0.11+9
 //! (the HMS 4.13 JRE Monolith runs on) and 17.0.20.1+1 print the same values. Each hash
 //! is FNV-1a 64 over every string's UTF-16 code units (little-endian) followed by FF FF.

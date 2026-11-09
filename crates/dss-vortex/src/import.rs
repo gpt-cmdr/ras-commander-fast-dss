@@ -1,8 +1,8 @@
 //! The gridded importer: sources to warp to units to DSS, one frame at a time.
 //!
 //! Sources, Vortex 1.1.0: `io/BatchImporter.getDataReaders`, `io/ImportableUnit.process`,
-//! `geo/GeographicProcessor`, `geo/VectorUtils.getEnvelope`. No Java runs here; Vortex is a test
-//! oracle only (`oracle/vortex/run_import.py`).
+//! `geo/GeographicProcessor`, `geo/VectorUtils.getEnvelope`. No Java runs here; Vortex is used
+//! only as a test oracle.
 //!
 //! A run has two phases. **Planning** reads every input's metadata and decides every record before
 //! a cell is decoded: pathnames, windows, units, data types, placement, the warp, and the writer's
@@ -112,7 +112,7 @@ pub trait GridSource {
     fn grid(&self, variable: &str, step: usize) -> Result<SourceGridDef, VortexError>;
     /// Decode one step.
     fn frame(&self, variable: &str, step: usize) -> Result<GridFrame, VortexError>;
-    /// Take only part of the source (P49): a box, a time range, or the cells a destination envelope
+    /// Take only part of the source: a box, a time range, or the cells a destination envelope
     /// needs. Called once a variable is chosen and before its steps are counted, in planning and
     /// again in writing. A source that cannot select refuses a stated box or time range, and
     /// ignores the envelope, which the warp applies anyway.
@@ -150,7 +150,7 @@ pub trait GridSource {
     }
 }
 
-/// What of a source a run reads (P49). `bbox` and `times` are the caller's; the rest is the
+/// What of a source a run reads. `bbox` and `times` are the caller's; the rest is the
 /// request's own destination, from which a source may work out the cells the warp needs.
 #[derive(Debug, Clone, Default)]
 pub struct SourceSelection {

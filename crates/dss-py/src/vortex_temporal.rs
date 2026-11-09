@@ -1,4 +1,4 @@
-//! Bindings for the gridded time tools (`dss_vortex::temporal`, packet P52). The public API is
+//! Bindings for the gridded time tools (`dss_vortex::temporal`). The public API is
 //! `python/ras_commander_fast_dss/gridded/_temporal.py`; this module moves data and maps errors.
 //!
 //! Runs release the GIL, as other writes do here. A progress callback takes it for its call only.

@@ -1,4 +1,4 @@
-//! Bindings for the grid tools (`dss_vortex::grid_tools`, packet P53). The public API is
+//! Bindings for the grid tools (`dss_vortex::grid_tools`). The public API is
 //! `python/ras_commander_fast_dss/gridded/_tools.py`; this module moves data and maps errors, with
 //! the importer's error classes. Tools run with the GIL released.
 

@@ -1,7 +1,7 @@
-"""``import_gridded(window_rule="accumulation:<duration>")`` through the public API (packet P46c).
+"""``import_gridded(window_rule="accumulation:<duration>")`` through the public API.
 
 Inputs are the formula-made MRMS message in ``fixtures/public/vortex_p46``, with its parameter patched.
-Expected stamps are literals. Real samples, Vortex and HEC's readers are in ``oracle/vortex/run_window.py``.
+Expected stamps are literals. These tests do not run Vortex or HEC's readers.
 """
 
 import struct
@@ -191,7 +191,7 @@ def test_a_raising_callback_reports_the_record_with_its_window(tmp_path):
     assert [r["pathname"] for r in e.value.completed] == ["/SHG/P46C/PRECIPITATION/14JUN2024:0100/15JUN2024:0100/CI/"]
     assert e.value.completed[0]["accumulation_stated_by"] == "variable"
 
-# Review of 8a545c6. Real bytes are in ``oracle/vortex/run_window.py refusals``.
+# Refusals, on patched copies of the fixture.
 def flash(tmp_path, name, number):
     b = bytearray(FIXTURE.read_bytes())
     at = 16

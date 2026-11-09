@@ -206,7 +206,7 @@ fn random_unit_strings_give_steps_or_a_typed_error() {
 }
 
 #[test]
-fn the_reviews_seconds_field_is_a_typed_error() {
+fn oversized_seconds_field_is_a_typed_error() {
     let error = run(
         b"hours since 2000-01-01 00:00:999999999999999999999999999999",
         None,

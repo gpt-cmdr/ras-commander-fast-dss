@@ -136,7 +136,7 @@ fn modern_header(
     } else {
         srs_definition.clone()
     };
-    // P34 F2: Monolith fills an AlbersInfo from the stored WKT
+    // Monolith fills an AlbersInfo from the stored WKT
     // (GridStructContainer.returnGridInfo -> setAlbersSpatialReferenceInfo).
     let albers =
         (grid_type == grid::GridType::Albers).then(|| grid::albers_from_wkt(&srs_definition));

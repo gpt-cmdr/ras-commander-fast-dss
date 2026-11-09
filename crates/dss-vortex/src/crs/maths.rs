@@ -2,12 +2,12 @@
 //! `VORTEX_DECISIONS_20261101.md`). Platform libm and the UCRT differ, so nothing under `crs/`
 //! may use `f64::sin` and friends; `tests/crs_maths_gate.rs` enforces that.
 //!
-//! This is the narrow interface P43 needs, over P44a's portable module (`crate::maths`). What
-//! that gives against PROJ 7.2.0, and what remains, is in P43's report.
+//! This is the narrow interface the CRS code needs, over the portable module (`crate::maths`).
+//! `tests/crs_transform.rs` checks the result against PROJ 7.2.0 bits.
 //!
-//! There is deliberately no platform path here. Evidence runs with host maths copy this crate
-//! outside the workspace and replace this file (`oracle/vortex/crs_evidence.py`), so no feature
-//! or flag can bring it into a wheel.
+//! There is deliberately no platform path here: host maths can be compared only by replacing this
+//! file in a copy of the crate outside the workspace, so no feature or flag can bring it into a
+//! wheel.
 
 use crate::maths;
 

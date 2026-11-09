@@ -1,6 +1,6 @@
 //! DSS6 catalog and time-series reads on the public fixtures committed in
 //! `fixtures/public/`, so DSS6 coverage runs in CI. Expected counts come from the
-//! P02 Monolith catalogs and the P08b Monolith comparison (P08b report §2 A1).
+//! HEC Monolith catalogs and record reads of the same files.
 
 use dss_core::dss6::{Dss6File, TsReadOptions};
 use std::path::PathBuf;
@@ -92,7 +92,7 @@ fn public_dss6_catalogs_and_ts_records_decode() {
 
 #[test]
 fn synthetic_hec_written_dss6_decodes() {
-    // Written by HEC Monolith (oracle/monolith/SynthMonolith.java): calendar intervals,
+    // Written by HEC Monolith through its Java API: calendar intervals,
     // offsets, weekly, quality, IR-MONTH and a pseudo-regular ~1DAY dataset.
     let f = Dss6File::open(fixture("synth6.dss")).unwrap();
     let cat = f.catalog().unwrap();

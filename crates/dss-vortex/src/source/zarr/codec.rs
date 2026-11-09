@@ -234,7 +234,7 @@ pub(super) fn compressor_of(
         "gzip" => Ok(Compressor::Gzip),
         "blosc" => Err(refused(
             what,
-            "its chunks are compressed with blosc, which is C and is not in this build (D40). \
+            "its chunks are compressed with blosc, which is C and is not in this build. \
              Decode it in Python and pass the arrays, or rewrite the store with zstd",
         )),
         other => Err(refused(

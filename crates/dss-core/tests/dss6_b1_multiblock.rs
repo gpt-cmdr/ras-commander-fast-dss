@@ -1,13 +1,13 @@
-//! Regression for P09a defect B1 (packet P09c): a DSS6 dataset whose blocks disagree in
+//! Regression for defect B1: a DSS6 dataset whose blocks disagree in
 //! units, data type or time zone reports the LAST block it reads, as HEC does.
 //!
 //! HEC re-reads the internal header for every block (`zrrtsi.f`, `zritsi6.f`), so the
-//! values left in the caller's arguments are the last block's. P09a found this on the
-//! private corpus file g54; these tests need no external data.
+//! values left in the caller's arguments are the last block's. The case was found on a
+//! private HEC-written DSS6 test file; these tests need no external data.
 //!
-//! - `fixtures/public/b1_multiblock6.dss` is written by HEC Monolith 3.3.27
-//!   (`oracle/synth_b1.py`). `oracle/read_b1_monolith.py` reads it back with Monolith;
-//!   those answers are the expected values below (`evidence/P09c`).
+//! - `fixtures/public/b1_multiblock6.dss` is written by HEC Monolith 3.3.27 through its
+//!   Java API; what Monolith returns when it reads the file back are the expected values
+//!   below.
 //! - A second file is built in memory by `dss6_ts_support` (no HEC software) so the
 //!   header rule is also covered when the fixture is absent.
 
@@ -197,7 +197,7 @@ fn check_headers<S: ReadAt>(f: &Dss6File<S>) {
 }
 
 /// Counts and stamps HEC Monolith 3.3.27 returns for the same requests on the committed
-/// fixture (`evidence/P09c/monolith_b1_read.json`).
+/// fixture, recorded once and written out below.
 fn check_monolith_numbers<S: ReadAt>(f: &Dss6File<S>) {
     let first_last = |s: &dss_core::TimeSeries| (s.times[0], *s.times.last().unwrap());
     let w = f

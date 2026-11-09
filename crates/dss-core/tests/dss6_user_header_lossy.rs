@@ -1,14 +1,14 @@
-//! DSS6 user-header text that is invalid UTF-8 (packet P31).
+//! DSS6 user-header text that is invalid UTF-8 (`docs/format/dss6.md` §14.2).
 //!
-//! Maintainer decision (2026-10-30): "use UTF-8". Text that is neither standard nor Java
+//! Rule: decode as UTF-8. Text that is neither standard nor Java
 //! modified UTF-8 decodes as UTF-8 with each malformed sequence replaced by one U+FFFD,
 //! exactly as Java's own decoder does (`new String(bytes, StandardCharsets.UTF_8)`,
-//! `dss_core::decode_utf8_replacing`); the encoding is `"utf-8-replaced"`. P28 decoded
-//! such text as whole-text Latin-1.
+//! `dss_core::decode_utf8_replacing`); the encoding is `"utf-8-replaced"`. Earlier engines
+//! decoded such text as whole-text Latin-1.
 //!
 //! `fixtures/public/synthetic_userheader_lossy6.dss` was written by HEC Monolith 3.3.27
-//! through heclib `ZSRTSX` (`Heclib.zsrtsx`, which stores the IUHEAD words as given) with
-//! `evidence/P31/scripts/P31Utf8.java`. It is not regenerated here;
+//! through heclib `ZSRTSX` (`Heclib.zsrtsx`, which stores the IUHEAD words as given). It is
+//! not regenerated here;
 //! its SHA-256 is checked by `tests/python/test_user_header_lossy.py`. Every header ends
 //! in a NUL inside the stored words, so Monolith does not over-read.
 //!
@@ -16,7 +16,7 @@
 //! bytes (after the NUL cut and the trailing-blank trim). The Monolith texts are
 //! `TimeSeriesContainer.supplementalInfo` from a fresh `HecTimeSeries` read of a fresh
 //! copy (hash unchanged): HotSpot `NewStringUTF` never gives U+FFFD and drops characters
-//! (P31 REPORT §1), so they are pinned in an ignored test only.
+//! (see `fixture_text_equals_monolith`), so they are pinned in an ignored test only.
 
 use dss_core::dss6::Dss6File;
 use dss_core::location::Location;
@@ -183,14 +183,14 @@ fn fixture_text_follows_java() {
     }
 }
 
-/// P31 finding (REPORT §1): Monolith reads DSS6 user-header text with JNI `NewStringUTF`;
+/// Monolith reads DSS6 user-header text with JNI `NewStringUTF`;
 /// HotSpot (`utf8.cpp` `UTF8::next`, `UTF8::unicode_length`) turns each bad byte into its
 /// Latin-1 character, never U+FFFD, and sizes the string by its non-continuation bytes,
 /// so it drops characters at the end, and it also splits valid 4-byte UTF-8. The engine
 /// follows the maintainer's "use UTF-8" decision instead. Compared after removing
-/// Monolith's trailing blanks, which the engine trims (P26).
+/// Monolith's trailing blanks, which the engine trims (`docs/format/dss6.md` §14.2).
 #[test]
-#[ignore = "P31 finding: Monolith's NewStringUTF gives Latin-1 per bad byte, no U+FFFD, and truncates; the engine does not copy that loss"]
+#[ignore = "Monolith's NewStringUTF gives Latin-1 per bad byte, no U+FFFD, and truncates; the engine does not copy that loss"]
 fn fixture_text_equals_monolith() {
     let f = open();
     for &(case, _, _, mono) in CASES {
@@ -200,7 +200,7 @@ fn fixture_text_equals_monolith() {
     }
 }
 
-/// Recorded P31 Monolith output for the public fixture; expectations are data, not a JNI model.
+/// Recorded Monolith output for the public fixture; expectations are data, not a JNI model.
 #[test]
 fn monolith_texts_match_recorded_run() {
     let recorded = include_str!("data/p59b_monolith.tsv");
@@ -219,8 +219,8 @@ fn monolith_texts_match_recorded_run() {
 }
 
 /// `decode_utf8_replacing` equals Java 17 `new String(bytes, UTF_8)` on every byte string
-/// of length 1-5 over 20 edge bytes (3,368,420 strings). The hash is from
-/// `evidence/P31/scripts/P31JavaUtf8.java` on Java 17.0.11+9 (the
+/// of length 1-5 over 20 edge bytes (3,368,420 strings). The hash was computed with
+/// Java's `new String(bytes, UTF_8)` on Java 17.0.11+9 (the
 /// HMS 4.13 JRE Monolith runs on) and 17.0.20.1+1; both print the same value.
 #[test]
 fn java_decoder_exhaustive() {

@@ -1,8 +1,8 @@
-//! DSS7 paired-data store (packet P23): the full-record branch of
+//! DSS7 paired-data store: the full-record branch of
 //! `Public/zpdStore.c:zpdStore()` (`boolStoreEntire`, storage flag 0: the arrays' own
 //! width, lines 688-725), then `DssInterface/v6and7/zwrite.c:zwrite()` →
 //! `Internal/zwriteInternal.c:zwriteInternal()` → `zwriteNew()` / `zwriteExisting()`,
-//! committed with P20's transaction order (P20 §4) through [`Engine::commit_areas`].
+//! committed with the transaction order of `dss7.md` §6.4 through [`Engine::commit_areas`].
 //! Paths relative to `heclib/heclib_c/src/` of `hec-dss` tag `7-IU-15`.
 //!
 //! Record areas (`zpdStore()` lines 736-818):
@@ -59,7 +59,7 @@ pub(crate) fn pathname_is_elev_pd(path: &[u8]) -> (bool, bool) {
     (a, b)
 }
 
-/// P23 review M1: the unit rule shared by both versions. `zpdStore()` lines 324-647
+/// The unit rule shared by both versions. `zpdStore()` lines 324-647
 /// (DSS7) and `ZSPDI6` lines 106-306 (DSS6) read an elevation-side unit containing `|` as
 /// a unit specification (`U=<unit>|V=<datum>`; `getCurrentVerticalDatum()`,
 /// `verticalDatum.c` lines 1442-1495; `crack_unit_spec`, `zspdi6.f` lines 187-196): the
@@ -153,13 +153,14 @@ pub(crate) fn plan_pd(input: &PdInput) -> Result<PdPlan, WriteError> {
             first: (0, 0),
             last: (0, 0),
             total_expanded: 0,
+            copy_out: false,
         },
         elev,
     })
 }
 
 impl Engine<'_> {
-    /// The existing record, if any, and the refusals for it (P23 spec §2).
+    /// The existing record, if any, and the refusals for it.
     fn prepare_pd(&self, plan: &PdPlan) -> Result<Prepared, WriteError> {
         let found = self.lookup_for_write(&plan.path)?;
         if let Some(r) = &found {
@@ -187,13 +188,13 @@ impl Engine<'_> {
 }
 
 impl Engine<'_> {
-    /// P23 review M1. `zpdStore()` lines 400-424 read the record's location
+    /// `zpdStore()` lines 400-424 read the record's location
     /// (`/A/B/Location Info////`, `zlocationRetrieve()`) and, when its supplemental text
     /// holds `verticalDatumInfo` (`VERTICAL_DATUM_INFO_USER_HEADER_PARAM`), pass it to
     /// `processStorageVdis()` (lines 425-455), which can refuse the store
     /// (`VERTICAL_DATUM_ERROR`) or set an offset that shifts the values (lines 456-495).
     /// That branch is not ported: an ELEV record whose location carries vertical-datum
-    /// information is refused. (heclib 7-JA probes `p23hec elevfx`/`elevspec`: with a feet
+    /// information is refused. (Observed with HEC's C library 7-JA: with a feet
     /// unit it stored the values unshifted; with a unit it does not recognise as feet or
     /// meters it returned -200536400 and stored nothing.) Without such a location the
     /// branch leaves values and units unchanged, which the writer reproduces word for word.
@@ -219,7 +220,7 @@ impl Engine<'_> {
     }
 }
 
-/// Store one paired-data record (one transaction, P20 §4).
+/// Store one paired-data record (one transaction, `dss7.md` §6.4).
 pub(crate) fn write_pd_planned(
     file: &File,
     plan: &PdPlan,

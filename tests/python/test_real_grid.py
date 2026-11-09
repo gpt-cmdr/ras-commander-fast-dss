@@ -1,7 +1,7 @@
-"""Real HEC-written grids (P34): engine values, metadata and CRS against HEC Monolith.
+"""Real HEC-written grids: engine values, metadata and CRS against HEC Monolith.
 
 ``fixtures/public/real_grid6.dss`` (DSS6) and ``real_grid7.dss`` (DSS7) were written by
-HEC Monolith 3.3.27 (``evidence/P34/scripts/GridP34.java``):
+HEC Monolith 3.3.27 through its Java API:
 
 - five real records copied unchanged from public USACE samples: three SHG Albers
   PER-CUM precipitation grids from the HEC-RAS 7.0 example project
@@ -153,7 +153,7 @@ def ras_commander_grid_dict(path, pathname):
     }
 
 
-REF_SHA256 = "9213105448d535a9c3c953b74e56674ea41a1f276310b0b196c427cd62615d0b"
+REF_SHA256 = "7ccd74cca490a961a283e86ae1164f96936f3a3fea800d6dd257b2451d59ed1f"
 
 
 def test_reference_json_sha256():
@@ -225,7 +225,7 @@ def _albers_params(rec):
 ALBERS = [p for p in RECORDS if "albers" in p.values[1]]
 
 
-# P34 F2: modern (-100) Albers parameters are parsed from the stored WKT, as Monolith's
+# Modern (-100) Albers parameters are parsed from the stored WKT, as Monolith's
 # GridStructContainer.setAlbersSpatialReferenceInfo does; legacy ones are as stored.
 @pytest.mark.parametrize("name,rec", ALBERS)
 def test_albers_parameters_match_monolith(name, rec):
@@ -238,7 +238,7 @@ def test_albers_parameters_match_monolith(name, rec):
 
 
 def _null_zero(p):
-    # Monolith writes -100 HRAP/Albers grids with null value 0.0 (P34 F1); the records
+    # Monolith writes -100 HRAP/Albers grids with null value 0.0; the records
     # holding 0.0 cells (stored minimum 0.0) are the ones the old rule got wrong.
     rec = p.values[1]
     return (
@@ -248,7 +248,7 @@ def _null_zero(p):
     )
 
 
-# P34 F1: null_value is a missing marker for specified grids only, as in Monolith.
+# null_value is a missing marker for specified grids only, as in Monolith.
 @pytest.mark.parametrize("name,rec", RECORDS)
 def test_missing_cells_match_monolith(name, rec):
     g = dss.read_grid(fixture_path(name), rec["pathname"])  # missing="nan"
@@ -275,7 +275,7 @@ def test_grid_missing_mask_null_value_rule():
     assert grid_missing_mask(v, 0.0, "albers").tolist() == [False, False, True, True, False]
     assert grid_missing_mask(v, 0.0, "hrap").tolist() == [False, False, True, True, False]
     assert grid_missing_mask(v, -9999.0, "specified").tolist() == [False, True, True, True, False]
-    # grid_type unknown: the null value applies (the rule before P34).
+    # grid_type unknown: the null value applies (the earlier rule).
     assert grid_missing_mask(v, 0.0).tolist() == [True, False, True, True, False]
 
 

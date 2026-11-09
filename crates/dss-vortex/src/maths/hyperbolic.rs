@@ -1,7 +1,7 @@
 #![allow(clippy::excessive_precision)]
 //! `sinh` and `asinh`, the two functions PROJ's exact Transverse Mercator adds to the value path
 //! (`tmerc.cpp` `exact_e_inv` and `exact_e_fwd`). Identified against the reference by black-box
-//! comparison, as the rest of this module was; see the P53b report.
+//! comparison, as the rest of this module was; `tests/maths_tm.rs` checks them.
 //!
 //! `sinh` is AOCL-LibM `src/ref/sinh.c` (BSD-3-Clause; see `NOTICE`), with the two polynomials'
 //! multiply-adds contracted into fused steps and the reconstruction fused as written below.

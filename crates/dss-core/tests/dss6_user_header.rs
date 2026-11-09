@@ -1,6 +1,6 @@
-//! DSS6 time-series user headers (packet P26) on `fixtures/public/synthetic_userheader6.dss`,
-//! written by HEC Monolith 3.3.27 (`evidence/P26/scripts/UhMonolith.java`).
-//! Expected texts are what Monolith returns for the same reads (P26 REPORT §4).
+//! DSS6 time-series user headers on `fixtures/public/synthetic_userheader6.dss`,
+//! written by HEC Monolith 3.3.27 through its Java API.
+//! Expected texts are what Monolith returns for the same reads.
 
 use dss_core::dss6::{DatasetOptions, Dss6File, TimeWindow};
 use dss_core::user_header::{
@@ -171,7 +171,7 @@ fn irregular_window_ending_in_absent_block_has_no_header() {
 fn regular_window_ending_in_absent_block_keeps_last_found() {
     // Unlike irregular data (zreadx6 NUHEAD = 0), zrrtsi.f lines 345-349 leave IUHEAD
     // alone for an absent block, so a regular window running into the missing March
-    // block still reports February. Monolith agrees (P26 REPORT §4, request w5).
+    // block still reports February. Monolith agrees.
     let f = open();
     let opts = DatasetOptions {
         window: Some(TimeWindow::new(

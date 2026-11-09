@@ -1,6 +1,6 @@
-//! Re-check reproducers, built at test time so that nothing large is committed. Each once ended the
+//! Reproducers of crafted files, built at test time so that nothing large is committed. Each once ended the
 //! process under a 128 MiB limit, or took it nearly there. Same shapes as
-//! `oracle/vortex/make_nc_hostile.py` makes with h5py and the re-check's hand-built generators.
+//! files made with h5py and by hand.
 #![allow(dead_code)]
 
 const UNDEFINED: [u8; 8] = [0xFF; 8];

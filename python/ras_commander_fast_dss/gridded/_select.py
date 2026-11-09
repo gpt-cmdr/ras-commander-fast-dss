@@ -1,4 +1,4 @@
-"""What of a source to read: a box and a time range (packet P49). They select from a Zarr store."""
+"""What of a source to read: a box and a time range. They select from a Zarr store."""
 
 from __future__ import annotations
 

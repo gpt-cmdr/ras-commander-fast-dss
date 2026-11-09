@@ -203,7 +203,7 @@ fn the_budget_lowers_workers_and_then_refuses(data: &[f32]) {
     ));
 }
 
-// usize::MAX is what the review's probe asked for. Without the cap this starts a thread per row
+// usize::MAX is the extreme request. Without the cap this starts a thread per row
 // and panics when the OS refuses one.
 fn a_huge_thread_count_is_capped(data: &[f32]) {
     let want = bits(&warp(&spec(Method::Near, 1), data).unwrap());

@@ -1,13 +1,12 @@
 # DSS6 file format
 
-Packet P05. This spec comes from HEC's MIT-licensed `hec-dss` source, `master` branch,
+This spec comes from HEC's MIT-licensed `hec-dss` source, `master` branch,
 commit `283185bd8610ed2c4c11a597c9c202678e965498`. The Fortran library version string
 in that tree is `6-YO` (`heclib_f/src/zinit6.f:ZBKDAT` line 855). Paths below are
 relative to `hec-dss/heclib/`. A citation looks like `file:ROUTINE` or `file:ROUTINE
 lines`. Text marked **[UNVERIFIED]** is inferred and needs a check from the list in
 §12. Text marked **[VERIFIED-CORPUS]** was confirmed against HEC Monolith, raw bytes, or
-corpus files by the packet named next to it (P08b, P10, P11; reports in
-the engine's private qualification evidence).
+files of a private test corpus; those files are not part of this repository.
 
 Reader/writer tags used in tables:
 
@@ -17,8 +16,7 @@ Reader/writer tags used in tables:
 
 The source rules were checked read-only against 34 public local DSS6 files (HEC-DSSVue
 `sample.dss`, the HEC-HMS 3.3–4.13 sample zips, and the RasExamples Muncie, BaldEagle,
-and BaldEagleCrkMulti2D files), covering versions `6-JE` to `6-YN`. Results are in
-the engine's private qualification evidence (P05).
+and BaldEagleCrkMulti2D files), covering versions `6-JE` to `6-YN`.
 
 ---
 
@@ -70,7 +68,7 @@ byte offsets.
 - On the last record, `zptrec6` writes `JEOFFL = -9630` into the word at address
   `KFSIZE` and zeroes the rest of that record (`heclib_f/src/zptrec6.f:ZPTREC6` lines
   197-210; `zinit6.f:ZINIT6` lines 311-313).
-  **Readers must not require this flag.** The P07 corpus run found the word at `KFSIZE` is 0
+  **Readers must not require this flag.** A corpus survey found the word at `KFSIZE` is 0
   in 242 of 1,851 DSS6 files, including 4 public HMS 4.3 samples (`castro`, `river_bend`,
   `tenk` 6-QF; `hrap` 6-QE). It is usually, not always, `-9630`.
 - Physical file length = `ceil(KFSIZE/127) * 512` bytes. All 34 surveyed files match,
@@ -100,7 +98,7 @@ byte offsets.
   doubles are stored as little-endian 8-byte values (`zopen6Int.f:ZOPEN6INT` lines
   542-556; `heclib_f/src/zdswap6.f:ZDSWAP6`). In a little-endian file, the double is
   the 8 bytes of the two logical words in order: the low-order word comes first.
-- All 9,657 DSS6 corpus files are little-endian (`00_corpus/SUMMARY.md`). Big-endian
+- All 9,657 DSS6 files of the private test corpus are little-endian. Big-endian
   support can be "detect and reject" (see §12, item O4).
 
 ### 1.5 Character packing
@@ -194,7 +192,7 @@ with `NDSS = NVERS = 1`, `NDATE = NTIME = NPASS = NTAG = NPROG = 2`, and `NMXPRT
 | 50 | 200 | 2 | `KFPASS` | file password (encoded) | W (0 in all samples) |
 | 52 | 208 | 2 | `KMXPRT` | maximum length of pathname parts A..F, **one byte each** (bytes 1..6; 7..8 unused) | I (catalog formatting; `heclib_f/src/zcat6.f:ZCAT6` lines 102-110) |
 | 54 | 216 | 1 | `KCOLL` | 1 if the file holds collection records | I |
-| 55 | 220 | 14 | `KRES` | reserved (zero in all samples). Words 67/68 hold the native writer's in-progress marker during a write and are 0 afterwards (§9.3, P22) | W (marker) |
+| 55 | 220 | 14 | `KRES` | reserved (zero in all samples). Words 67/68 hold the native writer's in-progress marker during a write and are 0 afterwards (§9.3) | W (marker) |
 
 `KEY2` (IFLTAB only, not on disk) follows, so `NPERM = KEY2 - KPERM = 69`
 (`zinit6.f` lines 566-572).
@@ -218,7 +216,7 @@ before `6-M` (`6-KE`, `6-LD`).
 **Reading the header (R).** Read record 1 → words 0..68. Check `ZDSS`, a version that
 starts with `6-`, `KTABLE ∈ {1,2}` (else check for byte swap), `KFSIZE > 0` (or
 `-1357`, which means read-only with an estimated size), `KBNSIZ ≥ 13`, `KHASH ≥ 1`,
-and `1 ≤ KAFBIN < KFSIZE`. Also (P07 §4 item 3):
+and `1 ≤ KAFBIN < KFSIZE`. Also:
 
 - `KBNSIZ ≤ 127`, because HEC's bin buffer is `IPNBIN(NBSIZE+4)`
   (`heclib_f/src/headers/zdssiz.h` line 8).
@@ -249,7 +247,7 @@ These steps follow `zcheck6.f:ZCHECK6`:
    The source is subtle: `strcpy(CHPATH(ICOLL+3:IBAR),'XXXXXX')` (line 33) writes into a
    7-character slot that includes the bar. Line 34 then restores the bar from
    `CPATH(IBAR:)`, leaving the 6 X's described above. There are no collections in the
-   corpus (P07 corpus run), so §12 O12 stays open.
+   surveyed corpus, so §12 O12 stays open.
 
 ### 4.2 Hash function (`zhash6`)
 
@@ -312,20 +310,20 @@ next record (`zopen6Int.f:ZOPEN6INT` lines 410-427 for type 1 and 435-451 for ty
 **At open, HEC finds the lock record from the header, not from `KAFBIN`**
 (`zopen6Int.f:ZOPEN6INT` lines 280-287): address `KHASH+NPERM+1` (or `NPERM+1` when
 `KTABLE` is 2), converted with `zgetrw6` and rounded up to the next record unless it
-falls on word 1. The P07 reader uses HEC's rule and warns if `KAFBIN` is not after the
+falls on word 1. The native reader uses HEC's rule and warns if `KAFBIN` is not after the
 lock record.
 
 So in practice the **lock record is the record just before `KAFBIN`**, in every corpus
-file (P07 corpus run). This was
+file surveyed. This was
 verified on every sample (castro: lock record 3 at byte 1024, first bin at record 4;
 Muncie: lock record 18 at byte 8704). In samples written at version `6-K` or later,
 the lock record contains only garbage, and no live address points into it. In the
 `6-JE` sample it contains about 190 bytes of garbage, and still nothing points into
 it (§12, item O6).
 
-**Pre-`6-K` files: the lock record can hold live bins [VERIFIED-CORPUS, P08b §3 item 2].**
+**Pre-`6-K` files: the lock record can hold live bins [VERIFIED-CORPUS].**
 "Nothing points into it" holds for the loose files surveyed, but not for every file. One
-`6-EA` file (census O21 file, a zip member) has `KAFBIN` inside the lock record, and HEC
+`6-EA` file (the §12 O21 file, a zip member) has `KAFBIN` inside the lock record, and HEC
 reads that record normally (`zgtrec6.f:ZGTREC6` lines 122-157). Readers must not exclude
 the lock record for files before `6-K`. The `dss-core` reader was fixed accordingly
 (`dss6/mod.rs`).
@@ -395,9 +393,9 @@ re-mark), `heclib_f/src/zundel6.f:ZUNDEL6` line 65 (-1 on undelete)):
 4. Confirm the match in the info block (§5): flag -9753, the same pathname, and the
    same length (`zrdinf6.f:ZRDINF6` lines 56-62).
 
-**How lookup reads status codes** (P07 §4 item 4). `zcheck6` subtracts 10 from any
+**How lookup reads status codes**. `zcheck6` subtracts 10 from any
 status above 10 before comparing, so statuses 11–14 compare as 1–4
-(`zcheck6.f:ZCHECK6` lines 255-260). Status 0 ends the bin (line 252). The P07 reader
+(`zcheck6.f:ZCHECK6` lines 255-260). Status 0 ends the bin (line 252). The native reader
 also stops the bin at any status ≤ 0 other than -1; HEC would misparse such a value.
 
 ---
@@ -416,7 +414,7 @@ from the info address, with `P` the number of pathname words. All were verified.
 | 1 | `KISTAT` | status: same codes as the bin, plus **-1 = relocated** (data now elsewhere) | R (validate) |
 | 2 | `KINPAT` | pathname length in characters | R |
 | 3 .. 2+P | `KIPATH` | pathname | R |
-| 3+P, 4+P | `KIPASS` | record password (encoded); 0 in all samples | R (nonzero means HEC denies access, `zrdinf6.f` lines 64-73). **HEC checks only the first password word (`KIPASS` word 1), and only when the file version's third character is `E` or later** **[VERIFIED-CORPUS, P08b §3 item 3]** |
+| 3+P, 4+P | `KIPASS` | record password (encoded); 0 in all samples | R (nonzero means HEC denies access, `zrdinf6.f` lines 64-73). **HEC checks only the first password word (`KIPASS` word 1), and only when the file version's third character is `E` or later** **[VERIFIED-CORPUS]** |
 | 5+P | `KIADAT` | data address | R |
 | 6+P | `KINDAT` | data length in words (as stored) | R |
 | 7+P | `KILNDA` | logical number of values (uncompressed; for RTS the value count of the block) | R (TS) |
@@ -459,7 +457,7 @@ lines 576-603; written `heclib_f/src/zsrtsi6.f:ZSRTSI6` lines 871-887):
 | 1 | time offset in minutes (`IOFSET`) |
 | 2-3 | units, 8 characters |
 | 4-5 | data type, 8 characters (`INST-VAL`, `PER-AVER`, `PER-CUM`, ...) |
-| 6 | time-zone offset (`IWTZONE`; -1 = not set), **in minutes, west negative**: -480 for `GMT-08:00` and `PST8PDT` **[VERIFIED-CORPUS, P08b §3 item 4; O14 closed]** |
+| 6 | time-zone offset (`IWTZONE`; -1 = not set), **in minutes, west negative**: -480 for `GMT-08:00` and `PST8PDT` **[VERIFIED-CORPUS; O14 closed]** |
 | 7-12 | time-zone name, 24 characters (only 7-9, 12 characters, when `KINIHE = 9`) |
 | 13-18 | coordinates, 3 × `REAL*8` |
 | 19-24 | coordinate descriptors, 6 integers |
@@ -478,14 +476,14 @@ Observed lengths: 5 (older writers: offset, units, and type only), 9, and 24.
 | 5 | pseudo-regular interval in minutes (`INTLPS`) |
 | 6-7 | units |
 | 8-9 | data type |
-| 10 | time-zone offset (`dss-core` decodes it like RTS word 6, minutes with west negative; P08b §3 item 4 states the rule for "the time-zone word" and gives no ITS-specific evidence) |
+| 10 | time-zone offset (`dss-core` decodes it like RTS word 6, minutes with west negative; the corpus check established the rule for the RTS time-zone word and gave no ITS-specific evidence) |
 | 11-16 | time-zone name, 24 characters (11-13 when `KINIHE = 13`) |
 | 17-22 | coordinates, 3 × `REAL*8` |
 | 23-28 | coordinate descriptors |
 
 **Paired data (200/205)** (`heclib_f/src/zrpdi6.f:ZRPDI6` lines 171-200;
-`DssInterface/v6and7/zpdRetrieve6.c:zpdRetrieve6()`). **[VERIFIED-CORPUS, P10 §4]**
-against Monolith on 1,302 golden records and 1,494 corpus records (the one difference is
+`DssInterface/v6and7/zpdRetrieve6.c:zpdRetrieve6()`). **[VERIFIED-CORPUS]**
+against Monolith on 1,302 records of private HEC-written test files and 1,494 other corpus records (the one difference is
 the label trim noted below); decoded without error on 403,000 sampled corpus records.
 
 Internal header (1-based words):
@@ -538,7 +536,7 @@ Other:
 info block internal header is the Java `GridInfoFlat` int array (classes `GridInfoFlat`,
 `HrapInfoFlat`, `AlbersInfoFlat` and `SpecifiedGridInfoFlat`, inspected from the pinned
 HEC Monolith 3.3.27 jar). Ints are zero-based
-**[VERIFIED-CORPUS, P11 §Format-document corrections; decoded on 14 golden fixtures with
+**[VERIFIED-CORPUS; decoded on 14 private test files with
 bit-for-bit matches on 7,784 grids against Monolith, and on 57,487 loose-corpus grids
 with 0 errors]**:
 
@@ -554,7 +552,7 @@ with 0 errors]**:
 | 63..74 (Albers) | datum; 12-byte units; six projection f32s; cell-zero x/y |
 | 63 onward (Specified) | version; name word count + string; definition type; definition word count + string; x0/y0/null; time-zone word count + string; offset; interval/timestamp flags |
 
-Rules that go with the table (P11):
+Rules that go with the table:
 
 - Some ints are reinterpreted as `f32`; strings are word-counted (the 63-int base and fixed
   20-slot tables come from `GridInfoFlat`; variable strings from `SpecifiedGridInfoFlat`).
@@ -565,8 +563,8 @@ Rules that go with the table (P11):
 - The first-int byte size can be **stale**: DSS6 specified grids (type 430) store 296 while
   the actual internal-header transfer is longer (`SpecifiedGridInfoFlat` variable fields are
   populated after the constructor sets the size). The real header length (`KINIHE`) is
-  authoritative; bound every variable string independently. All 127 records of one golden
-  fixture and 1,680 grids in one loose file show this.
+  authoritative; bound every variable string independently. All 127 records of one private
+  test file and 1,680 grids in one loose file show this.
 - Missing values follow Java heclib: legacy ZLIB values `<= -1e38` become the undefined
   marker (`DataCompression.zuncompress`); specified null markers and HRAP/Albers values
   outside the stored min/max are normalized too; PRECIP_2_BYTE missing runs decode to the
@@ -575,9 +573,9 @@ Rules that go with the table (P11):
 - Albers WKT: the header stores no WKT. Monolith reports the SHG WKT or `""` from ints
   63..74 (datum 2, `isMeters` units, the six SHG parameters, cell-zero origin 0/0); the
   units are the bytes before the first NUL with trailing blanks kept. See the `dss7.md`
-  §5.2 Albers SRS rule **[VERIFIED-ORACLE, P13]**.
+  §5.2 Albers SRS rule **[VERIFIED-ORACLE]**.
 
-- **Writing (P24, `dss6::write::write_grid6`)** **[VERIFIED-ORACLE, P24]**. HEC Monolith
+- **Writing (`dss6::write::write_grid6`)** **[VERIFIED-ORACLE]**. HEC Monolith
   3.3.27 `GriddedData.storeGriddedData` (DSS6 branch) builds the record and stores it with
   `Heclib.zwritx` (`javaHeclib/src/Hec_zwritx.c` -> `DssInterface/v6and7/zwritex.c` ->
   `zwritex6.f`):
@@ -586,7 +584,7 @@ Rules that go with the table (P11):
     the grid-info size 124 (`GridInfo.<init>`, subclass constructors);
   - ints 4/5 are `HecTime.value()` minutes of the D/E times; an unset `HecTime` stores
     -2147483647 (`UNDEFINED_TIME`, `headers/heclibDate.h`), which Monolith writes for
-    grids without times and reports as no time (the reader treats it so since P24);
+    grids without times and reports as no time (the reader treats it so);
   - strings are NUL-padded (`Heclib.StringHol`): units, HRAP data source and Albers units
     in three ints; specified strings `ceil(len/4)` words after a word count;
   - statistics are taken first, then -FLT_MAX cells become the null value (-1.0E30, or
@@ -596,7 +594,7 @@ Rules that go with the table (P11):
     specified 1.0 and 0.0). PRECIP_2_BYTE: `DataCompression.compress`, two codes per int
     with the first in the **high** half-word (the Windows swap at offsets 824-881; the
     reader swaps back); a run of exactly 16000·k cells ends with a zero-length run, which
-    Java's `uncompress` accepts (the reader does too since P24);
+    Java's `uncompress` accepts (the reader does too);
   - with no compression chosen, Monolith picks PRECIP_2_BYTE for a version-1 grid (HRAP,
     Albers) whose D-E period is exactly one hour and whose type is PER-CUM, else ZLIB
     (offsets 288-363); its automatic scale/base (offsets 425-528) can leave the maximum
@@ -743,9 +741,9 @@ Block selection by interval (`heclib_f/src/zbegdt6.f:ZBEGDT6` lines 11-57; stepp
 | ≥ 525600 | century | 01JAN of year `(y/100)*100` |
 
 **Files before `6-I` (`KVERNO < 67300`) put 15- and 30-minute data in daily blocks**
-**[VERIFIED-CORPUS, P08b §3 item 1; O21 closed]**. HEC master has this rule commented out
+**[VERIFIED-CORPUS; O21 closed]**. HEC master has this rule commented out
 (`zbegdt6.f` lines 27-32, comment "1990 time frame"), but Monolith 3.3.27 still applies it;
-verified on a `6-EA` file (census O21 file). The reader implements it as
+verified on a `6-EA` file (the §12 O21 file). The reader implements it as
 `regular_block_for(interval, kverno)`; with the rule applied, counts and stamps match
 Monolith exactly (30 dataset requests on that file). Writers must never write 15- or
 30-minute daily blocks. For weekly data, see the weekly rules below.
@@ -760,17 +758,17 @@ Monolith exactly (30 dataset requests on that file). Writers must never write 15
   line 43; the first value without a time window is `INCTIM(+1 interval)` from the D
   date, `zrrtsi.f` lines 200-206). So the first `1HOUR` value of a January block is
   01JAN 01:00, and the last is 31JAN 24:00. Calendar intervals (`1MON`, `1YEAR`,
-  semi-month, tri-month) step through `INCTIM` **[VERIFIED-CORPUS, P08b §3 item 6, O19
+  semi-month, tri-month) step through `INCTIM` **[VERIFIED-CORPUS; O19
   closed]**: the port matches HEC-written data (a `6-YO` file written with Monolith: 1MON,
   1YEAR, SEMI-MONTH, TRI-MONTH, stamps included).
-- **Weekly data (`1WEEK`)** **[VERIFIED-CORPUS, P08b §3 item 6]**: value positions count
+- **Weekly data (`1WEEK`)** **[VERIFIED-CORPUS]**: value positions count
   from the Sunday on or before the D date. A block holds `NOPERS` values between aligned
   bases: HEC wrote 522 values for a 2000-2009 block, and our 522 values equal `KILNDA` and
   match Monolith's first 522 values and stamps. Monolith's reader appends one extra missing
   slot (523 values), a Monolith quirk. Align weekly blocks to Sunday when writing.
 - Internal header word 1 (`IOFSET`) is the offset in minutes of the data from the
   standard interval boundaries (`zrrtsi.f` line 576; `heclib_f/src/zofset6.f`).
-  **Offsets and windows** **[VERIFIED-CORPUS, P08b §3 item 5, A1/A3]**:
+  **Offsets and windows** **[VERIFIED-CORPUS]**:
   - A value's standard stamp is `INCTIM(k)` from the block start; its actual stamp is
     `standard - interval + offset` (`ZOFSET6` with `IFLAG` 2).
   - A time window selects **standard** stamps, and both ends move up to the next standard
@@ -784,14 +782,14 @@ Monolith exactly (30 dataset requests on that file). Writers must never write 15
   - Verified against 19,451 of 19,451 records (stamps included) in six corpus files with
     offsets and time zones, and against HEC-written 1DAY (480-minute offset) and 1HOUR
     (30-minute offset) records. Corpus offsets seen: 15, 30, 90, 360 and 480 minutes.
-- **Multi-block header selection (`zrrtsi.f:ZRRTSI6`)** **[VERIFIED-CORPUS, P09c]**:
+- **Multi-block header selection (`zrrtsi.f:ZRRTSI6`)** **[VERIFIED-CORPUS]**:
   when a dataset read spans several blocks, the **units, data type and time zone** (and the
   time offset above) are taken from the **last block read**, not the first block and not the
-  last block in the file. P09c fixture `b1_multiblock6.dss` (`6-YO`, written by Monolith
+  last block in the file. The public fixture `b1_multiblock6.dss` (`6-YO`, written by Monolith
   3.3.27; three month blocks, each with different units/type headers) gives, for regular and
   irregular datasets alike: whole dataset -> last block's header; a Jan+Feb window -> Feb's;
-  a Jan-only window -> Jan's. Monolith agrees on the irregular path too (first corpus
-  evidence for it; `P09a/REPORT.md` §9 item 1 had none).
+  a Jan-only window -> Jan's. Monolith agrees on the irregular path too (the first
+  confirmation of that path).
 
 Data area encodings (`zrrtsb6.f:ZRRTSB6` lines 71-221; sizes `zsrtsi6.f` lines
 678-691):
@@ -823,11 +821,11 @@ Compression is never combined with quality or doubles (`zsrtsi6.f` lines 600-605
   belongs to the block.
 - `KINDAT` can exceed `NPAIRS*IMULT`, because blocks are allocated with spare capacity
   (internal header word 1; growth `KITSIN`, minimum block size `KITS*`, `zirbeg6.f`).
-  Read only `NPAIRS` groups. **[VERIFIED-CORPUS, P08b A2]** Spare words exist (g16, g42,
+  Read only `NPAIRS` groups. **[VERIFIED-CORPUS]** Spare words exist (two private test files and
   `synth6`) and are never read; counts agree with `NPAIRS` for every irregular record in
   the corpus run (O18).
 
-### 7.3b Writing patterns and pseudo-regular data (P38)
+### 7.3b Writing patterns and pseudo-regular data
 
 A regular pattern (`zsrtpa6.f`, type 101) has a 5-word internal header and `KBLNDA` n. An irregular pattern (`zsitsi6.f` lines 213-266, type 111) has the 28-word header, n pairs and `KBLNDA` 2n. Both are floats only. HEC pattern writes omit the end-of-file flag that the native transaction writes; that word is a documented difference.
 
@@ -835,16 +833,16 @@ A pseudo-regular write is an irregular write to the `IR-*` block `zpseudorts6.f`
 
 ### 7.3a Pattern time series (101/111)
 
-**[VERIFIED-CORPUS, P08b §3 item 8; P08b A1/A4, O20]**
+**[VERIFIED-CORPUS; O20]**
 
 - The value count is `KINDAT` (`zrrtpa6` calls `zreadx6`); `KILNDA` is stale for patterns.
 - Patterns carry an RTS internal header but never compression or quality.
 - Their D part starts with `TS-` and holds no dates (§10), so no real times exist. Values
-  match Monolith (443 type-101 records in the golden set); Monolith's pattern times are
-  overflowed year-2571 values (P02), so times were not compared. `dss-core` uses
+  match Monolith (443 type-101 records in the private test files); Monolith's pattern times are
+  overflowed year-2571 values, so times were not compared. `dss-core` uses
   k x interval counted from the epoch, a convention still to be agreed with the DSS7
-  pattern-time convention (P08b §1, §7).
-- **Time origin (P25, decided).** `dss-core` (`dss6/ts.rs`) still returns regular pattern
+  pattern-time convention.
+- **Time origin (decided).** `dss-core` (`dss6/ts.rs`) still returns regular pattern
   times as k × interval seconds from the HEC epoch, with k = 1, 2, …: a 15MIN pattern gives
   900, 1800, …. The Python layer (`ras_commander_fast_dss._file._normalize`) subtracts one interval
   and adds 01JAN3000 00:00. So the public first value is at 01JAN3000 00:00, then one per
@@ -855,13 +853,13 @@ A pseudo-regular write is an irregular write to the `IR-*` block `zpseudorts6.f`
   so the word is unreliable. heclib's Fortran reader resets it to 0 (`zrrtsi.f` line 183).
   heclib C applies it as `internalHeader[0] * SECS_IN_1_MINUTE` when the header has at least
   5 words (`Public/ztsRetrievePattern.c` lines 279-288). That is why pydsstools and Monolith
-  `startTime` show g27 at 00:03. dss-core **never applies** it.
+  `startTime` show a private HEC-written test file's patterns at 00:03. dss-core **never applies** it.
   `Dss6TsRecord::pattern_origin()` reports word 0 × 60 (source
   `dss6_internal_header_word0_minutes`) and the heclib C start: 01JAN3000 00:00 plus one
   interval, moved to the word-0 offset when that is nonzero.
   - Irregular DSS6 patterns (111) keep the irregular header, where word 0 is the capacity
     (`zritsi6.f`), so they report no stored offset.
-  - **HEC writes 111 (P33).** `zsitsi6.f` lines 213-266 store a `TS-` D part irregular
+  - **HEC writes 111.** `zsitsi6.f` lines 213-266 store a `TS-` D part irregular
     write as (minutes, value) pairs, with `IIHEAD(3)` the block start day.
     `zritsi6.f` lines 154-184 read the pairs back, and so does the engine. Monolith 3.3.27
     and HEC-DSSVue (Monolith 5.0.1, heclib 7-IU) read through
@@ -870,10 +868,10 @@ A pseudo-regular write is an irregular write to the `IR-*` block `zpseudorts6.f`
     return twice the value count with values that do not match those written, in the tested
     builds. The engine follows the Fortran reader (`synthetic_hec_variants6.dss`,
     `/P33/IPAT/...`). The native DSS6 writer's type 111 records are therefore written but not
-    confirmed by a HEC reader (P38).
-  - Checked on g27, g33, g57, g61 and HMS 4.13 `castro/Current.dss`: 1,769 records; first
+    confirmed by a HEC reader.
+  - Checked on four private DSS6 test files and HMS 4.13 `castro/Current.dss`: 1,769 records; first
     times are unchanged.
-  - Of these, 11 brief records plus 4 castro records were compared with the oracles. All
+  - Of these, 11 selected records plus 4 castro records were compared with the oracles. All
     match pydsstools 3.1.0, and all match Monolith `startTime` modulo 2^32 (Monolith's
     DSS6 pattern times overflow 32 bits).
 
@@ -882,11 +880,11 @@ A pseudo-regular write is an irregular write to the `IR-*` block `zpseudorts6.f`
 - `-901.0` means missing. `-902.0` means "no data / record not present". HEC fills
   absent blocks with -902 on read (`zrrtsb6.f` lines 225-236; status checks in
   `zrrtsi.f` lines 617-651). Compressed data cannot represent -902: it decodes as -901
-  (§8). **Stored `-902.0` also occurs on disk** (1,460 values in the g47 fixture, 2,320 in one
-  corpus file, and `sample.dss`), so it is not only HEC's fill for absent blocks; stored
-  `-FLT_MAX` also occurs (g34, g54) **[VERIFIED-CORPUS, P08b §3 item 9, A2]**. Readers
+  (§8). **Stored `-902.0` also occurs on disk** (1,460 values in one private test file, 2,320 in
+  another corpus file, and `sample.dss`), so it is not only HEC's fill for absent blocks; stored
+  `-FLT_MAX` also occurs (in two private test files) **[VERIFIED-CORPUS]**. Readers
   keep the stored bits and map all three markers at the binding boundary.
-- **All-missing regular blocks (P28, g54 triage).** HEC DSS6 reports "no data" for a
+- **All-missing regular blocks.** HEC DSS6 reports "no data" for a
   regular block whose values in the read window are all -901 or -902, although the
   block exists and is fully decoded. The source chain (DSS6 sources from hec-dss fork
   tag `7-IU-15`, commit `34ffe0c`, the release whose DSS6 code Monolith 3.3.27's
@@ -922,11 +920,11 @@ A pseudo-regular write is an irregular write to the `IR-*` block `zpseudorts6.f`
     all -FLT_MAX block as found; the Python layer still maps the values to NaN.
 
   Comparisons against Monolith count its -2 on such a block as an expected `no_data`
-  result, not a read error (P28 REPORT §4). Verified: all 542 Monolith -2 reads of g54
-  are such blocks (the engine returns the full `KILNDA` count, all raw -901), and on
+  result, not a read error. Verified: all 542 Monolith -2 reads of one private
+  HEC-written DSS6 test file are such blocks (the engine returns the full `KILNDA` count, all raw -901), and on
   `synthetic_all_missing6.dss` Monolith returns -2 for the RTS, RTS-with-quality, RTD,
   -901/-902 and all -902 blocks and reads the data block and the -FLT_MAX block.
-- **Opt-in refusal (P29, maintainer decision 2026-10-29).** `no_data="refuse"` (Python
+- **Opt-in refusal (maintainer decision 2026-10-29).** `no_data="refuse"` (Python
   `read_record`, `read_record_arrays`, `read_timeseries`, `read_arrays`,
   `ras_commander_fast_dss.read_timeseries`; Rust `TsReadOptions::no_data = NoDataPolicy::Refuse`,
   also inside `DatasetOptions::read`) applies HEC's rule; the default `"return"` /
@@ -936,7 +934,7 @@ A pseudo-regular write is an irregular write to the `IR-*` block `zpseudorts6.f`
      other type), not patterns (the `TS-` branch, lines 165-185, returns before line 618),
      not irregular data (`zritsi6.f` has no such status), not DSS7 (above). The catalog
      is unchanged. Catalog-index reads: Rust `Dss6File::read_ts_entry` honours the
-     option it is given (pinned by `read_ts_entry_follows_the_option`); the Python P16
+     option it is given (pinned by `read_ts_entry_follows_the_option`); the Python catalog-index
      route `DssFile.read_record_at` has no `no_data` keyword and always reads with
      `NoDataPolicy::Return`.
   2. **The test.** No value read is other than -901 or -902 (`zrrtsi.f` lines 618-649:
@@ -955,9 +953,8 @@ A pseudo-regular write is an irregular write to the `IR-*` block `zpseudorts6.f`
      the whole window passes the test does the read raise `DssNoDataError`, whatever
      `trim_missing` is. When no block of the window exists the read raises the plain
      not-found error (`ISTAT = 5`, lines 652-658); this includes a window whose only
-     stored block lies in the engine's one-period lookup padding. The brief proposed
-     treating each all-missing block as absent; the source does not, and Monolith agrees
-     (P29 REPORT §3).
+     stored block lies in the engine's one-period lookup padding. Treating each
+     all-missing block as absent was considered; the source does not, and Monolith agrees.
   5. **Engine-only paths.** `catalog_blocks` datasets and Python one-sided windows apply
      the same test to the values of the request before the trim.
   6. **Status mapping.** `ztsRetrieveReg6.c` lines 174-182 return early only for status
@@ -966,13 +963,13 @@ A pseudo-regular write is an irregular write to the `IR-*` block `zpseudorts6.f`
      exposed. `DssNoDataError` subclasses `DssPathnameNotFoundError` (Monolith's -2 is
      "not found"); its `status` is HEC's `ISTAT` 4.
 
-  Verified against Monolith 3.3.27 on fresh copies (hashes unchanged; P29 REPORT §3): with
+  Verified against Monolith 3.3.27 on fresh copies (hashes unchanged): with
   the option on, the engine's raise/return outcome equals Monolith's -2/0 on every regular
-  record of seven golden files (30,028 records; 891 refused) and both DSS6 fixtures
+  record of seven private test files (30,028 records; 891 refused) and both DSS6 fixtures
   (patterns and irregular records included), and on every whole-dataset and window read
   compared through `HecTimeSeries.read` except one trim difference that did not depend
-  on the option, resolved by P30 (next item).
-- **The dataset trim (P30, maintainer decision 2026-10-29, "Match HEC behavior").**
+  on the option, resolved by the trim rule (next item).
+- **The dataset trim (maintainer decision 2026-10-29, "Match HEC behavior").**
   `trim_missing` (Rust `DatasetOptions::trim_missing`, `dataset.rs` `trim_missing`;
   Python `trim_missing=True`, the default) removes leading and trailing values for which
   HEC's `zisMissingFloat` / `zisMissingDouble` is true, as `ztsTrim` does
@@ -986,27 +983,27 @@ A pseudo-regular write is an irregular write to the `IR-*` block `zpseudorts6.f`
   regular data only, so irregular datasets are not trimmed (the engine never trimmed
   them). The same test is used by the DSS7 trim (`dss7/ts.rs` `trim`), by the Python
   one-sided-window and pattern helper `_trim_missing` and by the profile helper
-  `_profile_slice`. The P29 `no_data` test (only -901/-902) and `trim_missing=False`
-  are unchanged. Verified against Monolith 3.3.27 `HecTimeSeries.read` on fresh copies
-  (P30 REPORT): it returns the single NaN of a block of -901 and one NaN, and keeps
+  `_profile_slice`. The `no_data` test above (only -901/-902) and `trim_missing=False`
+  are unchanged. Verified against Monolith 3.3.27 `HecTimeSeries.read` on fresh copies:
+  it returns the single NaN of a block of -901 and one NaN, and keeps
   leading and trailing NaN while trimming the -901/-902/-FLT_MAX around them (float and
   double blocks, across a trimmed block, windows); values, times and NaN positions equal
-  the engine's on 1,464/1,464 golden whole datasets (none of which stores a NaN).
+  the engine's on 1,464/1,464 whole datasets of private test files (none of which stores a NaN).
 - Quality flags are 32-bit integers. HEC may treat a protection bit in them
   (`heclib_f/src/ztstqp6.f`, `LQPBIT`) **[UNVERIFIED bit semantics]**.
-  P33: HEC writes and Monolith reads back flags with the sign bit and other high bits
+  HEC writes and Monolith reads back flags with the sign bit and other high bits
   set (`0x80000000`, `0x7fffffff`, -1, `0x40000011`) unchanged on types 100, 105, 110 and
   115 (`synthetic_hec_variants6.dss`); the engine returns the same words.
-- DSS6 has no notes (P33). The DSS6 store routines take no notes argument (`zsrtsc6.f`,
+- DSS6 has no notes. The DSS6 store routines take no notes argument (`zsrtsc6.f`,
   `zsitsi6.f`), and a Monolith `HecTimeSeries.write` of a container with `cnotes` and
   `inotes` into a DSS6 file stores the values and drops the notes (read back as null).
 - The DSS7-era vertical-datum metadata sits in the user header as key/value text
-  (`zrrtsi.f` lines 351-366, `Support/get_user_header_param.f`). That belongs to the
-  TS packet.
+  (`zrrtsi.f` lines 351-366, `Support/get_user_header_param.f`); §14 covers the user
+  header text.
 
 ### 7.5 HEC's whole-dataset range (`ztsends6`)
 
-**[VERIFIED-CORPUS, P08b §3 item 10 and A3]** A whole-dataset read through Monolith
+**[VERIFIED-CORPUS]** A whole-dataset read through Monolith
 (`HecDss.get(path, true)`, the call `RasDss` uses) gets its time range from `ztsends6`:
 
 - The range runs from the catalog's first to last D part.
@@ -1067,7 +1064,7 @@ and 5 is repeat + sig-digits.
 | 22 | `S` |
 | 23 | 16 |
 | 24 | section length 4 |
-| 25 | `ISIZE` for sig-digits: meant to be 2, but HEC writes the caller's stale argument (0, or 2 after a delta-high write; P33) and its reader ignores it |
+| 25 | `ISIZE` for sig-digits: meant to be 2, but HEC writes the caller's stale argument (0, or 2 after a delta-high write) and its reader ignores it |
 | 26 | `R` |
 | 27 | 16 |
 | 28 | section length, low byte |
@@ -1093,14 +1090,13 @@ Readers should check that the section letters fall at the positions `DHCHEK` der
    - **Delta (2):** value `v` = unsigned little-endian integer of `ISIZE` bytes, the
      `i`-th starting at byte `(i-1)*ISIZE + 1`. If `v = 2^(8*ISIZE) - 1`, the value is
      `-901.0`. Otherwise it is `BASE + v * 10^IPREC`, computed in `REAL*4` arithmetic
-     (`dudltr.f:DUDLTR` lines 121-144) **[VERIFIED-CORPUS, P08b §2 A1 and §3 item 7;
-     §12 O1 closed]**: the quantum `10^IPREC` is rounded once to `f32`, with no fused
-     multiply-add. All 39 golden compressed records are bit-exact (2 scheme 1, 3 scheme 2,
+     (`dudltr.f:DUDLTR` lines 121-144) **[VERIFIED-CORPUS; §12 O1 closed]**: the quantum `10^IPREC` is rounded once to `f32`, with no fused
+     multiply-add. All 39 compressed records in the private test files are bit-exact (2 scheme 1, 3 scheme 2,
      34 scheme 3). The delta value size must be 1-4 bytes in the decoder
-     **[RESOLVED, P17 §C.2]**: HEC writes only sizes 1 or 2 (`dcdltr.f` lines 195–215;
+     **[RESOLVED]**: HEC writes only sizes 1 or 2 (`dcdltr.f` lines 195–215;
      size 3 is commented out), which is what the header table states. HEC's decoder accepts
      1–6 (`dudltr.f` lines 35–45), but sizes 5–6 overflow its 32-bit work word, so the
-     native reader accepts 1–4. A writer (P22) emits only 1 or 2. The
+     native reader accepts 1–4. A writer emits only 1 or 2. The
      encoder rounds to `10^IPREC` and maps both -901 and -902 to all-ones
      (`dcdltr.f:DCDLTR` lines 93-120 and 280-306). Data length =
      `ceil(NR2*ISIZE/4)` words.
@@ -1110,7 +1106,7 @@ Readers should check that the section letters fall at the positions `DHCHEK` der
      `mant = c mod 1024`, and the value is `±mant × 10^(e-15)`. Codes 1002/1003 →
      ±1.0e-37, and 1004/1005 → ±1.0e+37. Any other code below 1024 leaves the value
      undefined **[UNVERIFIED; reject]**. Data length = `ceil(NR2*2/4)` words.
-     **[VERIFIED-HEC-WRITTEN, P33]**: 2,939 values in 7 scheme 4/5 records written by
+     **[VERIFIED-HEC-WRITTEN]**: 2,939 values in 7 scheme 4/5 records written by
      Monolith 3.3.27 (`Heclib.zsrtsx`, `JCOMP` 4/5) are bit-equal to heclib's `zrrtsx`
      decode, over every exponent the encoder keeps (`10^(e-15)` for `e` 1..31), both
      signs, the reserved codes, mantissas of two digits and mantissas that round to 1000.
@@ -1128,12 +1124,12 @@ Readers should check that the section letters fall at the positions `DHCHEK` der
 `dureal.f` decodes delta or sig-digits **in place** and then applies repeat
 (`dureal.f` lines 96-186). The result is the same as the procedure above. Of the
 locally available files, only one uses compression (`green_river.dss`, 30 records,
-schemes 1 and 3). Later corpus work (P08b) decoded scheme 2 (3 records) and scheme 3 (6
+schemes 1 and 3). Later corpus work decoded scheme 2 (3 records) and scheme 3 (6
 records) in a public `6-LA` file (`sample_vb.dss`), and only schemes 1, 2 and 3 occur; the
 sig-digit schemes 4/5 were not observed in any corpus file (§12 O2). HEC reads at most
 `KDCH = 300` compression-header words (`zdssdc.h`).
 
-**Which HEC writers compress (P33, hec-dss fork tag `7-IU-15`).** `zsrtsi6.f` lines 588-598
+**Which HEC writers compress (hec-dss fork tag `7-IU-15`).** `zsrtsi6.f` lines 588-598
 pick the scheme: an explicit `JCOMP > 0` from `zsrtsx`/`zsrtsxd`/`zsrtsi`; with `JCOMP = 0`
 the stored record's scheme, else the file default set by `zsetci6` for matching pathname
 parts. `zsrtsc6.f` line 31 sets `JCOMP = 0`, so `zsrtsc` (Monolith `HecTimeSeries.write`)
@@ -1141,12 +1137,12 @@ only compresses through a file default or an existing compressed record; Monolit
 no `zsetci`, but `Heclib.zsrtsx` passes `JCOMP` through (`javaHeclib/Hec_zsrtsx.c`).
 Compression is turned off for quality (`zsrtsi6.f` line 602), doubles (line 605), a block
 larger than `KSBUFF` (lines 608-613) or a result no shorter than the data (lines 852-861);
-schemes 3/5 fall back to 1 when the combination fails (lines 846-851). The P33 fixture
+schemes 3/5 fall back to 1 when the combination fails (lines 846-851). The public fixture
 `synthetic_hec_compress6.dss` holds all five schemes, a quality and a double record that
 asked for scheme 4 (stored uncompressed), and a scheme 4 block partly rewritten with
 `JCOMP = 0` (still scheme 4).
 
-**Default (P33).** The reader decodes schemes 4/5 by default (`TsReadOptions.allow_sig_digits
+**Default.** The reader decodes schemes 4/5 by default (`TsReadOptions.allow_sig_digits
 = true`); `false` refuses them as before. The S-section size byte (25) is not checked:
 `dhinit.f` line 130 stores the `ISIZE` argument, which `zsrtsi6.f` lines 825-832 set only
 for schemes 2/3, and `dureal.f` line 66 (`IBBYTE = IBGELM*ISIZE - ISIZE + 1`, 1 for the
@@ -1156,8 +1152,8 @@ for schemes 2/3, and `dureal.f` line 66 (`IBBYTE = IBGELM*ISIZE - ISIZE + 1`, 1 
 
 ## 9. Locking and write ordering
 
-This section supports "refuse to write to a file locked by HEC software". Lock
-detection belongs to a later packet; these are the facts it needs.
+This section supports "refuse to write to a file locked by HEC software". These are
+the facts lock detection needs.
 
 ### 9.1 HEC's lock protocol
 
@@ -1180,12 +1176,12 @@ Locks are byte-range locks on the **lock record** at byte `KLOCKB = (lock_record
 - On Windows the locks are **mandatory**: reading locked bytes fails with errno 13.
   HEC then reads the lock record from offset +12 onward (`zgtrec6.f` lines 141-157). A
   reader that never touches the lock record is unaffected. Normal records do not live
-  there (§4.4), but pre-`6-K` files can hold live bins in it (verified on a `6-EA` file,
-  P08b §3 item 2; §12 O6).
+  there (§4.4), but pre-`6-K` files can hold live bins in it (verified on a `6-EA` file;
+  §12 O6).
 - `KFSIZE = -1357` on disk while a program holds `zwlock6 'ON'`, or after it crashed in
   that state (§1.3).
 
-Proposed detection rule **[PROPOSED; lock packet to decide]**: before any write,
+Proposed detection rule **[PROPOSED]**: before any write,
 refuse (`DssLockedError`) if `KFSIZE = -1357`, or if a non-blocking lock attempt on
 the write word or the exclusive word fails. Also treat any read slot held by another
 process (a test lock on `KLOCKB+16+4k` fails) as "open in HEC software" and refuse,
@@ -1218,9 +1214,9 @@ lookup). Reads never take locks.
 - **Our rule** (data first, pointers last, never overwrite live data in place) yields
   files with the same layout. HEC readers rely only on the final pointers. The native ordering is §9.3.
 
-### 9.3 Native write ordering (P22)
+### 9.3 Native write ordering
 
-The `dss_core::dss6::write` writer (`packets/P22_dss6_ts_writer.md`) never
+The `dss_core::dss6::write` writer (`crates/dss-core/src/dss6/write/`) never
 overwrites a live record in place. Each time-series block is one transaction, applied in
 this order (`DSS6_STEP_ORDER`; every step is a fault-injection point):
 
@@ -1239,8 +1235,8 @@ this order (`DSS6_STEP_ORDER`; every step is a fault-injection point):
 **The marker.** `KRES` is "unused area - 14 words" (`zinit6.f` line 100; lines 566-569).
 HEC reads and writes the permanent section whole (`zrdprm6.f` line 51; `znwrit6.f` line
 216), so it keeps the marker: verified, HEC Monolith 3.3.27 writing to 36 interrupted
-files left words 67/68 as they were (P22 REPORT). The words are 0 in all 34 golden DSS6
-copies (`6-JE` to `6-YO`).
+files left words 67/68 as they were. The words are 0 in all 34 private DSS6
+test copies (`6-JE` to `6-YO`).
 
 **Reconciliation.** The next native write on a file whose marker is set retires the old
 copy of a rewrite once the live entry of its pathname names another info block (the
@@ -1252,14 +1248,19 @@ moves a pointer: an empty linked bin, an orphan record copy or an unused chained
 block (left by a crash between Chain and Counters) is valid DSS6 and is reused or
 ignored by HEC and by the writer.
 
-**When HEC writes first after an interrupted native write** (P22 crash test with
+**When HEC writes first after an interrupted native write** (crash tests with
 Monolith): every store succeeds and every record reads; until the next native write the
 counters can be one off (`KNRECS` one high after Counters/Link of a new record, `KHUSED`
 or `KBOVER` one high after Counters of a new bin). Reads and writes are unaffected, but
 HEC's check routines (`zckpnb6`, `zcklnk6`, `zckpat6`) count the `KNRECS` window as an
-error until the next native write. The crash model is process death; the
-writer flushes between steps, and every step that must be atomic is one `write` inside one
-512-byte record. Not power-loss safe.
+error until the next native write. The crash model is process death. With the default
+`sync: true` the writer flushes at the transaction's existing flush points: the record
+area together with the EOF flag (the Data step has no flush of its own), the allocation
+header, the chain word, the counters, the link, the publication, the retirement and the
+cleared marker; a step with nothing to write flushes nothing, and the write ends with one
+`sync_all`. `sync: false` (Python `sync=False`) keeps the order of the writes and the
+marker and gives up the flushes. Every step that must be atomic is one `write` inside one
+512-byte record. No power-loss claim is made in either mode.
 
 **Differences from HEC's stores** (deliberate): relocation instead of in-place rewrites
 (`KIUNUS` 0, `KDEAD` by HEC's relocation formula, `zowrit6.f` line 82); `KILNDA`/`KBLNDA`
@@ -1275,16 +1276,16 @@ once (`zsitsi6.f` lines 545/547); the pairs are converted to the new width (loop
 150-180, lines 550-583), but `IMULT` is computed from the stored width
 (`IF (LFILDOB) IMULT = IMULT + 1`, lines 615-616) and the type from the new one.
 Doubles into a float block are written two words per pair as type 115 (Monolith reads
-one value back; synthetic `/P22/I6/` in `evidence/P22/scripts/gen_ops.py`); floats into a
+one value back; found with a synthetic record written by Monolith); floats into a
 double block are written three words per pair as type 110 (Monolith reads three values
 with garbage bits). The native writer keeps or widens to double.
 
-**Also in the native writer** (P22 review): a write is built and validated in full before
+**Also in the native writer**: a write is built and validated in full before
 the first block is stored, so a refused write changes nothing; files with a record-tag
 scheme (`KTAGS` > 0) are refused; `KLWDAT`/`KLWTIM` are stamped as `zptrec6.f` lines
 279-283 stamp them.
 
-**Paired data (P23).** `zpdStore6.c` → `zspdi6.f:ZSPDI6` (`IPLAN` 0) → `zwritex6`; the
+**Paired data.** `zpdStore6.c` → `zspdi6.f:ZSPDI6` (`IPLAN` 0) → `zwritex6`; the
 native store is one record transaction in this order. Internal header words 1-3 `NORD`,
 `NCURVE`, `IHORIZ` (1 or 2), 4-11 the four 8-character strings, `NIHEAD` 11 or, with
 labels, `3·NCURVE+11` (12-character short labels) plus `NWDS` and the long labels when a
@@ -1292,11 +1293,11 @@ label is longer than 12 characters; data the ordinates then the curves; `KILNDA 
 `KIPREC` 10x+y or −1. `zpdStore6()` stores −1 unless `xprecision > 0` (lines 165-171), and
 Monolith 3.3.27 reads a stored 3 as `(3, 3)` and a stored 0 as `(-1, -1)`, where the C
 rule (`zpdRetrieve6.c` lines 129-136) gives `(0, 3)` and `(0, 0)`
-(`evidence/P23/prec_results.txt`); the native writer refuses an x precision of 0. Monolith's `PairedDataContainer` path always passes doubles
+(found by writing both values with Monolith and reading them back); the native writer refuses an x precision of 0. Monolith's `PairedDataContainer` path always passes doubles
 (`Hec_zpdStore.c`), and `zpdStore6()` picks the width from the array type, so
 `HecPairedData` writes DSS6 paired data as PDD (205) even for a float request; the float
-path is `Heclib.Hec_zspd` (`ZSPDI6` with REAL*4). Spec:
-`packets/P23_pd_writer.md`.
+path is `Heclib.Hec_zspd` (`ZSPDI6` with REAL*4). Writer:
+`crates/dss-core/src/dss6/write/pd.rs`.
 
 ---
 
@@ -1319,7 +1320,7 @@ path is `Heclib.Hec_zspd` (`ZSPDI6` with REAL*4). Spec:
 
 The DSS7 facts below come only from the key names and order in
 `heclib_c/src/Internal/zinit.c` and `heclib_c/src/Internal/zhash.c`. The authoritative
-description is `dss7.md` (P04), and those facts are marked as such.
+description is `dss7.md`, and those facts are marked as such.
 
 | Aspect | DSS6 (this document) | DSS7 (see `dss7.md`) |
 |---|---|---|
@@ -1355,36 +1356,36 @@ Implications for `dss-core`:
 
 ## 12. Open items for oracle/corpus verification
 
-Each item has a concrete check. "Corpus census" means a read-only stage-2 pass (P02)
-over `corpus_manifest.sqlite3`.
+Each item has a concrete check. "Corpus census" means a read-only pass over
+the private test corpus.
 
 | ID | Item | Check |
 |---|---|---|
-| O1 | **CLOSED (P08b).** Is the delta decode bit-exact (`REAL*4` `BASE + v*10.**IPREC`, where Fortran `10.**REAL(IPREC)` may differ from `powf`)? | Bit-exact on all 39 golden compressed records (2 scheme 1, 3 scheme 2, 34 scheme 3); quantum rounded once to f32, no FMA (§8) |
-| O2 | **Closed for HEC-written data (P33).** Scheme 2 observed and bit-exact (3 records, `6-LA`). Schemes 4 and 5 never observed in the corpus; written by Monolith 3.3.27 (`Heclib.zsrtsx`) and bit-equal to heclib's decode on 2,939 values (§8). `SD32R` codes below 1024 other than 1001-1005 are never written by `R2SD3` and stay rejected | Census `KICOMP` histogram: schemes 1, 2, 3 only. Schemes 4/5 decode by default since P33 |
+| O1 | **CLOSED.** Is the delta decode bit-exact (`REAL*4` `BASE + v*10.**IPREC`, where Fortran `10.**REAL(IPREC)` may differ from `powf`)? | Bit-exact on all 39 compressed records of the private test files (2 scheme 1, 3 scheme 2, 34 scheme 3); quantum rounded once to f32, no FMA (§8) |
+| O2 | **Closed for HEC-written data.** Scheme 2 observed and bit-exact (3 records, `6-LA`). Schemes 4 and 5 never observed in the corpus; written by Monolith 3.3.27 (`Heclib.zsrtsx`) and bit-equal to heclib's decode on 2,939 values (§8). `SD32R` codes below 1024 other than 1001-1005 are never written by `R2SD3` and stay rejected | Census `KICOMP` histogram: schemes 1, 2, 3 only. Schemes 4/5 decode by default |
 | O3 | Type-2 (`KTABLE = 2`) files: incidence, and `zplist6` (`nbin = KBNBLK`) versus `zcatfi6` (`nbin = KHASH`) | Census `KTABLE`. If any exist, compare the oracle catalog with both walks. If none, have the oracle create one (`zset 'STABLE'`) |
 | O4 | Byte-swapped (big-endian) files | Census `KTABLE > 10000` and the `byte_order` column; if zero, reject with a typed error |
 | O5 | `KBNSIZ` other than 127 in pre-`6-M` files (`6-JE`, `6-JF`, `6-KE`, `6-LD`) | Census `KBNSIZ` by version |
-| O6 | **CLOSED (P08b): the lock record can hold live bins before `6-K`.** The `6-EA` file has `KAFBIN` inside it and HEC reads it normally; the loose `6-JE`/`6-JF` files have nothing pointing into it (§4.4) | Readers must not exclude the lock record for files before `6-K`; fixed in `dss6/mod.rs` |
+| O6 | **CLOSED: the lock record can hold live bins before `6-K`.** The `6-EA` file has `KAFBIN` inside it and HEC reads it normally; the loose `6-JE`/`6-JF` files have nothing pointing into it (§4.4) | Readers must not exclude the lock record for files before `6-K`; fixed in `dss6/mod.rs` |
 | O7 | Short final record (508 bytes) | Census `size mod 512` by version; the reader must accept 0 or 508 |
 | O8 | Date fields: `*******` creation dates (sample.dss, Minimum_Facility), 2-digit years, NUL eighth byte | Census non-`DDMMMYY` values; informational only |
-| O9 | `KBLNDA` (bin) differs from `KILNDA` (info) in 148 records of a RasExamples `BaldEagle.dss`; PD `KILNDA` is stale. **PD part verified (P10 §3 A3/A4):** sample6 365 vs 62 stored words, castro 144 vs 20; stale in 10,161 of 403,000 sampled PD records; pattern `KILNDA` also stale (P08b) | Oracle-read those records and confirm the reader sizes data from the info block and the PD header (PD: from `NORD`/`NCURVE`; patterns: `KINDAT`) |
+| O9 | `KBLNDA` (bin) differs from `KILNDA` (info) in 148 records of a RasExamples `BaldEagle.dss`; PD `KILNDA` is stale. **PD part verified:** sample6 365 vs 62 stored words, castro 144 vs 20; stale in 10,161 of 403,000 sampled PD records; pattern `KILNDA` also stale | Oracle-read those records and confirm the reader sizes data from the info block and the PD header (PD: from `NORD`/`NCURVE`; patterns: `KINDAT`) |
 | O10 | `KIPREC` values such as 21 and 54 in old HMS files | Informational; confirm the oracle ignores them |
 | O11 | `KNRECS` versus live entries | Census: full walk count against `KNRECS`; list mismatches (0 of 34 locally) |
-| O12 | Collection hash mapping (`XXXXXX`, `strcpy` padding). The source reading is confirmed (§4.1 step 3), but the P07 corpus run found no collections | Find files with `KCOLL = 1`; verify `zhash6` on the mapped path equals `KBHASH` |
+| O12 | Collection hash mapping (`XXXXXX`, `strcpy` padding). The source reading is confirmed (§4.1 step 3), but the corpus survey found no collections | Find files with `KCOLL = 1`; verify `zhash6` on the mapped path equals `KBHASH` |
 | O13 | Double word order in files written on big-endian hosts before `6-O` | Only relevant if O4 finds swapped files |
-| O14 | **CLOSED (P08b).** RTS internal header word 6 / ITS word 10 (time-zone offset): minutes, west negative (-480 for `GMT-08:00` and `PST8PDT`; 612 records in 2 corpus files) | RTS verified against Monolith; ITS word 10 not separately evidenced (§5.2) |
-| O15 | Pseudo-regular display (`KBPINTL > 0`, `~` E part). P33: `~5MIN`, `~1HOUR`, `~1WEEK` and `~1YEAR` written by HEC (stored `IR-DAY`, `IR-MONTH`, `IR-DECADE`, `IR-CENTURY`, `zpseudorts6.f`) list and read as Monolith does (catalog, records, datasets, windows) | Census `KBPINTL`; compare the catalog with the oracle (which uses `LPSEUDO = true`) |
+| O14 | **CLOSED.** RTS internal header word 6 / ITS word 10 (time-zone offset): minutes, west negative (-480 for `GMT-08:00` and `PST8PDT`; 612 records in 2 corpus files) | RTS verified against Monolith; ITS word 10 not separately evidenced (§5.2) |
+| O15 | Pseudo-regular display (`KBPINTL > 0`, `~` E part). `~5MIN`, `~1HOUR`, `~1WEEK` and `~1YEAR` written by HEC (stored `IR-DAY`, `IR-MONTH`, `IR-DECADE`, `IR-CENTURY`, `zpseudorts6.f`) list and read as Monolith does (catalog, records, datasets, windows) | Census `KBPINTL`; compare the catalog with the oracle (which uses `LPSEUDO = true`) |
 | O16 | Handling `KFSIZE = -1357` | Census; reader opens read-only and treats the physical size as the bound |
-| O17 | Windows mandatory locks while HEC-RAS or DSSVue has the file open: confirm that header and bin reads succeed and that the lock test detects the holder | Lock-detection packet: hold a file in DSSVue, run reader and detector |
-| O18 | **Verified (P08b A2).** ITS `KINDAT` versus `NPAIRS*IMULT` slack, and values after `NPAIRS` | Spare words exist (g16, g42, `synth6`) and are never read; 111 slack records in the corpus run; counts agree with `NPAIRS` |
-| O19 | **CLOSED (P08b).** Calendar-interval RTS (`1MON`, semi-month, tri-month, `1YEAR`) value times | Match Monolith on HEC-written `synth6` (stamps included); weekly also verified (§7.2). Still synthetic-only: no calendar or pseudo-regular data in the corpus |
-| O20 | **CLOSED for values (P08b §3 item 8).** Pattern TS (101/111) layout: value count `KINDAT`, RTS internal header, no compression or quality (§7.3a) | Values match Monolith; times are a reader convention (Monolith's pattern times are overflowed) |
-| O21 | **CLOSED (P08b).** Very old 15/30-minute data in daily blocks: files before `6-I` (`KVERNO < 67300`) use daily blocks; Monolith 3.3.27 still applies the rule (§7.2) | Verified on a `6-EA` file: counts and stamps match once the rule is applied |
-| O22 | **CLOSED (P10).** PD label layout after word `3*NCURVE+11` | Short and long labels verified; see §5.2 |
+| O17 | Windows mandatory locks while HEC-RAS or DSSVue has the file open: confirm that header and bin reads succeed and that the lock test detects the holder | Hold a file open in DSSVue, then run the reader and the lock detector |
+| O18 | **Verified.** ITS `KINDAT` versus `NPAIRS*IMULT` slack, and values after `NPAIRS` | Spare words exist (two private test files and `synth6`) and are never read; 111 slack records in the corpus run; counts agree with `NPAIRS` |
+| O19 | **CLOSED.** Calendar-interval RTS (`1MON`, semi-month, tri-month, `1YEAR`) value times | Match Monolith on HEC-written `synth6` (stamps included); weekly also verified (§7.2). Still synthetic-only: no calendar or pseudo-regular data in the corpus |
+| O20 | **CLOSED for values.** Pattern TS (101/111) layout: value count `KINDAT`, RTS internal header, no compression or quality (§7.3a) | Values match Monolith; times are a reader convention (Monolith's pattern times are overflowed) |
+| O21 | **CLOSED.** Very old 15/30-minute data in daily blocks: files before `6-I` (`KVERNO < 67300`) use daily blocks; Monolith 3.3.27 still applies the rule (§7.2) | Verified on a `6-EA` file: counts and stamps match once the rule is applied |
+| O22 | **CLOSED.** PD label layout after word `3*NCURVE+11` | Short and long labels verified; see §5.2 |
 
 
-## 13. Location data in DSS6 (P15)
+## 13. Location data in DSS6
 
 DSS6 has **no location records**: record type 20 does not exist there, and
 `zlocationRetrieve()`/`zlocationStore()` return `INCOMPATIBLE_VERSION` for version 6
@@ -1403,18 +1404,18 @@ no location supplemental field in the internal header (the supplemental text com
 the user header, below). Paired data, grids and text carry no coordinates (`zspdi6.f`
 "coordinates" are curve ordinates).
 
-A dataset read without a D part spans several blocks, each with its own header. The Python layer returns a location for it only when every matching block stores the same coordinates and codes, and raises `DssLocationConflictError` otherwise (P15). The repository's synthetic DSS6 builder zeroes words 13-24 when no coordinates are given, as `zsrtsi6.f` lines 878-881 do.
+A dataset read without a D part spans several blocks, each with its own header. The Python layer returns a location for it only when every matching block stores the same coordinates and codes, and raises `DssLocationConflictError` otherwise. The repository's synthetic DSS6 builder zeroes words 13-24 when no coordinates are given, as `zsrtsi6.f` lines 878-881 do.
 
-**Supplemental text (P27).** Monolith's Java layer fills `supplementalInfo` of a DSS6 time
+**Supplemental text.** Monolith's Java layer fills `supplementalInfo` of a DSS6 time
 series from the record's user header (§14; `javaHeclib/src/Hec_ztsRetrieve.c`, "User
 header (supplemental)"). HEC's C library does not: `ztsRetrieveReg6.c` copies only the
 coordinates and codes into the location struct, and its supplemental text stays empty.
-The engine follows Monolith for the text only (P27; P15 had followed the C library):
+The engine follows Monolith for the text only (it had earlier followed the C library):
 
 | Item | Rule |
 |---|---|
-| `supplemental`, `supplemental_bytes` | The user-header text of the same record (§14.2-14.3): up to the first NUL, trailing blanks removed, then decoded by the same dss-core rule as `user_header_text` (UTF-8, else modified UTF-8, else UTF-8 with U+FFFD per malformed sequence; P28, P31). `supplemental_bytes` is undecoded. `None` when that text is empty |
-| `supplemental_encoding` | P28, P31: `"utf-8"`, `"modified-utf-8"` or `"utf-8-replaced"`, the decoding of `supplemental` (§14.2); `None` exactly when `supplemental` is `None`. DSS7 location text is always `"latin-1"` (unchanged) |
+| `supplemental`, `supplemental_bytes` | The user-header text of the same record (§14.2-14.3): up to the first NUL, trailing blanks removed, then decoded by the same dss-core rule as `user_header_text` (UTF-8, else modified UTF-8, else UTF-8 with U+FFFD per malformed sequence; §14.2). `supplemental_bytes` is undecoded. `None` when that text is empty |
+| `supplemental_encoding` | `"utf-8"`, `"modified-utf-8"` or `"utf-8-replaced"`, the decoding of `supplemental` (§14.2); `None` exactly when `supplemental` is `None`. DSS7 location text is always `"latin-1"` (unchanged) |
 | `supplemental_source` | `"dss6_user_header"`; `None` exactly when `supplemental` is `None`. DSS7 location records give `"dss7_location_record"` |
 | `supplemental_items`, `supplemental_vertical_datum` | From the text with the location rules (`parse_supplemental`, `find_supplemental_keyword`), as for DSS7. A `VerticalDatum:` item lands only in `supplemental_vertical_datum` |
 | Presence | Unchanged: a location exists only when a coordinate is non-zero (`LCOORDS`). Header text without coordinates gives no location (Monolith returns the text with zero coordinates) |
@@ -1422,36 +1423,35 @@ The engine follows Monolith for the text only (P27; P15 had followed the C libra
 | Dataset read (no D part, or a D part naming no stored block) | The block HEC reports for the whole dataset (§14.4): the last block by D-part date, as `DatasetIndex` orders blocks (types 100-119; a D part that is not a date sorts first). The location's `pathname` and text are that block's; its coordinates and codes equal every other block's (checked). Headers that differ between blocks are neither merged nor an error; only coordinates that differ raise `DssLocationConflictError` |
 | Not a window read | A location read always uses the whole-dataset rule. A D part that names an absent block (before, between or after the stored ones) gives the last stored block's text, also for irregular data, where a §14.4 window read ending in an absent block reports no header |
 
-The text is informational (decision D37): it may be stale or wrong, and a datum named in it
+The text is informational (maintainer decision): it may be stale or wrong, and a datum named in it
 is never applied to values or merged into the typed fields (§14.5).
 
-**Verification (P15):** `sample6.dss` (public), g21, g28 and g54: on the 1,293
+**Verification:** `sample6.dss` (public) and three private HEC-DSS6 test files: on the 1,293
 time-series records Monolith reads, presence of coordinates agrees on all of them, and the
 coordinate bits and all six codes are equal on the 883 that store coordinates (149 in
 sample6).
 
-**Verification (P27):** the same four files on disposable copies (hashes unchanged), with
+**Verification:** the same four files on disposable copies (hashes unchanged), with
 a fresh `HecTimeSeries` per record (§14.4 oracle note), which raises the reads to 3,412
-(542 g54 reads still fail in Monolith with status -2; P28 found all 542 are all-missing
+(542 reads of one private file still fail in Monolith with status -2; all 542 are all-missing
 blocks, HEC's expected "no data" result, §7.4). Coordinate presence agrees on all
 3,412, and coordinates and codes are equal on all 1,874 that store coordinates.
-Supplemental text agrees on 1,866 of the 1,874 (before P27: 1,676), counting Monolith's
-trailing blank padding as equal. The 8 remaining differences are all g54 and Monolith-side:
-6 over-reads past a header with no NUL and 2 non-ASCII decodes (§14.2-14.3). Counts are in
-P27 REPORT §4.
+Supplemental text agrees on 1,866 of the 1,874 (before the Monolith rule was adopted: 1,676), counting Monolith's
+trailing blank padding as equal. The 8 remaining differences are all in one private file and Monolith-side:
+6 over-reads past a header with no NUL and 2 non-ASCII decodes (§14.2-14.3).
 
-**Verification (P28):** after the UTF-8 decode (§14.2), on the same four files and fresh
+**Verification:** after the UTF-8 decode (§14.2), on the same four files and fresh
 copies, the 2 non-ASCII differences agree; only Monolith over-reads remain (7 in that run:
-the bytes past the array are heap content, so one record that agreed in P27's run
-over-read in P28's). Counts are in P28 REPORT §3.
-### 13.x Writing (P39)
+the bytes past the array are heap content, so one record that agreed in the earlier run
+over-read in this one).
+### 13.x Writing
 
 `write_location6` rewrites every live block of a dataset: coordinates and codes at 0-based
 internal-header words 12..24 (regular) or 16..28 (irregular), text in the user header
 (`stringToUserHeader()`: four bytes per word, zero filled; `KINUHE` and `KBNHEA` hold the word
-count). A native time-series rewrite deliberately keeps the stored user header, unlike `zsrtsi6.f` (P39 spec §4).
+count). A native time-series rewrite deliberately keeps the stored user header, unlike `zsrtsi6.f`.
 
-## 14. Time-series user header (P26)
+## 14. Time-series user header
 
 **In plain language.** A DSS6 time-series record can carry a *user header*: a small
 free-form text area that the program writing the record fills and HEC never checks.
@@ -1461,7 +1461,7 @@ VerticalDatum, HUC, Operator). Monolith shows the same text as a record's
 `supplementalInfo`; HEC's C library returns the words but does not turn them into a
 location's supplemental text. The text is informational: it may be stale or wrong, and
 a datum named in it is never applied to values or merged into typed location fields
-(decision D37).
+(maintainer decision).
 
 ### 14.1 Where it is stored
 
@@ -1485,12 +1485,12 @@ corpus header comes near that.
   (`zrrtsc6.f:ZRRTSC6` lines 86-92 and `zritsc6.f:ZRITSC6` lines 32-38, `CSUPP`).
 - There is no length in characters and no terminator rule on disk. The text ends at the
   first NUL byte, or at the end of the words. Records written by Monolith 3.3.27 to DSS6
-  and the g21 records are blank-padded to a whole word with no NUL; most g54 records end
-  in NUL bytes.
+  and the records of one private USGS-imported test file are blank-padded to a whole word
+  with no NUL; most records of another private test file end in NUL bytes.
 - No character set is recorded. **Decisions (maintainer): the text is "probably UTF-8"
-  (2026-10-28, P28), and invalid text is decoded as UTF-8 too ("use UTF-8",
-  2026-10-30, P31).** The text bytes, after the NUL cut and the trailing-blank trim
-  (§14.3), are decoded in this order (P28 review m5 added step 2; P31 replaced step 3):
+  (2026-10-28), and invalid text is decoded as UTF-8 too ("use UTF-8",
+  2026-10-30).** The text bytes, after the NUL cut and the trailing-blank trim
+  (§14.3), are decoded in this order:
   1. **standard UTF-8**, when the bytes are valid UTF-8 (`"utf-8"`);
   2. else **Java modified UTF-8**, when valid (`"modified-utf-8"`): what Java writes
      through JNI and `java.io.DataOutput.writeUTF`, which encodes a character outside the
@@ -1500,7 +1500,7 @@ corpus header comes near that.
   3. else **UTF-8 with replacement** (`"utf-8-replaced"`): valid sequences keep their
      characters and each malformed sequence becomes one U+FFFD, exactly as Java's own
      decoder does (`new String(bytes, StandardCharsets.UTF_8)` on Java 17). The engine's
-     decoder is a clean-room implementation (P59) written from the Unicode Standard
+     decoder is a clean-room implementation written from the Unicode Standard
      (chapter 3, Table 3-7 and the U+FFFD substitution of maximal subparts) and black-box
      tests of the JDK; no JDK source was consulted. That is the Unicode "maximal subpart" practice (`String::from_utf8_lossy`)
      except at an encoded surrogate: Java gives one U+FFFD for `ED A0-BF 80-BF` (and for
@@ -1510,7 +1510,7 @@ corpus header comes near that.
      containing `ED`). In this step a modified-UTF-8 surrogate pair or `C0 80` is not
      joined; each byte group is replaced as Java replaces it.
 
-  Before P31, step 3 was whole-text Latin-1. A multi-byte sequence cut by the NUL, by the
+  Earlier, step 3 was whole-text Latin-1. A multi-byte sequence cut by the NUL, by the
   end of the words or by the trailing-blank trim is invalid in both UTF-8 forms, so the
   text ends in one U+FFFD (the trim runs first, so the blanks are not part of the text).
   Rust: `user_header::decode_user_header_text`, `decode_utf8_replacing`,
@@ -1525,13 +1525,14 @@ corpus header comes near that.
 - Why: Monolith 3.3.27 hands the bytes to JNI `NewStringUTF`
   (`javaHeclib/src/jni_utility.c`, `hec_dss_jni_setStringField`, called for
   `supplementalInfo` from `javaHeclib/src/Hec_ztsRetrieve.c`, "User header
-  (supplemental)"), i.e. reads them as modified UTF-8. With P26's Latin-1 rule, the
+  (supplemental)"), i.e. reads them as modified UTF-8. With the earlier Latin-1 rule, the
   fixture's `Café` (stored by Monolith as `43 61 66 C3 83 C2 A9`, valid UTF-8 for
-  `CafÃ©`, which Monolith reads back) and the g54 records with byte pair `C3 BD` (`ý` in
-  UTF-8) disagreed with Monolith; with P28 they agree (§14.7). On the P28 fixture
+  `CafÃ©`, which Monolith reads back) and the private-file records with byte pair `C3 BD` (`ý` in
+  UTF-8) disagreed with Monolith; with UTF-8 they agree (§14.7). On the public fixture
+  `synthetic_userheader_utf8_6.dss`
   Monolith also reads the surrogate-pair header as U+1F30A and `C0 80` as U+0000, as the
   engine does.
-- **Monolith and invalid text (P31).** JNI defines `NewStringUTF` only for modified
+- **Monolith and invalid text.** JNI defines `NewStringUTF` only for modified
   UTF-8. HotSpot 17 (`prims/jni.cpp` `jni_NewStringUTF`, `classfile/javaClasses.cpp`
   `java_lang_String::create_from_str`, `utilities/utf8.cpp` `UTF8::unicode_length`,
   `UTF8::next` and `UTF8::convert_to_unicode`, openjdk/jdk17u `jdk-17.0.11+9`) never
@@ -1541,16 +1542,17 @@ corpus header comes near that.
   count of bytes that are not `10xxxxxx`. When a continuation byte is not consumed by a
   sequence the string is shorter than the text, so the last characters are dropped;
   valid 4-byte UTF-8 (`F0 9F 8C 8A`) also becomes `ð`, U+009F and the rest is lost. On
-  the P31 fixture (24 headers written by Monolith through heclib `ZSRTSX`), Monolith's
-  text equals HotSpot's rule in 24 of 24 and the engine's in 0 of 24 (P31 REPORT §3).
+  the public fixture `synthetic_userheader_lossy6.dss` (24 headers written by Monolith
+  through heclib `ZSRTSX`), Monolith's
+  text equals HotSpot's rule in 24 of 24 and the engine's in 0 of 24.
   The engine does not copy this loss: it follows the maintainer's UTF-8 decision, and
   the earlier "deliberate difference" note is withdrawn. No corpus header is invalid
-  UTF-8, none holds a 4-byte sequence, and none holds a modified-UTF-8-only form (P28
-  REPORT §3, re-checked in P31), so the corpus comparison (§14.7) is unchanged.
+  UTF-8, none holds a 4-byte sequence, and none holds a modified-UTF-8-only form (checked
+  twice), so the corpus comparison (§14.7) is unchanged.
 - Monolith reads DSS6 pathname parts, units and type through the same `NewStringUTF`
   (`Hec_ztsRetrieve.c`, `hec_dss_jni_setStringField` for `units`, `type`, `watershed`,
   `location`, `parameter`, `version`), so it would decode them as UTF-8 too. The engine
-  keeps them Latin-1 (out of P31 scope; reported only).
+  keeps them Latin-1 (out of scope; reported only).
 - **Scope.** Only the DSS6 time-series user-header text (and the DSS6 location
   supplemental text taken from it) is decoded this way. DSS6 pathnames, units, types
   and other DSS6 character fields stay Latin-1, and DSS7 location supplemental text is
@@ -1561,12 +1563,12 @@ corpus header comes near that.
 | Rule | Engine | Source |
 | DSS6 text for Java | `headerString = (char*)tss->userHeader`: a C string, up to the first NUL | `javaHeclib/src/Hec_ztsRetrieve.c` (`Java_hec_heclib_util_Heclib_Hec_1ztsRetrieve`, "User header (supplemental)") |
 | Trailing blanks | Removed (padding). Monolith keeps them | engine choice; `HOLCHR` blank fill |
-| No NUL in a regular record | Text is every stored byte. Monolith reads past the array (no terminator word, §14.1) and appended 2-4 heap bytes on 7 g54 records | `ztsRetrieveReg6.c` line 223 |
+| No NUL in a regular record | Text is every stored byte. Monolith reads past the array (no terminator word, §14.1) and appended 2-4 heap bytes on 7 records of one private test file | `ztsRetrieveReg6.c` line 223 |
 | Items | Split at `;` (`StringTokenizer`: empty segments skipped); a segment is an item only if `TextUtil.split(seg, ":")` gives exactly two parts; trailing `' '` removed from keyword and value, leading blanks kept; `HashMap`: last repeat wins | `hec.io.DataContainer.getSupplementalInfo()`, `hec.util.TextUtil.split(String, String, int)` (Monolith 3.3.27, `javap -c`) |
 | Empty keyword or value | Engine keeps the item with `""`: `":v"` gives keyword `""` (value `"v"`), `"K:"` gives value `""`, and an all-blank part trims to `""`. Monolith's trailing-blank loop calls `charAt(-1)` on such a part and throws `StringIndexOutOfBoundsException`, so the whole parse fails in Monolith | same method, bytecode offsets 75-95 |
 | HEC keyed lookup | `index(cuhead, 'name:')`, first match, value up to the next `;`, no trimming, case-sensitive; used only for `verticalDatumInfo` / `verticalDatum` | `Support/get_user_header_param.f`; `zrrtsi.f` lines 350-366; C `Utilities/verticalDatum.c:extractFromDelimitedString` |
 
-**Keywords without a colon.** In g21 and g54 the `Stream` and `Location` items are written
+**Keywords without a colon.** In two private USGS-imported test files the `Stream` and `Location` items are written
 as `StreamSample Creek`-style segments: the keyword runs straight into the value. The
 lengths vary from record to record, so these are not fixed-width fields. The program that
 wrote them is not on this host: HEC-DSSVue 3.4.15's `dssplugin-usgs` and HEC-HMS 4.8-4.10's
@@ -1602,18 +1604,18 @@ window ending in an absent February block gives a null `supplementalInfo`. A pat
 record is its own block.
 
 **Oracle note.** A `hec.heclib.dss.HecTimeSeries` reused across blocks of one dataset
-returns the first block's cached data. The P26 probe uses a fresh instance per record.
+returns the first block's cached data. A comparison must use a fresh instance per record.
 
-### 14.5 Vertical datum text (D37)
+### 14.5 Vertical datum text
 
 A `VerticalDatum: NAVD88` item (USGS style, capital `V`) is just text. HEC's datum logic
 looks only for the case-sensitive keys `verticalDatumInfo:` and `verticalDatum:`
 (`VERTICAL_DATUM_INFO_PARAM`, `VERTICAL_DATUM_PARAM`, `headers/verticalDatumFortran.h`;
 `zrrtsi.f` lines 350-366 and 399-472, used only when a datum is requested with
 `zset("VDTM")`). The engine never converts values and never fills typed location fields
-from the user header. In g21 the vertical datum appears only in this text.
+from the user header. In one private USGS-imported test file the vertical datum appears only in this text.
 
-**On a DSS6 location (P27).** Since P27 the user-header text is also a DSS6 location's
+**On a DSS6 location.** The user-header text is also a DSS6 location's
 `supplemental` text (`supplemental_source="dss6_user_header"`, §13), which is Monolith's
 `supplementalInfo` behavior; HEC's C library leaves a DSS6 location's supplemental text
 empty. Such an item then shows up only in `supplemental_vertical_datum`, the informational
@@ -1621,23 +1623,23 @@ keyword lookup shared with DSS7 location text (`find_supplemental_keyword`, ASCI
 case-insensitive like `dss_strcasestr`, so `VerticalDatum: NAVD88` gives `" NAVD88"`, value
 untrimmed). `vertical_datum_code`, `vertical_datum`, `vertical_datum_unknown` and
 `vertical_datum_named` still come only from the internal-header code: a record with typed
-code 0 stays unknown, and a typed NGVD-29 is not overridden by NAVD88 text (D37).
+code 0 stays unknown, and a typed NGVD-29 is not overridden by NAVD88 text.
 
 ### 14.6 DSS7
 
 DSS7 time-series records also have a user header (`USER_HEAD_ADDRESS` /
 `USER_HEAD_NUMBER`, dss7.md §5.2), which Monolith maps the same way (dss7.md §12). It is not
-decoded for Python by P26: DSS7 reads return `None` for every `user_header_*` key.
+decoded for Python: DSS7 reads return `None` for every `user_header_*` key.
 
-### 14.7 Verification (P26, P28, P31)
+### 14.7 Verification
 
 The comparisons are against Monolith 3.3.27 on disposable copies, and every copy's hash
-was unchanged after the reads. Counts are in P26 REPORT §4 and P28 REPORT §3. In brief:
-on the 33 openable DSS6 golden files, every record and whole dataset that both readers
+was unchanged after the reads. In brief:
+on the 33 openable private DSS6 test files, every record and whole dataset that both readers
 return has the same text (after trailing blanks are trimmed) and the same items, except
-for the Monolith-side heap over-read (§14.3). With P26's Latin-1 decode the non-ASCII
-`C3 BD` reads (g54) also differed; with P28's UTF-8 decode (§14.2) they agree. On the
+for the Monolith-side heap over-read (§14.3). With the earlier Latin-1 decode the non-ASCII
+`C3 BD` reads of one private file also differed; with the UTF-8 decode (§14.2) they agree. On the
 Monolith-written fixture `synthetic_userheader6.dss`, the text equals Monolith's on every
-record, `Café` included since P28. Dataset and window reads also match, including the
-irregular empty case. P31 re-ran the record comparison on the 33 files: the counts are
-unchanged, because no corpus header with text is invalid UTF-8 (P31 REPORT §4).
+record, `Café` included. Dataset and window reads also match, including the
+irregular empty case. A later run repeated the record comparison on the 33 files: the counts are
+unchanged, because no corpus header with text is invalid UTF-8.

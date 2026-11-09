@@ -1,4 +1,4 @@
-//! DSS6 pattern records (packet P38): regular type 101 (`zsrtsi6.f` lines 222-233 →
+//! DSS6 pattern records: regular type 101 (`zsrtsi6.f` lines 222-233 →
 //! `zsrtpa6.f:ZSRTPA6`) and irregular type 111 (`zsitsi6.f` lines 213-266). Hec-dss tag
 //! `7-IU-15`, `heclib/heclib_f/src/`.
 //!
@@ -8,9 +8,9 @@
 //!   `IOFSET` uninitialized and `zrrtsi.f` line 183 resets it on read; the writer stores 0.
 //! - Irregular: minutes and float pairs, 28-word internal header. Written as the Fortran stores
 //!   them but not confirmed by a HEC reader: Monolith 3.3.27 misreads the tested type-111
-//!   records from both writers (P33 §4, P38). Input times are seconds, whole minutes, as the
+//!   records from both writers. Input times are seconds, whole minutes, as the
 //!   native reader returns them: stored minutes relative to the block. `IIHEAD(3)` is the block
-//!   holding 01JAN3000 (P25's pattern pseudo-date); readers of pattern records do not use it.
+//!   holding 01JAN3000 (the pattern pseudo-date); readers of pattern records do not use it.
 //! - HEC stores no quality or notes in a pattern record.
 
 use super::engine::{blank_padded, Engine, Found, Record6, I_TYPE};
@@ -58,7 +58,7 @@ pub(super) fn record(p: &PatternInput) -> Result<Record6, WriteError> {
         path::Kind::Regular { .. } => {
             if p.times.is_some() {
                 return Err(bad_input(
-                    "a regular pattern is positional and takes no times (P25)",
+                    "a regular pattern is positional and takes no times",
                 ));
             }
             let mut ih = Vec::with_capacity(5);
@@ -117,7 +117,7 @@ pub(super) fn record(p: &PatternInput) -> Result<Record6, WriteError> {
                 record_type: 111,
                 internal_header: ih,
                 data,
-                // zwritex6.f takes the stored word count here: NDA = 2n (Monolith, P38 §5).
+                // zwritex6.f takes the stored word count here: NDA = 2n (as Monolith writes it).
                 logical: 2 * n as i32,
                 quality: false,
                 precision: 0,
@@ -153,8 +153,8 @@ mod tests {
     use crate::dss6::Dss6File;
     use std::fs::OpenOptions;
 
-    /// P39's rule in `Engine::store_all` covers record types 100..=119: a rewrite of a pattern
-    /// keeps the stored user header (`zsrtsi6.f` drops it; P39's deliberate difference). No
+    /// The rule in `Engine::store_all` covers record types 100..=119: a rewrite of a pattern
+    /// keeps the stored user header (`zsrtsi6.f` drops it; a deliberate difference). No
     /// native write can attach a header to a pattern, so the test stores one directly.
     #[test]
     fn pattern_rewrite_keeps_the_stored_user_header() {

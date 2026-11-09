@@ -1,13 +1,13 @@
-//! Synthetic DSS7 recovery fixture (P16, DSS_TASK DT6). No HEC software or external
+//! Synthetic DSS7 recovery fixture. No HEC software or external
 //! data is used. It reproduces, in miniature, the interrupted-write damage found in
-//! the corpus (P06 report §4, addendum; P08a §2.2):
+//! private HEC-written test files:
 //!
 //! - an ordinary record (reachable by pathname lookup);
 //! - an orphan entry: its bin is in the bin-block chain but no hash-table slot reaches
-//!   it (g59 form; `lookup` returns `None`, `record_at` decodes it);
-//! - a zeroed info block (g56 form; every route must refuse it);
+//!   it (as in a private file with orphan entries; `lookup` returns `None`, `record_at` decodes it);
+//! - a zeroed info block (as in a private file with zeroed info blocks; every route must refuse it);
 //! - a duplicated pathname whose hash-chain copy has a zeroed info block and whose
-//!   orphan copy is intact (P06 task-4983 form);
+//!   orphan copy is intact;
 //! - a paired-data record (unsupported by the time-series route);
 //! - an entry in a bin that the hash table reaches but the bin-block chain does not
 //!   (unlinked bin, listed only in recovery mode).
@@ -144,7 +144,7 @@ fn synthetic_recovery_fixture() {
     let ts = f.read_ts_record(&by_index).unwrap();
     assert_eq!(ts.ts.values, TsValues::F32(vec![1.0, 2.0, 3.0]));
 
-    // Orphan: lookup cannot reach it; record_at decodes it (g59 form).
+    // Orphan: lookup cannot reach it; record_at decodes it (orphan form).
     let i = index_of(&cat, ORPHAN)[0];
     assert_eq!(cat.meta[i].chain, ChainState::Orphan);
     assert!(f.lookup(ORPHAN.as_bytes()).unwrap().is_none());
@@ -152,7 +152,7 @@ fn synthetic_recovery_fixture() {
     let ts = f.read_ts_record(&rec).unwrap();
     assert_eq!(ts.ts.values, TsValues::F32(vec![10.0, -901.0, 30.0]));
 
-    // Zeroed info: refused by lookup and by record_at (g56 form).
+    // Zeroed info: refused by lookup and by record_at (zeroed-info form).
     let i = index_of(&cat, ZEROED)[0];
     for r in [f.lookup(ZEROED.as_bytes()), f.record_at(&cat, i).map(Some)] {
         assert!(matches!(

@@ -1,4 +1,4 @@
-//! Bindings for grid to point (`dss_vortex::zonal`, packet P51). The public API is
+//! Bindings for grid to point (`dss_vortex::zonal`). The public API is
 //! `python/ras_commander_fast_dss/gridded/_zonal.py`; this module moves data and maps errors. Work
 //! runs with the GIL released.
 

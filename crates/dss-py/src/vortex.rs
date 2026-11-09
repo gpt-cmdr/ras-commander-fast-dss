@@ -1,4 +1,4 @@
-//! Bindings for the gridded importer (`dss_vortex::import`, packet P46). The public API is
+//! Bindings for the gridded importer (`dss_vortex::import`). The public API is
 //! `python/ras_commander_fast_dss/gridded/`; this module moves data and maps errors.
 //!
 //! Imports run with the GIL released, as other writes do here. A progress callback takes the GIL
@@ -273,7 +273,7 @@ pub(super) fn request_of(
     r
 }
 
-/// A stop for a run in progress (packet P46b). Pass it as `stop=` to `import_gridded`, keep it, and
+/// A stop for a run in progress. Pass it as `stop=` to `import_gridded`, keep it, and
 /// call `request()` from another thread: the run ends before its next frame, and a NetCDF read in
 /// progress before its next chunk.
 #[pyclass(
@@ -642,7 +642,7 @@ fn gridded_limits(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     let d = PyDict::new(py);
     d.set_item("max_source_cells", limits.max_source_cells)?;
     d.set_item("max_records", limits.max_records)?;
-    // The NetCDF reader's defaults, which `import_gridded` can change (packet P46b).
+    // The NetCDF reader's defaults, which `import_gridded` can change.
     let netcdf = dss_vortex::source::netcdf::Limits::default();
     d.set_item(
         "netcdf_max_decoded_bytes_per_read",

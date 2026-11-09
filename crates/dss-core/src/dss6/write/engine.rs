@@ -283,10 +283,10 @@ pub(super) struct Engine<'a> {
     pub block_index: usize,
     date: [u8; 7],
     time: [u8; 8],
-    /// P38: `INTL_PSEUDO` of the records being stored (`KBPINTL`); 0 unless a pseudo-regular
+    /// `INTL_PSEUDO` of the records being stored (`KBPINTL`); 0 unless a pseudo-regular
     /// write sets it (`zsitsi6.f` `CALL zset6('PSEU', ...)`, `zsetfi6.f` line 91).
     pub pseudo_minutes: i32,
-    /// P39: the user header of the next [`Engine::store`]; `None` stores none.
+    /// The user header of the next [`Engine::store`]; `None` stores none.
     pub next_user_header: Option<Vec<i32>>,
 }
 
@@ -569,6 +569,7 @@ impl<'a> Engine<'a> {
         if self.io.planning() {
             return Ok(());
         }
+        crate::dss7::write::barrier(self.block_index, Some(step));
         if let Some(fp) = self.opts.fault {
             if fp.block == self.block_index && fp.step == step {
                 return Err(WriteError::InjectedFault {
@@ -586,12 +587,15 @@ impl<'a> Engine<'a> {
     }
 
     fn sync(&self) -> Result<(), WriteError> {
+        if !self.io.planning() {
+            crate::dss7::write::barrier(self.block_index, None);
+        }
         self.io.sync(self.opts.sync)?;
         Ok(())
     }
 
-    /// True when the stored record already holds exactly `rec` (P20 §3.3 item 11: an
-    /// equal rewrite writes nothing).
+    /// True when the stored record already holds exactly `rec` (an equal rewrite
+    /// writes nothing).
     fn equal_stored(&self, ex: &Existing, rec: &Record6, uh: &[i32]) -> Result<bool, WriteError> {
         if ex.f(I_TYPE) != rec.record_type
             || ex.bin_type != rec.record_type
@@ -812,7 +816,7 @@ impl<'a> Engine<'a> {
                 rec.logical,
                 rec.record_type,
             ];
-            // P38: zsetfi6.f lines 91-99 set KBPINTL after the write; here in the same write
+            // zsetfi6.f lines 91-99 set KBPINTL after the write; here in the same write
             // (the words between are unchanged).
             let rest = self.io.read_words(at + 5, 4)?;
             if rest[3] != self.pseudo_minutes {
@@ -919,7 +923,7 @@ impl<'a> Engine<'a> {
     /// that can refuse a record runs before the first one is written (the builders validate
     /// the data, and [`Engine::store_prepared`] plans counters and address growth).
     pub fn store_all(&mut self, recs: &[Record6]) -> Result<Vec<BlockReport>, WriteError> {
-        // P39 (deliberate difference from zsrtsi6.f, which drops it; P27: it is the DSS6
+        // A deliberate difference from zsrtsi6.f, which drops it (it is the DSS6
         // location's supplemental text): a rewrite of a time series keeps the stored user
         // header. Every header is read and checked here, before the first store, so a bad
         // one on a later block leaves the file unchanged.
@@ -938,7 +942,7 @@ impl<'a> Engine<'a> {
 
     /// Store records with the user headers already read and checked, one per record.
     ///
-    /// P38 re-check: a multi-record write first runs with its writes held in memory
+    /// A multi-record write first runs with its writes held in memory
     /// ([`Io::set_planning`]), so counters, address growth and bins carried forward from the
     /// earlier records refuse with the file untouched, including actual growth past DSS6's
     /// 32-bit addresses (`store`). A single record refuses in `store` before its first write.
@@ -970,6 +974,7 @@ impl<'a> Engine<'a> {
         let mut out = Vec::with_capacity(recs.len());
         for (i, (rec, header)) in recs.iter().zip(headers).enumerate() {
             self.block_index = i;
+            self.io.block.set(i);
             // Look up again: earlier stores of this write moved bins and counters.
             let look = self.lookup(&rec.pathname)?;
             self.next_user_header = Some(header);
@@ -1089,7 +1094,7 @@ impl<'a> Engine<'a> {
 }
 
 /// Keep the stored record's time-zone and coordinate words in a rewritten internal
-/// header (P22 spec §5, deviation): HEC's store routines write their own defaults there
+/// header (a deliberate deviation): HEC's store routines write their own defaults there
 /// (`IWTZONE`/`CWTZONE`, zero coordinates; `zsrtsi6.f` lines 876-887, `zsitsi6.f` lines
 /// 927-940), dropping what the record held; the DSS6 writer takes neither as input, so it
 /// keeps them. `zone` and `coords` are the 0-based word ranges.
@@ -1159,7 +1164,7 @@ fn alloc_bin(
     Ok((addr, chain))
 }
 
-/// Run a write: lock guard (P19a policy), held write lock at `KLOCKB`, header re-read,
+/// Run a write: lock guard ([`crate::lock::LockPolicy`]), held write lock at `KLOCKB`, header re-read,
 /// reconciliation, then `body` block by block.
 pub(super) fn write_with<F>(
     file: &File,
@@ -1188,7 +1193,7 @@ where
     let held = if opts.lock_policy.hold_primary_lock_during_write {
         // HEC's DSS6 write lock is the word at KLOCKB (zmultu6.f lines 113-114); POSIX
         // holds KLOCKB..+8 (write and request words), Windows the whole file
-        // (P20 lockhold).
+        // (as the DSS7 `lockhold`).
         match lockhold::take(file, klockb, &[]) {
             Ok(l) => {
                 lock_method = l.method;

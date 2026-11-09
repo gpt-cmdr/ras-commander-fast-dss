@@ -1,7 +1,7 @@
 //! Malformed stores: each is a correct result or a typed error, never a panic or an abort.
 //!
 //! Every probe runs twice. In this process, where a panic would fail the test; and in a process of
-//! its own through the built `zarr_dump`, under `oracle/vortex/zarr_job.py`'s Windows Job Object
+//! its own through the built `zarr_dump`, under `tests/support/zarr_job.py`'s Windows Job Object
 //! at 128 and at 64 MiB of commit, where a failed infallible allocation or a stack overflow would
 //! end the process and only the exit status could show it. Without Windows and Python the
 //! subprocess runs with no limit, as `nc_hostile_job.rs` does.
@@ -495,7 +495,7 @@ fn build(root: &Path) -> Vec<Probe> {
         &swap("\"fill_value\":null", "\"fill_value\":-2"),
     );
 
-    // Numbers that are not numbers a cell can be scaled by (review of 8fc6610a).
+    // Numbers that are not numbers a cell can be scaled by.
     let scaled = |value: &'static str| {
         move |d: &Path| {
             base(d);

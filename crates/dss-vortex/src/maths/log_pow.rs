@@ -1,6 +1,6 @@
 //! `log`, ported from AOCL-LibM `src/isa/avx2/gas/log_fma3.S`. `pow`, ported from ARM
 //! optimized-routines `math/pow.c` (FMA branch), with a 256-entry exponential table built from
-//! its definition; see the P44a report.
+//! its definition; `tests/maths_parity.rs` checks them.
 
 use super::fma;
 use super::tables::{
@@ -286,7 +286,7 @@ fn pow_exp_special(tmp: f64, sbits: u64, ki: u64) -> f64 {
 }
 
 /// `e` raised to `x`. Ported from AOCL-LibM `src/isa/avx2/gas/exp_fma3.S`. Not bit-identical to
-/// the reference (see the P44a report), and not reached by the P41 cases.
+/// the reference (about 0.4% of inputs differ by 1 ulp), and not reached by the warp cases.
 pub fn exp(x: f64) -> f64 {
     let ux = x.to_bits();
     if ux & !SIGN >= 0x4086_2e42_fefa_39ef {

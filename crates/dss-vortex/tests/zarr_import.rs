@@ -306,7 +306,7 @@ fn temperature_is_not_written_as_precipitation() {
 }
 
 /// The same cells through the warp to SHG, from the store and from arrays. `import_arrays` is
-/// what `oracle/vortex/run_import.py` holds to Vortex, so this ties a store's records to it.
+/// the route checked against Vortex, so this ties a store's records to it.
 fn shg(version: u8) {
     let store = ZarrStore::open(&aorc()).unwrap();
     let v = store.variable("APCP_surface").unwrap();

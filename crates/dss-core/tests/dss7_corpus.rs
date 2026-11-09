@@ -1,4 +1,4 @@
-//! DSS7 catalog walk over real files listed in a corpus manifest (P06).
+//! DSS7 catalog walk over real files listed in a manifest (opt-in; the files are not part of this repository).
 //!
 //! Set `DSS_CORPUS_LIST` to a text file with one DSS path per line (DSS6 lines are
 //! skipped). Without it the test is a no-op. Every DSS7 file must open and catalog

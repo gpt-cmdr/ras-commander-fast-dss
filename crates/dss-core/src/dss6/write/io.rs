@@ -38,8 +38,10 @@ pub(super) fn words_to_file_bytes(words: &[i32]) -> Vec<u8> {
 
 pub(super) struct Io<'a> {
     f: &'a File,
-    /// While planning (P38 re-check): writes are held here and reads see them.
+    /// While planning: writes are held here and reads see them.
     plan: RefCell<Option<Overlay<i32>>>,
+    /// Block index of the write in progress, for the per-write test hook (`tests/p64_kill.rs`).
+    pub block: std::cell::Cell<usize>,
 }
 
 impl<'a> Io<'a> {
@@ -47,6 +49,7 @@ impl<'a> Io<'a> {
         Io {
             f,
             plan: RefCell::new(None),
+            block: std::cell::Cell::new(0),
         }
     }
 
@@ -136,6 +139,7 @@ impl<'a> Io<'a> {
             if take == room {
                 buf.extend_from_slice(&[0u8; 4]);
             }
+            crate::dss7::write::write_barrier(self.block.get());
             f.seek(SeekFrom::Start(byte_of(a)))?;
             f.write_all(&buf)?;
             a += take as i64;

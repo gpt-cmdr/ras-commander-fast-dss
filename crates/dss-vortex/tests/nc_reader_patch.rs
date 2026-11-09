@@ -113,7 +113,7 @@ const NBIT_ARRAY: u32 = 2;
 fn n_bit_descriptors_that_consume_nothing_are_refused_before_any_loop() {
     use hdf5_reader::filters::nbit::decompress_with_limit;
     let limit = 1 << 28;
-    // The re-check's no-op of size 0.
+    // A no-op of size 0.
     let noop = nbit(&[0, 1 << 30, NBIT_NOOP, 0]);
     let started = std::time::Instant::now();
     let error = decompress_with_limit(&[], &noop, limit).unwrap_err();
@@ -125,14 +125,14 @@ fn n_bit_descriptors_that_consume_nothing_are_refused_before_any_loop() {
     }
     let error = decompress_with_limit(&[], &nbit(&empty), limit).unwrap_err();
     assert!(error.to_string().contains("no size"), "{error}");
-    // Suspected in the re-check: a compound of size 1 keeps the output limit happy.
+    // Suspected: a compound of size 1 keeps the output limit happy.
     let mut padded = vec![0, 1 << 20, NBIT_COMPOUND, 1, 5001, 0, NBIT_NOOP, 1];
     for _ in 0..5000 {
         padded.extend_from_slice(&[0, NBIT_NOOP, 0]);
     }
     let error = decompress_with_limit(&[1; 1 << 20], &nbit(&padded), limit).unwrap_err();
     assert!(error.to_string().contains("no size"), "{error}");
-    // Suspected in the re-check: compounds of size 0 inside compounds.
+    // Suspected: compounds of size 0 inside compounds.
     let mut nested = vec![0, 1 << 30];
     for _ in 0..200 {
         nested.extend_from_slice(&[NBIT_COMPOUND, 0, 1, 0]);

@@ -10,7 +10,7 @@
 //! - Status filter: `Internal/zcompareRecordStatus.c:zcompareRecordStatus()` (§3.6).
 //! - Julian first/last days only for types 100..199: `zcatalogInternal()` lines 392–398.
 //!
-//! Anomalies follow the private DSS corpus census (§6):
+//! Anomalies reported (dss7.md §6.4):
 //! orphan bins, zeroed info blocks, duplicate live pathnames, record-count mismatch.
 
 use super::info::{self, InfoBlock, InfoProblem};
@@ -18,6 +18,7 @@ use super::{
     bin, record_status, status, word, Dss7Error, Dss7File, BIN_ENTRY_WORDS, MAX_PATHNAME_BYTES,
 };
 use crate::catalog::{AnomalyKind, Catalog, CatalogAnomaly, CatalogEntry};
+use crate::chain::ChainHops;
 use std::collections::{HashMap, HashSet};
 use std::io::{Read, Seek};
 
@@ -45,7 +46,7 @@ pub struct CatalogOptions {
     /// Recovery mode. Also list entries in bins that hash-table slots (or their
     /// overflow links) reach but the bin-block chain does not. HEC's catalog
     /// (`zcatalogInternal()`) never lists these, but `zcheck()` lookups still find
-    /// them; they are left by interrupted writes (dss7.md §6.4, P06 report §4).
+    /// them; they are left by interrupted writes (dss7.md §6.4).
     /// Recovered entries are appended after the bin-order entries and have
     /// [`Dss7EntryMeta::recovered`] set. Implies the hash-table scan even when
     /// `check_hashes` is false. Off by default for HEC catalog parity.
@@ -73,7 +74,7 @@ pub enum ChainState {
     OwnChain(u32),
     /// Its bin is reachable from some slot, but not from its own table hash.
     OtherSlot,
-    /// Its bin is reachable from no hash-table slot (P02 "orphan bin").
+    /// Its bin is reachable from no hash-table slot (an "orphan bin").
     Orphan,
 }
 
@@ -208,10 +209,43 @@ fn anomaly(cat: &mut Catalog, kind: AnomalyKind, word_address: Option<i64>, deta
     });
 }
 
+/// How the hash check places live entries in their table-hash chains, and how
+/// duplicates are grouped.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ChainMode {
+    /// Walk each distinct chain start once ([`crate::chain::ChainHops`]); group
+    /// duplicates with borrowed keys.
+    Memo,
+    /// The earlier per-entry walk and duplicate grouping, kept as the differential-test
+    /// reference (`walk_tests.rs`).
+    #[cfg(test)]
+    Reference,
+}
+
+/// Chain work done by one hash check (traversal counters).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub(crate) struct ChainWork {
+    /// Overflow links followed while placing live entries in their chains.
+    pub steps: u64,
+    /// Live entries placed.
+    pub queries: u64,
+    /// Chain starts recorded, and queries answered by the bounded fallback walk.
+    pub recorded: u64,
+    pub fallbacks: u64,
+}
+
 pub(super) fn walk<R: Read + Seek>(
     f: &mut Dss7File<R>,
     opts: &CatalogOptions,
 ) -> Result<Dss7Catalog, Dss7Error> {
+    walk_measured(f, opts, ChainMode::Memo).map(|(c, _)| c)
+}
+
+pub(crate) fn walk_measured<R: Read + Seek>(
+    f: &mut Dss7File<R>,
+    opts: &CatalogOptions,
+    mode: ChainMode,
+) -> Result<(Dss7Catalog, ChainWork), Dss7Error> {
     let h = f.header().clone();
     let bs = h.bin_size as usize;
     let bpb = h.bins_per_block as usize;
@@ -328,8 +362,16 @@ pub(super) fn walk<R: Read + Seek>(
         );
     }
 
+    let mut work = ChainWork::default();
     if opts.check_hashes || opts.recover_unlinked {
-        check_hashes(f, &mut out, overflow, &bin_order, opts.recover_unlinked)?;
+        work = check_hashes(
+            f,
+            &mut out,
+            overflow,
+            &bin_order,
+            opts.recover_unlinked,
+            mode,
+        )?;
     }
     match opts.check_info {
         InfoCheck::None => {}
@@ -339,14 +381,14 @@ pub(super) fn walk<R: Read + Seek>(
     if opts.recover_unlinked {
         // Recovery ranks duplicate copies by their info blocks, so every copy of a
         // duplicated pathname needs one.
-        let missing: Vec<usize> = duplicate_groups(&out)
+        let missing: Vec<usize> = groups_for(&out, mode)
             .into_iter()
             .flatten()
             .filter(|&i| out.meta[i].info.is_none())
             .collect();
         check_info_indices(f, &mut out, missing, opts.coalesce_gap_bytes)?;
     }
-    find_duplicates(&mut out, opts.recover_unlinked);
+    find_duplicates(&mut out, opts.recover_unlinked, mode);
     out.stats.structural_anomalies = out
         .catalog
         .anomalies
@@ -358,7 +400,7 @@ pub(super) fn walk<R: Read + Seek>(
             )
         })
         .count() as u64;
-    Ok(out)
+    Ok((out, work))
 }
 
 /// Walk the entries of one bin (`zcheckInternal()` / `zcatalogInternal()` inner loop).
@@ -428,15 +470,19 @@ fn walk_bin(b: &[u8], bin_addr: i64, bs: usize, out: &mut Dss7Catalog) {
     }
 }
 
+/// Chains longer than this get a set for the loop test in the reachability pass.
+const LONG_CHAIN: usize = 32;
+
 /// Recompute pathname hashes (§3.1), check table-chain membership (§3.2/§3.3) and find
-/// bins that no hash-table slot reaches (P02 anomaly 1).
+/// bins that no hash-table slot reaches .
 fn check_hashes<R: Read + Seek>(
     f: &mut Dss7File<R>,
     out: &mut Dss7Catalog,
     mut overflow: HashMap<i64, i64>,
     bin_order: &[i64],
     recover: bool,
-) -> Result<(), Dss7Error> {
+    mode: ChainMode,
+) -> Result<ChainWork, Dss7Error> {
     let h = f.header().clone();
     let table_bytes = f.read_words(h.hash_table_address, h.max_hash)?;
     let table: Vec<i64> = (0..h.max_hash as usize)
@@ -450,16 +496,25 @@ fn check_hashes<R: Read + Seek>(
     let mut reachable: HashSet<i64> = HashSet::with_capacity(overflow.len());
     let mut dangling: Vec<i64> = Vec::new();
     let (mut cycles, mut merges) = (0u64, 0u64);
+    // A long chain also gets a set, so the loop test is not quadratic in its
+    // length; the answers are the same.
     let mut chain: Vec<i64> = Vec::new();
+    let mut chain_set: HashSet<i64> = HashSet::new();
     for &slot in &table {
         let mut a = slot;
         chain.clear();
+        chain_set.clear();
         while a != 0 {
             let Some(&next) = overflow.get(&a) else {
                 dangling.push(a);
                 break;
             };
-            if chain.contains(&a) || chain.len() > bound {
+            let looped = if chain_set.is_empty() {
+                chain.contains(&a)
+            } else {
+                chain_set.contains(&a)
+            };
+            if looped || chain.len() > bound {
                 cycles += 1;
                 break;
             }
@@ -468,6 +523,13 @@ fn check_hashes<R: Read + Seek>(
                 break;
             }
             chain.push(a);
+            if chain.len() > LONG_CHAIN {
+                if chain_set.is_empty() {
+                    chain_set.extend(chain.iter().copied());
+                } else {
+                    chain_set.insert(a);
+                }
+            }
             a = next;
         }
     }
@@ -559,6 +621,15 @@ fn check_hashes<R: Read + Seek>(
     }
     out.stats.orphan_bins = bin_order.iter().filter(|a| !reachable.contains(a)).count() as u64;
 
+    // Chains as the per-entry walk sees them: start at the slot, follow overflow links,
+    // visit at most `bound + 1` bins (`hop <= bound`).
+    let limit = bound.saturating_add(1);
+    let mut hops = ChainHops::new(
+        &overflow,
+        limit,
+        ChainHops::default_budget(overflow.len(), table.len()),
+    );
+    let mut work = ChainWork::default();
     for i in 0..out.catalog.entries.len() {
         let e = &out.catalog.entries[i];
         let m = out.meta[i];
@@ -584,17 +655,27 @@ fn check_hashes<R: Read + Seek>(
         }
         let th = super::table_hash(&out.catalog.entries[i].pathname, h.max_hash);
         out.meta[i].table_hash = Some(th);
-        let mut a = table.get(th as usize).copied().unwrap_or(0);
-        let mut hop = 0u32;
-        let mut found = None;
-        while a != 0 && (hop as usize) <= bound {
-            if a == m.bin_address {
-                found = Some(hop);
-                break;
+        let start = table.get(th as usize).copied().unwrap_or(0);
+        work.queries += 1;
+        let found = match mode {
+            ChainMode::Memo => hops.hop(start, m.bin_address),
+            #[cfg(test)]
+            ChainMode::Reference => {
+                let mut a = start;
+                let mut hop = 0u32;
+                let mut found = None;
+                while a != 0 && (hop as usize) <= bound {
+                    if a == m.bin_address {
+                        found = Some(hop);
+                        break;
+                    }
+                    a = overflow.get(&a).copied().unwrap_or(0);
+                    hop += 1;
+                    work.steps += 1;
+                }
+                found
             }
-            a = overflow.get(&a).copied().unwrap_or(0);
-            hop += 1;
-        }
+        };
         out.meta[i].chain = match found {
             Some(hop) => ChainState::OwnChain(hop),
             None => {
@@ -620,7 +701,10 @@ fn check_hashes<R: Read + Seek>(
             }
         };
     }
-    Ok(())
+    work.steps += hops.steps;
+    work.recorded = hops.recorded;
+    work.fallbacks = hops.fallbacks;
+    Ok(work)
 }
 
 fn bs_of(h: &super::Dss7Header) -> usize {
@@ -655,7 +739,49 @@ fn count_live_entries(b: &[u8], bs: usize) -> u64 {
 }
 
 /// Groups of live/alias entries that share a pathname (case-insensitive), each sorted.
+///
+/// Keys borrow the pathname (no upper-cased copy) and only pathnames seen twice get
+/// a group vector. The groups equal the earlier ones: same members, ascending within a
+/// group (entries are visited in order), and the same final sort (groups are disjoint).
 fn duplicate_groups(out: &Dss7Catalog) -> Vec<Vec<usize>> {
+    use std::collections::hash_map::Entry;
+    let mut first: HashMap<CaselessKey<'_>, usize> = HashMap::new();
+    let mut rest: HashMap<usize, Vec<usize>> = HashMap::new();
+    for (i, e) in out.catalog.entries.iter().enumerate() {
+        if is_live_or_alias(out.meta[i].raw_status) {
+            match first.entry(CaselessKey(&e.pathname)) {
+                Entry::Vacant(v) => {
+                    v.insert(i);
+                }
+                Entry::Occupied(o) => rest.entry(*o.get()).or_default().push(i),
+            }
+        }
+    }
+    let mut dups: Vec<Vec<usize>> = rest
+        .into_iter()
+        .map(|(head, tail)| {
+            let mut g = Vec::with_capacity(tail.len() + 1);
+            g.push(head);
+            g.extend(tail);
+            g
+        })
+        .collect();
+    dups.sort_unstable();
+    dups
+}
+
+/// [`duplicate_groups`], or the earlier form in [`ChainMode::Reference`].
+fn groups_for(out: &Dss7Catalog, mode: ChainMode) -> Vec<Vec<usize>> {
+    match mode {
+        ChainMode::Memo => duplicate_groups(out),
+        #[cfg(test)]
+        ChainMode::Reference => duplicate_groups_reference(out),
+    }
+}
+
+/// Earlier duplicate grouping (one upper-cased key copy and one vector per live entry).
+#[cfg(test)]
+fn duplicate_groups_reference(out: &Dss7Catalog) -> Vec<Vec<usize>> {
     let mut groups: HashMap<Vec<u8>, Vec<usize>> = HashMap::new();
     for (i, e) in out.catalog.entries.iter().enumerate() {
         if is_live_or_alias(out.meta[i].raw_status) {
@@ -670,15 +796,42 @@ fn duplicate_groups(out: &Dss7Catalog) -> Vec<Vec<usize>> {
     dups
 }
 
+/// A pathname compared and hashed ASCII-case-insensitively (the `to_ascii_uppercase`
+/// identity of [`duplicate_groups`]) without copying it.
+struct CaselessKey<'a>(&'a [u8]);
+
+impl PartialEq for CaselessKey<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.eq_ignore_ascii_case(other.0)
+    }
+}
+
+impl Eq for CaselessKey<'_> {}
+
+impl std::hash::Hash for CaselessKey<'_> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        // Equal keys have equal lengths and equal upper-cased bytes, so they feed the
+        // hasher the same chunks.
+        state.write_usize(self.0.len());
+        let mut buf = [0u8; 64];
+        for chunk in self.0.chunks(buf.len()) {
+            let b = &mut buf[..chunk.len()];
+            b.copy_from_slice(chunk);
+            b.make_ascii_uppercase();
+            state.write(b);
+        }
+    }
+}
+
 /// Mark duplicate live pathnames (case-insensitive).
 ///
 /// By default the entry that lookup returns wins (lowest hop in its own chain, then bin
 /// order), as in HEC. In recovery mode the best-preserved copy wins instead: a valid
 /// info block first, then the latest info-block write time, then the lookup order. In
-/// the P06 interrupted-write file the chain-first copy of every duplicated pathname has
+/// an interrupted-write file the chain-first copy of every duplicated pathname has
 /// a zeroed or invalid info block and the recovered copy is newer and valid.
-fn find_duplicates(out: &mut Dss7Catalog, recover: bool) {
-    for g in duplicate_groups(out) {
+fn find_duplicates(out: &mut Dss7Catalog, recover: bool, mode: ChainMode) {
+    for g in groups_for(out, mode) {
         let rank = |i: usize| -> (bool, std::cmp::Reverse<i64>, u32, usize) {
             let m = &out.meta[i];
             let hop = match m.chain {
@@ -836,3 +989,7 @@ fn record_info(out: &mut Dss7Catalog, i: usize, blk: Option<InfoBlock>) {
         );
     }
 }
+
+#[cfg(test)]
+#[path = "walk_tests.rs"]
+mod tests;

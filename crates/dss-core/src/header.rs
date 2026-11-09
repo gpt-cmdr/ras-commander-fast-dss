@@ -214,7 +214,7 @@ mod tests {
 
     #[test]
     fn dss6_size_on_record_boundary() {
-        // HMS 3.3 castro.dss: KFSIZE = 56008 (dss6.md golden value).
+        // HMS 3.3 castro.dss: KFSIZE = 56008 (the value dss6.md records).
         let sig = FileSignature::from_bytes(&v6_header(1, 127)).unwrap();
         assert_eq!(sig.file_size_bytes(), 512);
         let sig = FileSignature::from_bytes(&v6_header(1, 56008)).unwrap();

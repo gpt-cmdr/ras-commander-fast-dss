@@ -1,5 +1,5 @@
-//! P39 local oracle helper: store the profile and location specs of
-//! `evidence/P39/scripts/pl_spec.py` with the native writers.
+//! Helper: store profile and location specs (the format below) with the
+//! native writers.
 //!
 //! usage: pl_write create <file> <6|7>
 //!        pl_write store <file> <spec.tsv> <6|7> [<fault step> [<fault block>]]

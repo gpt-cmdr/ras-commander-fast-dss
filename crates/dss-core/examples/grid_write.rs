@@ -1,9 +1,8 @@
-//! Grid writer harness for oracle comparisons (packet P24).
+//! Grid writer harness for comparisons with HEC Monolith.
 //!
 //! ```text
 //! grid_write ops <file.dss> <ops.tsv> <6|7> [--fault <step>] [--no-sync]
-//!     Store every grid line of ops.tsv, the format of the Monolith helper
-//!     (evidence/P24/scripts/P24Monolith.java), into an existing file of that version.
+//!     Store every grid line of ops.tsv into an existing file of that version.
 //!     Compression column: 26 ZLIB, 101001 PRECIP_2_BYTE, 1 none, 0 = what Monolith
 //!     chooses for a GridInfo left at its default (DSS7: ZLIB; DSS6: PRECIP_2_BYTE for a
 //!     one-hour PER-CUM HRAP or Albers grid, else ZLIB; GriddedData.storeGriddedData

@@ -1,4 +1,4 @@
-//! DSS6 time-series decode over real corpus files (packet P08b acceptance 4).
+//! DSS6 time-series decode over real corpus files (opt-in; the files are not part of this repository).
 //!
 //! Set `DSS6_TS_CORPUS_TSV` (lines `task_id<TAB>path`) and `DSS6_TS_CORPUS_OUT` (JSON
 //! lines, counts only, no pathnames). Optional: `DSS6_TS_CORPUS_MAX` records per file

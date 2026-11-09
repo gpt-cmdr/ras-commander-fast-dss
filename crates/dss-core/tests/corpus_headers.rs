@@ -1,8 +1,7 @@
-//! Header checks against real files listed in a corpus manifest.
+//! Header checks against real files listed in a text file.
 //!
-//! Set `DSS_CORPUS_LIST` to a text file with one DSS path per line (for example an
-//! export of a private corpus manifest). Without it the test is a no-op, so CI still
-//! passes.
+//! Set `DSS_CORPUS_LIST` to a text file with one DSS path per line. Without it the test
+//! is a no-op, so CI still passes.
 
 use dss_core::FileSignature;
 use std::fs::File;

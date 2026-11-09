@@ -7,8 +7,8 @@
 //! - `heclib_f/src/zcolpath6.f:ZCOLPATH6` lines 25-39.
 
 /// `zhash6`: hash code `1..=max_hash` of the pathname bytes, taken **unsigned**
-/// (`ICHAR` of a Fortran character; the P02 census matched all 40 Latin-1 pathnames this
-/// way).
+/// (`ICHAR` of a Fortran character; all 40 Latin-1 pathnames in the files tested hash
+/// this way).
 ///
 /// `IBIT` is the smallest `i` in 9..=13 with `max_hash <= 2^i`, else 14. The bytes, plus
 /// two NULs and then blanks (`CT = CPATH; CT(NPATH+1:NPATH+2) = CHAR(0)//CHAR(0)`), are an

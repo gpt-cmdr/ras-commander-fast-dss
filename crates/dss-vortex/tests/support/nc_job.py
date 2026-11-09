@@ -5,7 +5,7 @@ Usage: python -I nc_job.py <nc_dump.exe> <probe-dir> <out-dir> [limit-MiB] [nc_d
 A long record needs `--max-steps`: without it `nc_dump` writes every step, and its own JSON grows in
 memory, which is the harness and not the reader.
 
-Adapted from evidence/P45/scripts/jpeg_job.py. Reports each probe's exit code,
+Reports each probe's exit code,
 peak committed memory and what the reader said. Exit 1 if a probe ends in anything but exit 0.
 """
 import ctypes as c

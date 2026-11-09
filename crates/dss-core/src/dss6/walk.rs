@@ -21,6 +21,7 @@ use super::pathname::pseudo_display_path;
 use super::source::word_byte_offset;
 use super::{Dss6Error, Dss6File, ReadAt, MAX_PATHNAME, NLBIN, NPERM};
 use crate::catalog::{AnomalyKind, Catalog, CatalogAnomaly, CatalogEntry, RecordStatus};
+use crate::chain::ChainHops;
 use std::collections::{HashMap, HashSet};
 
 /// Bins read per I/O when walking a block.
@@ -443,6 +444,13 @@ impl<S: ReadAt> Dss6File<S> {
             None
         };
         let hops_max = walk.overflow.len() + 2;
+        // Each distinct chain start is walked once (`crate::chain`); the answer is
+        // the per-entry walk's (at most `hops_max` bins from the slot).
+        let mut chains = ChainHops::new(
+            &walk.overflow,
+            hops_max,
+            ChainHops::default_budget(walk.overflow.len(), h.max_hash.max(0) as usize),
+        );
         for e in walk.live() {
             if !(1..=h.max_hash).contains(&e.hash) {
                 an.push(
@@ -452,22 +460,13 @@ impl<S: ReadAt> Dss6File<S> {
                 );
                 continue;
             }
-            let mut a = match &table {
+            let start = match &table {
                 Some(t) => i64::from(t[(e.hash - 1) as usize]),
                 None => {
                     i64::from(h.first_bin_address) + i64::from(e.hash - 1) * i64::from(h.bin_size)
                 }
             };
-            let mut hops = 0;
-            let mut found = false;
-            while a != 0 && hops < hops_max {
-                if a == e.bin_address {
-                    found = true;
-                    break;
-                }
-                a = walk.overflow.get(&a).copied().unwrap_or(0);
-                hops += 1;
-            }
+            let found = chains.hop(start, e.bin_address).is_some();
             if !found {
                 an.push(
                     AnomalyKind::OrphanBin,

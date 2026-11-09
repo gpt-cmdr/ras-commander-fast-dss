@@ -1,4 +1,4 @@
-"""Grid to point over ``_native`` (packet P51). Argument checks live here; rules live in the engine."""
+"""Grid to point over ``_native``. Argument checks live here; rules live in the engine."""
 
 from __future__ import annotations
 
@@ -80,7 +80,8 @@ def grid_to_point(
 ) -> GridToPointResult:
     """Zonal statistics of each grid, written as one time series per zone and statistic.
 
-    Reproduces HEC-Vortex 1.1.0's grid-to-point records on the cases in the P51 evidence report,
+    Reproduces HEC-Vortex 1.1.0's grid-to-point records on the committed comparison cases
+    (``fixtures/public/vortex_p51``),
     apart from the observed Vortex behaviours listed in ``dss_vortex::zonal``, which this library
     refuses or does differently by default.
 

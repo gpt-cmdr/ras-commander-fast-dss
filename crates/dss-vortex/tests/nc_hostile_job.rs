@@ -1,8 +1,8 @@
 //! Files where the budget's walk once disagreed with what `netcdf-reader` then did, each run in its
 //! own process through the built `nc_dump`. A stack overflow or a failed infallible allocation ends
 //! the process, so only the exit status can show that one did not happen. On Windows with Python on
-//! the path, that process runs under `oracle/vortex/nc_job.py` with a 128 MiB commit limit, as the
-//! re-check's did. With neither, it runs with no limit, which still catches the overflow.
+//! the path, that process runs under `tests/support/nc_job.py` with a 128 MiB commit limit. With
+//! neither, it runs with no limit, which still catches the overflow.
 
 mod nc_probes;
 mod nc_raw;
@@ -61,7 +61,7 @@ fn nc_dump() -> PathBuf {
 /// How a probe's process is run.
 #[derive(PartialEq)]
 enum Limiter {
-    /// `oracle/vortex/nc_job.py`: a Windows Job Object's process commit limit. The reader's typed
+    /// `tests/support/nc_job.py`: a Windows Job Object's process commit limit. The reader's typed
     /// refusals at a limit are qualified against this one.
     WindowsJob,
     /// No memory limit, and on Linux a wall-clock limit from `timeout`. A Linux address-space
@@ -300,7 +300,7 @@ fn a_header_the_reader_could_read_two_ways_is_refused() {
 
 #[test]
 fn user_defined_attributes_are_counted_field_by_element() {
-    // The re-check's 8.9 GiB from 60 KB, and its neighbours.
+    // 8.9 GiB asked for by a 60 KB file, and its neighbours.
     let overlap = "overlapping members";
     let member = int8_type();
     // An array of no elements has no width, and `decode_value` would reserve 2^31 values of it.
@@ -435,10 +435,10 @@ fn a_version_2_index_is_held_to_the_same_rule() {
     );
 }
 
-/// Everything the third re-check's generators built that ended the process, under its names. A
+/// Every crafted file of this set that once ended the process, under its names. A
 /// typed result is the requirement, so `"variables"`, which any dump holds, is what is asked of the
 /// file: the exit status is the test.
-fn third_recheck_probes() -> Vec<(String, Vec<u8>, &'static str)> {
+fn hostile_probe_set_three() -> Vec<(String, Vec<u8>, &'static str)> {
     let v1 = hostile_fixture("chunk_index_source.nc4");
     let v2 = hostile_fixture("chunk_index_source_v2.nc4");
     let shuffled = hostile_fixture("real_shared_and_user_types.nc4");
@@ -495,12 +495,12 @@ fn third_recheck_probes() -> Vec<(String, Vec<u8>, &'static str)> {
 }
 
 #[test]
-fn what_the_third_re_check_built_ends_in_a_result_or_a_typed_error() {
-    run_limited_probes_at("recheck3", third_recheck_probes(), 128);
+fn probe_set_three_ends_in_a_result_or_a_typed_error() {
+    run_limited_probes_at("probe_set3", hostile_probe_set_three(), 128);
 }
 
 #[test]
-fn the_fourth_re_checks_large_copies_are_typed_errors() {
+fn probe_set_four_large_copies_are_typed_errors() {
     // Each was one infallible allocation of tens of megabytes at the size the limit left. A valid
     // file with 3.75 million time steps, a 1-minute record for 7 years, is the first.
     let times: Vec<f64> = (0..3_750_000).map(f64::from).collect();
@@ -508,7 +508,7 @@ fn the_fourth_re_checks_large_copies_are_typed_errors() {
     let heap = hostile_fixture("dense_attributes.nc4");
     for limit in [64, 96, 128] {
         run_limited_probes_at(
-            "recheck4",
+            "probe_set4",
             vec![
                 probe("axis_3m.nc", axis.clone(), "\"variables\""),
                 probe(

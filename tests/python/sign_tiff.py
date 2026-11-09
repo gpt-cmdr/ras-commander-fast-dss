@@ -1,7 +1,6 @@
 """A GeoTIFF writer for the sign tests in test_gridded.py.
 
-Copied unchanged in behaviour from the private test-oracle tree (`import_cases._sign_tiff`), so the
-public tests do not need it.
+A small self-contained writer, so the tests need no GeoTIFF library.
 """
 import struct
 from pathlib import Path

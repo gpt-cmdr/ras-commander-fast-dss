@@ -332,7 +332,7 @@ fn errors_carry_typed_kinds() {
             .kind,
             ErrorKind::NotFound
         );
-        // A paired-data record read as a time series: D29 typed refusal.
+        // A paired-data record read as a time series: typed refusal.
         let pd = first_of(&mut b, 200, 299);
         let e = b.read_record(&pd).unwrap_err();
         assert_eq!(e.kind, ErrorKind::Unsupported, "{name}: {e}");
@@ -423,7 +423,7 @@ fn truncated_buffers_do_not_panic() {
     }
 }
 
-/// P35 review: on every dataset of every public fixture, a window covering the whole
+/// Regression: on every dataset of every public fixture, a window covering the whole
 /// dataset fits the default block limit and reads; the estimate never undercounts the
 /// blocks the whole-dataset read found.
 #[test]

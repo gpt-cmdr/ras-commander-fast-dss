@@ -8,7 +8,7 @@
 //! 965-976) and the 28-word internal header (lines 981-1003) follow the Fortran on a
 //! 1-based word buffer, as HEC does on `ILBUFF`.
 //!
-//! Deliberate differences (P22 spec §5):
+//! Deliberate differences:
 //! - a float write into a stored double block keeps the block double (HEC 7-IU damages
 //!   it: loops 160/180, lines 560-583, narrow the pairs to two or three words but
 //!   `IMULT` still counts the stored double width, lines 615-616); a block wholly replaced takes
@@ -587,7 +587,7 @@ pub(super) fn store(
             ih.push(npairs as i32);
             ih.push(julsb as i32);
             ih.push(buf.get(npairs * imult - 1)); // line 985, as HEC indexes it
-            ih.push(plan.path.pseudo_minutes); // INTLPS (zsitsi6.f line 986; P38)
+            ih.push(plan.path.pseudo_minutes); // INTLPS (zsitsi6.f line 986)
             ih.extend(blank_padded(input.units, 2));
             ih.extend(blank_padded(input.data_type, 2));
             ih.push(-1); // IWTZONE

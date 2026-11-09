@@ -2,7 +2,7 @@
 //!
 //! The first part writes small DSS files and states each rule, including each observed Vortex
 //! behaviour we did not implement. The second compares `fixtures/public/vortex_p53/expected.json`,
-//! which holds what Vortex 1.1.0 wrote from its own test resources (`oracle/vortex/make_p53_fixture.py`).
+//! which holds what Vortex 1.1.0 wrote from its own test resources.
 
 use dss_core::dss6::write::{create_dss6, write_grid6};
 use dss_core::dss6::Dss6File;
@@ -1299,7 +1299,7 @@ fn summing_in_time_order_gives_other_bits() {
     assert_ne!(bits(&sum(&names)), bits(&sum(&by_time)));
 }
 
-// Review findings: each of these failed before its fix ----------------------------------------
+// Regression cases: each of these failed before its fix ---------------------------------------
 
 mod review_p53 {
     use super::*;

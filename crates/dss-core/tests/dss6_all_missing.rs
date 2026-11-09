@@ -1,4 +1,5 @@
-//! DSS6 regular blocks whose stored values are all missing (P28 addition, g54 triage).
+//! DSS6 regular blocks whose stored values are all missing (found while triaging a private
+//! HEC-written DSS6 test file).
 //!
 //! HEC reports "no data" for such a block. Sources: hec-dss fork tag `7-IU-15`
 //! (`34ffe0c`, the release whose DSS6 code Monolith 3.3.27's `javaHeclib` carries):
@@ -29,7 +30,8 @@ use std::path::PathBuf;
 
 /// RTS (float) daily block of 2000 (366 values), every value -901.
 const M_2000: &str = "/P28/GAGE M/FLOW/01JAN2000/1DAY/OBS/";
-/// RTS daily block of 2001 (365 values) with data: the same dataset mixes both, as in g54.
+/// RTS daily block of 2001 (365 values) with data: the same dataset mixes both, as in the
+/// private HEC-written test file where the case was found.
 const M_2001: &str = "/P28/GAGE M/FLOW/01JAN2001/1DAY/OBS/";
 /// RTS block of 2000, -901 and -902 alternating; the dataset's only block.
 const Q_2000: &str = "/P28/GAGE Q/FLOW/01JAN2000/1DAY/OBS/";

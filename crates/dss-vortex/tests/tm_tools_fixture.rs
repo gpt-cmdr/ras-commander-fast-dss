@@ -1,14 +1,14 @@
 //! Transverse Mercator through the grid tools, grid to point and the time tools, with no oracle at
-//! run time (P53b). The importer's routes are in `tm_fixture.rs`.
+//! run time. The importer's routes are in `tm_fixture.rs`.
 //!
 //! `fixtures/public/vortex_p53b/expected_tools.json` holds what Vortex 1.1.0 stored in thirteen
-//! of this packet's matrix cases (`oracle/vortex/make_p53b_tools_fixture.py`): the calculator and
+//! matrix cases: the calculator and
 //! the clipper on a UTM grid and on a State Plane grid in US survey feet; grid to point with zones
 //! in WGS84 UTM, NAD83 UTM and US survey feet over an SHG grid; grid to point on the UTM and US
 //! survey foot grids themselves (`zonal_tm_grid`), with zones in each grid's CRS and in lon/lat;
 //! and the time shifter and resampler on a UTM grid. Every value is Vortex's. Where Vortex stores
-//! GDAL's wording of a CRS, this engine's text is recorded beside it, accepted by the generator
-//! only as one CRS by rasterio.
+//! GDAL's wording of a CRS, this engine's text is recorded beside it, accepted only when
+//! rasterio reads both as one CRS.
 
 use dss_core::dss7::Dss7File;
 use dss_core::grid::Grid;

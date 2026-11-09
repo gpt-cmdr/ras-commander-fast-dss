@@ -2,8 +2,8 @@
 
 ``fixtures/public/vortex_p46/`` holds GRIB2 files encoded from a formula and, in ``expected.json``,
 what Vortex 1.1.0 wrote from them. Value parity is ``crates/dss-vortex/tests/import_fixture.rs``; this
-file covers the API: typed errors, where a run stopped, progress, locks and the process itself. HEC
-oracle comparisons are local-only (evidence/P46/REPORT.md).
+file covers the API: typed errors, where a run stopped, progress, locks and the process itself.
+These tests do not run HEC software.
 """
 
 from __future__ import annotations
@@ -657,7 +657,7 @@ def test_fixture_is_what_the_readme_lists():
     assert on_disk and listed == on_disk
 
 
-# Findings of the independent review of 2026-11-02, each through the public API.
+# Edge cases, each through the public API.
 
 SIGNS = {
     "north_up": lambda a: (a, (2000.0, 2000.0, 12000.0, -2000.0)),

@@ -1,5 +1,5 @@
 //! The Zarr source against what xarray 2026.9.0 and zarr-python 3.4.2 read from the same stores
-//! (`oracle/vortex/make_zarr_fixtures.py record`): cells in bits after scale and offset, mask,
+//! (recorded in `fixtures/public/zarr/expected.json`): cells in bits after scale and offset, mask,
 //! stored items, times and grid. The real AORC v1.1 chunks are in `aorc_2019_subset.zarr`.
 
 mod zarr_support;

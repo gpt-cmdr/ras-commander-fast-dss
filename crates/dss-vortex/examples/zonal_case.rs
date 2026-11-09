@@ -1,5 +1,5 @@
 //! Run grid-to-point cases from a JSON job and record masks and statistics as raw bits, in the shape
-//! `oracle/vortex/zonal_driver.py` records Vortex's. Test tool only.
+//! of `fixtures/public/vortex_p51/expected.json`. Test tool only.
 //!
 //! Usage: `zonal_case <job.json>`. A case's `options` are Vortex's own write options.
 

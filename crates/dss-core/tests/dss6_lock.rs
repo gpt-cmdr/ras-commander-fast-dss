@@ -1,4 +1,4 @@
-//! P05 acceptance check 8: the reader works while another process holds HEC-style byte
+//! The reader works while another process holds HEC-style byte
 //! locks on the lock record, and never reads the lock record itself.
 //!
 //! Set `DSS6_LOCKED_FILE` to a DSS6 file (a scratch copy) that another process holds open

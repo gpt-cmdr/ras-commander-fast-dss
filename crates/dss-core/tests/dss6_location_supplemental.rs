@@ -1,10 +1,10 @@
-//! DSS6 location supplemental text from the time-series user header (packet P27).
+//! DSS6 location supplemental text from the time-series user header (`docs/format/dss6.md` §14).
 //!
 //! Monolith fills a DSS6 time series' `supplementalInfo` from the record's user header
 //! (`javaHeclib/src/Hec_ztsRetrieve.c`, "User header (supplemental)"); HEC's C library
 //! leaves the location's supplemental text empty (`Dss6/ztsRetrieveReg6.c`). The engine
 //! follows Monolith for the text only: coordinates, codes and the presence rule (HEC
-//! `LCOORDS`) are unchanged, and a datum named in the text stays informational (D37).
+//! `LCOORDS`) are unchanged, and a datum named in the text stays informational.
 //!
 //! `fixtures/public/synthetic_location_uh6.dss` is generated here (no HEC software;
 //! regenerate with `DSS_PY_FIXTURE_OUT=<dir>`); the test fails when the committed bytes
@@ -173,7 +173,7 @@ fn supplemental_from_user_header() {
         jan.supplemental_source(),
         Some(SupplementalSource::Dss6UserHeader)
     );
-    // Typed fields come from the internal header only (D37).
+    // Typed fields come from the internal header only.
     assert_eq!((jan.x, jan.y, jan.z), (XYZ_H[0], XYZ_H[1], XYZ_H[2]));
     assert_eq!(jan.vertical_datum(), VerticalDatum::Unset);
     assert_eq!(jan.vertical_datum_code, 0);
@@ -203,7 +203,7 @@ fn supplemental_from_user_header() {
     assert!(block_location(&f, K_NOCOORD).is_none());
 }
 
-/// The dataset's reported header (P26, dss6.md §14.4) is the last block by date, which
+/// The dataset's reported header (dss6.md §14.4) is the last block by date, which
 /// is also the last block of `DatasetIndex` (the order the Python fallback uses).
 #[test]
 fn dataset_reports_last_block_header() {

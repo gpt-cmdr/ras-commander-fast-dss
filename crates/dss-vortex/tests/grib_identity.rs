@@ -43,7 +43,7 @@ fn names(file: &Grib2File) -> Vec<(String, usize)> {
         .collect()
 }
 
-/// Vortex 1.1.0 and 0.13.3 expose these as separate variables (P45 review, finding 1).
+/// Vortex 1.1.0 and 0.13.3 expose these as separate variables.
 #[test]
 fn an_error_process_is_its_own_variable() {
     let file = open(&[with_process(2, 1), with_process(6, 2)]);

@@ -7,11 +7,11 @@
 //! AMD's AOCL-LibM (BSD-3-Clause) and, for `pow`, ARM optimized-routines (MIT). See `NOTICE`.
 //!
 //! The target is bit identity with the qualified reference: `ucrtbase.dll` with FMA3 enabled, as
-//! measured from outside by black-box comparison. Evidence: `evidence/P44a/`.
+//! measured from outside by black-box comparison (`tests/maths_parity.rs`).
 //! Operation order and constants are the algorithm. Do not simplify, reassociate or fuse them.
 //!
 //! `uncertified::exp` does not reach bit identity, nor does `pow` for bases close to even powers
-//! of two with half-integer exponents. That report states both limitations.
+//! of two with half-integer exponents: both are known limitations.
 //! The identity is a measurement on sampled inputs, not a proof over all inputs.
 
 mod fused;
@@ -30,8 +30,8 @@ pub use trig::{cos, sin, tan};
 /// else. Below `2^-26` in magnitude the reference returns `1 + x`, and so does this: measured with
 /// no difference. From there up it is [`uncertified::exp`], with no bit-identity claim: about 0.4%
 /// of results differ by one ulp. In that inverse it feeds only the Clenshaw correction, whose
-/// terms are about a thousandth of the coordinate, so a difference reaches a result rarely. The
-/// P53b report gives the measured rate and sizes.
+/// terms are about a thousandth of the coordinate, so a difference reaches a result rarely
+/// (measured).
 pub fn tmerc_exp(x: f64) -> f64 {
     if x.abs() < f64::from_bits(0x3e50_0000_0000_0000) {
         1.0 + x
@@ -50,6 +50,6 @@ pub use fused::software as software_fma;
 ///
 /// `tests/maths_no_std_floats.rs` fails if crate source outside this module names this path.
 pub mod uncertified {
-    /// Differs from the reference in about 0.4% of inputs, by 1 ulp. See the P44a report.
+    /// Differs from the reference in about 0.4% of inputs, by 1 ulp (measured).
     pub use super::log_pow::exp;
 }

@@ -857,7 +857,8 @@ mod tests {
     use std::sync::atomic::AtomicUsize;
 
     // The OS refusing a thread cannot be arranged on demand, so this stands in for it. The whole
-    // route is held by the Job Object script in `evidence/P44/scripts/thread_limit.py`.
+    // route is held by `tests/warp_thread_limit.rs`, which is meant to run under a Windows Job
+    // Object thread limit.
     #[test]
     fn a_refused_worker_stops_the_rest_and_is_a_typed_error() {
         let started = AtomicUsize::new(0);

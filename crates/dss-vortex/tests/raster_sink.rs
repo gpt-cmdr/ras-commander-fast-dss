@@ -1,5 +1,4 @@
 //! The raster sink: round trips through this crate's reader, refusals, and atomic replacement.
-//! `oracle/vortex/check_written.py` reads the same outputs with rasterio and Vortex.
 
 use dss_vortex::crs::CrsDef;
 use dss_vortex::sink_raster::{

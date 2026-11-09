@@ -1,5 +1,5 @@
-//! P06 catalog, hash and lookup tests on synthetic DSS7 files (acceptance checks 3, 5, 8)
-//! and the anomaly kinds from the P02 census (orphan bins, zeroed info blocks, duplicate
+//! Catalog, hash and lookup tests on synthetic DSS7 files
+//! and the anomaly kinds found in real files (orphan bins, zeroed info blocks, duplicate
 //! live pathnames, record-count mismatch, loops).
 
 mod dss7_common;
@@ -268,7 +268,7 @@ fn empty_file_with_no_records() {
 
 #[test]
 fn bin_size_150_and_odd_hash_size() {
-    // P02 header variants: kmaxHash 16348 (not a power of two) and bin size 150.
+    // Header variants seen in real files: kmaxHash 16348 (not a power of two) and bin size 150.
     let mut spec = standard_spec();
     spec.max_hash = 16348;
     spec.bin_size = 150;
@@ -287,7 +287,7 @@ fn bin_size_150_and_odd_hash_size() {
 
 #[test]
 fn unlinked_block_entries_are_counted_and_reachable_by_lookup() {
-    // P06 corpus finding (one 7-IQ file): hash slots point into bin blocks that the
+    // Seen in one private 7-IQ test file: hash slots point into bin blocks that the
     // block chain no longer reaches. HEC's catalog skips them; a lookup still finds them.
     let spec = standard_spec();
     let built = build(&spec);
@@ -426,7 +426,7 @@ fn recovery_mode_is_a_no_op_on_undamaged_files() {
 
 #[test]
 fn recovery_mode_prefers_the_valid_copy_of_a_duplicate() {
-    // P06 interrupted-write file: the copy HEC's lookup reaches first has a zeroed info
+    // An interrupted-write file: the copy HEC's lookup reaches first has a zeroed info
     // block; another copy of the same pathname is intact. Default mode keeps HEC's
     // choice; recovery mode picks the intact copy, and record_at() opens it.
     let mut spec = standard_spec();

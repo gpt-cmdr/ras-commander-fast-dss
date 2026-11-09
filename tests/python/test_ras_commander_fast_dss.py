@@ -1,7 +1,7 @@
 """ras_commander_fast_dss Python API on the committed public fixtures (DSS6 and DSS7).
 
 Expected counts come from the Monolith comparisons in P02/P08a/P08b; the reference
-values (castro, sample7) were read with ras-commander's Java ``RasDss`` (P09a).
+values (castro, sample7) were read with ras-commander's Java ``RasDss``.
 """
 
 import hashlib
@@ -488,8 +488,8 @@ def test_to_hec_seconds():
         dss.to_hec_seconds("01JAN2020 2500")
 
 
-# --- DSS6 blocks that disagree in units/type: the last block read wins (P09a B1, P09c) ----
-# b1_multiblock6.dss was written by HEC Monolith 3.3.27 (oracle/synth_b1.py). Every dataset
+# --- DSS6 blocks that disagree in units/type: the last block read wins ---------------
+# b1_multiblock6.dss was written by HEC Monolith 3.3.27 through its Java API. Every dataset
 # has three month blocks; for REG and IRR the (units, type) pairs are CFS/INST-VAL, cms/PER-AVER
 # and ft3/s/INST-CUM, in time order. HEC re-reads the header for every block it reads
 # (zrrtsi.f, zritsi6.f). The expected values are what Monolith returns for the same requests.

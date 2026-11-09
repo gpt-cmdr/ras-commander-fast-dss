@@ -1,10 +1,10 @@
-//! Robustness of DSS6 time-series reads (packet P08b acceptance 5): hostile info-block,
+//! Robustness of DSS6 time-series reads : hostile info-block,
 //! internal-header, compression-header and data words, bit flips, and truncations. Every
 //! read must return a value or a typed error; a panic fails the test.
 //!
 //! Bases: the synthetic sample file, plus (when present) public DSS6 samples listed in
-//! `DSS6_TS_FUZZ_FILES` (`;`-separated paths) or the default P07/P08b copies on D:
-//! (release builds, or with `DSS6_TS_FUZZ_FULL` set).
+//! `DSS6_TS_FUZZ_FILES` (`;`-separated paths; release builds, or with
+//! `DSS6_TS_FUZZ_FULL` set).
 
 mod dss6_ts_support;
 

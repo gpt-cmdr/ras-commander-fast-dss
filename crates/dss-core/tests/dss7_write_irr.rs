@@ -5,8 +5,9 @@
 //! rewrite and delete transactions, and a fuzz pass on input validation. Synthetic data
 //! only; every write goes to a new file or a temporary copy of a public fixture.
 //!
-//! HEC oracle checks (hecdss, Monolith, heclib `zcheckFile`, word comparisons with the
-//! heclib 7-JA C writer) are local-only: `evidence/P21/REPORT.md`.
+//! The same writer was also checked with HEC software (hecdss and Monolith reads, heclib
+//! `zcheckFile`, word comparisons with the heclib 7-JA C writer); those checks need HEC
+//! software and do not run in this test suite.
 
 mod dss7_common;
 
@@ -339,7 +340,7 @@ fn merge_replaces_the_window_and_keeps_the_rest() {
     let v0: Vec<f32> = (0..23).map(|i| i as f32).collect();
     assert_eq!(its(&f, p, &t0, &v0), [BlockOutcome::Added]);
     // One value in the middle replaces only that time; every other value is kept (heclib
-    // 7-JA keeps 13 of 23 here, REPORT §3).
+    // 7-JA keeps 13 of 23 here).
     assert_eq!(
         its(&f, p, &[h(2021, 3, 1, 12, 0)], &[99.0]),
         [BlockOutcome::Replaced]
@@ -1097,7 +1098,7 @@ fn fuzz_input_validation() {
 }
 
 // ---------------------------------------------------------------------------------
-// P21 review M1, m4: a write refused by any block leaves the file byte-identical
+// A write refused by any block leaves the file byte-identical
 // ---------------------------------------------------------------------------------
 
 #[test]

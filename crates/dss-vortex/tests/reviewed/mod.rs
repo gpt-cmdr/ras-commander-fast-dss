@@ -1,6 +1,6 @@
 //! Reviewed build-time code. To add or change an entry, read the crate's build script and
 //! the code it uses at that exact version, then record what it does. No entry may spawn a C
-//! compiler or build native code (D40). `None` under `spawns` or `link_directives` means no
+//! compiler or build native code. `None` under `spawns` or `link_directives` means no
 //! direct spawn or link text in this crate's build-time code; it may still call a reviewed
 //! helper, as `purpose` says.
 

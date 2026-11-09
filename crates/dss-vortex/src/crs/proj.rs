@@ -1,7 +1,7 @@
 //! Projection formulas ported from PROJ 7.2.0, the version bundled in Vortex (MIT; see
-//! `NOTICE`). The `proj4rs` crate was removed (D49): it calls platform maths, which the
-//! maintainer's platform-parity decision forbids, and the P43 report gives its measured
-//! differences. Keep the arithmetic in PROJ's order: reordering changes the last bit.
+//! `NOTICE`). The `proj4rs` crate was removed: it calls platform maths, which the
+//! maintainer's platform-parity decision forbids, and its results differed from PROJ's in the
+//! last bits. Keep the arithmetic in PROJ's order: reordering changes the last bit.
 //!
 //! Sources, under `src/`: `projections/aea.cpp`, `projections/lcc.cpp`,
 //! `projections/stere.cpp`, `projections/tmerc.cpp`, `fwd.cpp`, `inv.cpp`, `adjlon.cpp`, `tsfn.cpp`, `phi2.cpp`,
@@ -332,7 +332,7 @@ const US_FOOT_CONV_FACTOR: f64 = 12.0 / 39.37;
 pub(crate) const INTERNATIONAL_FOOT: f64 = 0.3048;
 
 /// The factor `unitconvert` applies for a WKT linear unit of `to_metre` metres, for the units
-/// compared against the oracle: the metre (no step), the US survey foot and the international
+/// compared against PROJ 7.2.0: the metre (no step), the US survey foot and the international
 /// foot. `common.cpp` `UnitOfMeasure::exportToPROJString` names a unit whose factor is within
 /// 1e-10, relative, of its `pj_units` entry, and `unitconvert` then uses that entry's value, not
 /// the one the WKT states. `Err` is any other unit.

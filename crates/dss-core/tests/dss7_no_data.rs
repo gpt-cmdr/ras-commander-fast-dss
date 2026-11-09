@@ -1,4 +1,4 @@
-//! P29 review M1: DSS7 is outside HEC's DSS6 "no data" rule. `heclib_c/src/Internal/
+//! DSS7 is outside HEC's DSS6 "no data" rule. `heclib_c/src/Internal/
 //! ztsRetrieveReg7.c` (hec-dss fork `main`, `6591930`) sets `foundOne = 1` for a block read
 //! whatever its values (line 641) and returns `STATUS_RECORD_FOUND` (lines 699-700).
 //!

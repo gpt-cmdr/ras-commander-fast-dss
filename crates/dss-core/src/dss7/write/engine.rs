@@ -1,8 +1,8 @@
 //! The write engine: series planning, HEC store semantics per block, record allocation,
-//! pathname bins and header bookkeeping, with the transactional order of P20 §4.
+//! pathname bins and header bookkeeping, with the transactional order of `docs/format/dss7.md` §6.4.
 //!
-//! Ports (paths relative to `heclib/heclib_c/src/`, `hec-dss` tag `7-IU-15`; the oracle
-//! build `7-JA` differs only where noted):
+//! Ports (paths relative to `heclib/heclib_c/src/`, `hec-dss` tag `7-IU-15`; the HEC C
+//! library build `7-JA` used for comparison differs only where noted):
 //! - planning: `Internal/ztsProcessTimes.c:ztsProcessTimes()` (store branch) and the main
 //!   loop of `Internal/ztsStoreReg7.c:ztsStoreReg7()`;
 //! - one block: `Internal/ztsRegStoreBlock.c:ztsRegStoreBlock()` for storage flag 0 and
@@ -12,7 +12,7 @@
 //! - bins: `Internal/zbinNew.c:zbinNew()`, `Internal/zbinUpdate.c:zbinUpdate()`,
 //!   `Internal/zcheckInternal.c:zcheckInternal()` (chain walk statistics);
 //! - new file: `Internal/zpermCreate.c:zpermCreate()`, `Internal/znewFileSize.c`;
-//! - irregular series (P21): `Internal/ztsStoreIrreg7.c:ztsStoreIrreg7()`,
+//! - irregular series: `Internal/ztsStoreIrreg7.c:ztsStoreIrreg7()`,
 //!   `Internal/ztsIrregStoreBlock.c:ztsIrregStoreBlock()`,
 //!   `Internal/ztsIrregMergeBlocks.c:ztsIrregMergeBlocks()` (storage flag 1),
 //!   `Internal/zdeleteInternal.c:zdeleteInternal()` for blocks the window empties.
@@ -20,17 +20,17 @@
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom, Write};
 
-// P23: paired-data store (`Public/zpdStore.c`), built on the records and transactions
+// Paired-data store (`Public/zpdStore.c`), built on the records and transactions
 // below.
 mod pd;
 pub(super) use pd::{check_elev_units, plan_pd, write_pd_planned};
-// P38: multi-word quality, notes and patterns.
+// Multi-word quality, notes and patterns.
 mod variants;
 pub(super) use variants::{
     check_its_variants, check_rts_variants, plan_pattern, write_its_v, write_pattern_planned,
     write_rts_v,
 };
-// P39: profiles (`Public/ztsStore.c`) and locations (`Public/zlocationStore.c`).
+// Profiles (`Public/ztsStore.c`) and locations (`Public/zlocationStore.c`).
 mod location;
 mod profile;
 pub(super) use location::{plan_location, write_location_planned};
@@ -39,8 +39,8 @@ pub(super) use profile::{plan_profile, write_profile_planned};
 use super::block::{self, ih, BlockValues};
 use super::path::{validate_its_pathname, validate_rts_pathname, ItsPathname, RtsPathname};
 use super::{
-    lockhold, overlay, BlockOutcome, BlockReport, ItsInput, RtsInput, RtsValues, WriteError,
-    WriteOptions, WriteReport, WriteStep, NEW_FILE_VERSION, PROGRAM_NAME,
+    lockhold, overlay, BlockOutcome, BlockReport, ItsInput, RepairReport, RtsInput, RtsValues,
+    WriteError, WriteOptions, WriteReport, WriteStep, NEW_FILE_VERSION, PROGRAM_NAME,
 };
 use crate::dss7::compress::Disaggregate;
 use crate::dss7::header::{self, Dss7Header};
@@ -194,7 +194,7 @@ fn corrupt(m: impl Into<String>) -> WriteError {
 
 /// Words of a new, empty DSS7 file. `zpermCreate()` lines 225-357 with the
 /// `znewFileSize()` defaults (8192 hash slots, 200-word bins, 32 bins per block), as an
-/// empty file from hecdss 0.1.33 stores them (P20 §2.2).
+/// empty file from hecdss 0.1.33 stores them.
 pub(super) fn new_file_words(now: i64) -> Vec<i64> {
     let max_hash = 8192i64;
     let bin_size = 200i64;
@@ -424,7 +424,7 @@ pub(super) struct Areas {
     pub h2: Vec<i32>,
     pub uh: Vec<i32>,
     pub v1: Vec<i32>,
-    /// values2 and values3 (P24: grids store their cells in values3,
+    /// values2 and values3 (grids store their cells in values3,
     /// `Public/zspatialGridStore.c`); empty for time series.
     pub v2: Vec<i32>,
     pub v3: Vec<i32>,
@@ -434,6 +434,13 @@ pub(super) struct Areas {
     pub last: (i32, i32),
     /// `totalExpandedSize` (`ztsWriteBlock()` line 199), ints.
     pub total_expanded: i64,
+    /// Copy-out: keep what the source record stores where the writer would otherwise
+    /// choose. `logical` is stored as given (also 0), not replaced by `number_data`; and
+    /// an empty internal header keeps address 0, as in the source. heclib's
+    /// `zcheckInfo()` reads 18 ints at the internal-header address of every type-1xx
+    /// record whatever its length, so an empty one addressed at the end of the file
+    /// fails that check.
+    pub copy_out: bool,
 }
 
 impl Areas {
@@ -446,7 +453,7 @@ impl Areas {
     }
 }
 
-/// One block prepared for commit (P21 review M1).
+/// One block prepared for commit.
 struct Prepared {
     path: Vec<u8>,
     found: Option<RecordRef>,
@@ -480,7 +487,7 @@ struct Engine<'a> {
     opts: &'a WriteOptions,
     now: i64,
     block_index: usize,
-    /// While planning (P38 re-check): writes are held here and reads see them.
+    /// While planning: writes are held here and reads see them.
     plan: std::cell::RefCell<Option<overlay::Overlay<i64>>>,
 }
 
@@ -503,7 +510,7 @@ impl<'a> Engine<'a> {
         if h.fver < FVER_7_HA {
             return Err(WriteError::Unsupported(format!(
                 "file revision {} is older than 7-HA; its deprecated aggregate layout is not \
-                 written (P20 §1)",
+                 written",
                 h.version_string
             )));
         }
@@ -560,6 +567,7 @@ impl<'a> Engine<'a> {
             o.put(addr, w);
             return Ok(());
         }
+        super::write_barrier(self.block_index);
         let mut buf = Vec::with_capacity(w.len() * 8);
         for x in w {
             buf.extend_from_slice(&x.to_le_bytes());
@@ -579,6 +587,7 @@ impl<'a> Engine<'a> {
             self.disk = words;
             return Ok(());
         }
+        super::write_barrier(self.block_index);
         let mut buf = Vec::with_capacity(800);
         for x in &words {
             buf.extend_from_slice(&x.to_le_bytes());
@@ -591,7 +600,11 @@ impl<'a> Engine<'a> {
     }
 
     fn sync(&self) -> Result<(), WriteError> {
-        if self.opts.sync && self.plan.borrow().is_none() {
+        if self.plan.borrow().is_some() {
+            return Ok(());
+        }
+        super::barrier(self.block_index, None);
+        if self.opts.sync {
             self.file.sync_data()?;
         }
         Ok(())
@@ -601,6 +614,7 @@ impl<'a> Engine<'a> {
         if self.plan.borrow().is_some() {
             return Ok(());
         }
+        super::barrier(self.block_index, Some(s));
         if let Some(f) = self.opts.fault {
             if f.block == self.block_index && f.step == s {
                 return Err(WriteError::InjectedFault {
@@ -613,7 +627,7 @@ impl<'a> Engine<'a> {
     }
 
     fn alloc(&mut self, words: i64) -> i64 {
-        // zgetFileSpace() at EOF (no reclaimed space is used, P20 §5).
+        // zgetFileSpace() at EOF (no reclaimed space is used).
         let a = self.hdr[k::FILE_SIZE];
         self.hdr[k::FILE_SIZE] += words;
         a
@@ -626,7 +640,7 @@ impl<'a> Engine<'a> {
     // -- one block ----------------------------------------------------------------------
 
     /// Everything one block store reads from the file and every refusal it can raise,
-    /// computed before any block of the write is committed (P21 review M1): a refused
+    /// computed before any block of the write is committed: a refused
     /// multi-block write leaves the file unchanged.
     fn prepare_block(
         &self,
@@ -654,7 +668,7 @@ impl<'a> Engine<'a> {
             stamp(bp.position_in_values + l as i64),
         );
 
-        // Existing record (zreadInfo), and the checks HEC applies or P20 adds.
+        // Existing record (zreadInfo), and the checks HEC applies or the writer adds.
         let mut rdr = self.reader()?;
         let found: Option<RecordRef> = match rdr.lookup(&path) {
             Ok(r) => r,
@@ -826,6 +840,7 @@ impl<'a> Engine<'a> {
             first: (jf as i32, sf as i32),
             last: (jl as i32, sl as i32),
             total_expanded: bp.number_in_block * (elem + qes),
+            copy_out: false,
         };
         Ok(Prepared { path, found, areas })
     }
@@ -904,7 +919,7 @@ impl<'a> Engine<'a> {
         let v3_addr = v2_addr + longs_in_ints(v2n);
         use info::key as ik;
         w[ik::FLAG] = info::INFO_FLAG;
-        // Written inert (MOVED) and activated after the bin points at it (P20 §4): until
+        // Written inert (MOVED) and activated after the bin points at it (`dss7.md` §6.4): until
         // then heclib's zcheckLinks() brute-force scan, which checks every info block of
         // status 0/1 for a bin that points at it, sees dead space, not an orphan record.
         w[ik::STATUS] = status::MOVED;
@@ -920,7 +935,11 @@ impl<'a> Engine<'a> {
         w[ik::LAST_DATE] = i4toi8(a.last.0, a.last.1);
         w[ik::CREATION_TIME] = creation;
         w[ik::CREATION_TIME + 1] = reserved1;
-        w[ik::INTERNAL_HEAD_ADDRESS] = ih_addr;
+        w[ik::INTERNAL_HEAD_ADDRESS] = if a.copy_out && a.ih.is_empty() {
+            0
+        } else {
+            ih_addr
+        };
         w[ik::INTERNAL_HEAD_NUMBER] = ihn;
         w[ik::HEADER2_ADDRESS] = h2_addr;
         w[ik::HEADER2_NUMBER] = h2n;
@@ -934,7 +953,7 @@ impl<'a> Engine<'a> {
         w[ik::VALUES3_NUMBER] = a.v3.len() as i64;
         w[ik::ALLOCATED_SIZE] = allocated;
         w[ik::NUMBER_DATA] = a.number_data;
-        w[ik::LOGICAL_NUMBER] = if a.logical > 0 {
+        w[ik::LOGICAL_NUMBER] = if a.logical > 0 || a.copy_out {
             a.logical
         } else {
             a.number_data
@@ -991,7 +1010,7 @@ impl<'a> Engine<'a> {
     }
 
     /// Counters step: every header counter, statistic and the bin allocation state, with
-    /// the in-progress marker still set (P20 review F2: the bin state reaches the disk
+    /// the in-progress marker still set (the bin state reaches the disk
     /// before any slot points at the new bin, so heclib's zbinNew() never hands it out
     /// again).
     fn write_counters(&mut self) -> Result<(), WriteError> {
@@ -1029,7 +1048,7 @@ impl<'a> Engine<'a> {
         self.step(WriteStep::EndOfFile)?;
         // `kfileSize` and the in-progress marker: the new space (record and any new bin
         // block) is reserved before anything points into it, so no later HEC write
-        // allocates over it (zgetFileSpace() takes kfileSize). P20 review F1: this comes
+        // allocates over it (zgetFileSpace() takes kfileSize). This comes
         // before the chain word, so a block is never chained past kfileSize.
         let mut d = self.disk;
         d[k::FILE_SIZE] = self.hdr[k::FILE_SIZE];
@@ -1049,8 +1068,8 @@ impl<'a> Engine<'a> {
 
     // -- bins ----------------------------------------------------------------------------
 
-    /// Reconcile a write that was interrupted after its Allocation step (P20 reviews M1,
-    /// M2, F2, F3). Header word 29 names the info block of the record that was being
+    /// Reconcile a write that was interrupted after its Allocation step.
+    /// Header word 29 names the info block of the record that was being
     /// written. Everything is derived from the file, so the repair is idempotent, and it
     /// stays correct when heclib wrote in between (heclib writes its cached 100-word
     /// header back whole, `Internal/zpermWrite.c`, so the marker survives):
@@ -1060,10 +1079,29 @@ impl<'a> Engine<'a> {
     ///    table slot when the slot is empty (`zwriteNew()` line 195), else the overflow
     ///    word of the chain's last bin (`zbinNew()` lines 88-99);
     /// 2. bin cursor: a block already linked from the chain word is adopted, and
-    ///    non-empty "next empty" bins are skipped as in use. No bin is ever cleared;
+    ///    "next empty" bins that hold an entry (first word non-zero) are skipped as in
+    ///    use. A bin whose first word is zero is empty by heclib's rule
+    ///    (`zcatalogInternal()` line 280, `zbinUpdate()` line 194) even when a killed
+    ///    Publish left an entry body in its other words (finding F1, `dss7.md` §6.4): it stays the
+    ///    cursor, and the next new bin rewrites it whole, as `zbinNew()` (lines 130-139,
+    ///    which takes `kaddNextEmptyBin` without reading it and clears it in memory) and
+    ///    `zbinUpdate()` (line 271, one write of the whole bin) do;
     /// 3. pending info block activated when the bin names it; a retired old copy that
     ///    the bin still names is restored to primary;
     /// 4. header statistics rebuilt from the file ([`Engine::rebuild_statistics`]).
+    ///
+    /// Every write here is at a location this write's own marker
+    /// and allocation state identify: its bin entry and link (step 1), its own leftover
+    /// bin body at the cursor (step 2b, only when the body is exactly this write's entry),
+    /// its info block (step 3) and the header counters (step 4). Nothing here repairs
+    /// earlier damage found by scanning; `repair_dss7` copies a damaged file out instead.
+    ///
+    /// Threat model (`dss7.md` §6.4): a file that was consistent before the interrupted
+    /// write is reconciled exactly after ordinary process death. Independent extra damage
+    /// is refused when cheap bounded checks detect it (cursor, R5; link targets,
+    /// R12(a); exact leftover, R12(b)), without a promise to detect every case: a damaged
+    /// pointer of another record naming this write's own locations is not detected
+    /// (documented limitations R7 and R12).
     ///
     /// Returns true when a marker was found.
     fn reconcile(&mut self) -> Result<bool, WriteError> {
@@ -1071,36 +1109,28 @@ impl<'a> Engine<'a> {
         if pending == 0 {
             return Ok(false);
         }
+        // Every check that a repair write depends on runs before the
+        // first write; a failed check refuses the whole reconciliation, writing nothing.
+        self.preflight_repair()?;
         if pending < 0 {
             return self.reconcile_delete(-pending).map(|()| true);
         }
-        let bs = self.hdr[k::BIN_SIZE];
-        let bpb = self.hdr[k::BINS_PER_BLOCK];
         let path = self.pending_pathname(pending)?;
         // 1. Roll forward an unlinked entry of the pending record.
         if let Some(path) = &path {
             self.roll_forward(pending, path)?;
+            // 1b. Complete the published entry's metadata (R17, `dss7.md` §6.4).
+            self.complete_entry_metadata(pending, path)?;
         }
         // 2. Bin allocation cursor.
-        let max_steps = self.hdr[k::FILE_SIZE] / bs.max(1) + 2;
-        for _ in 0..max_steps {
-            if self.hdr[k::BINS_REMAIN_IN_BLOCK] <= 0 {
-                let linked = self.read_word(self.hdr[k::NEXT_EMPTY_BIN])?;
-                if linked >= header::MIN_HEADER_SIZE && linked + bs * bpb < self.hdr[k::FILE_SIZE] {
-                    self.hdr[k::NEXT_EMPTY_BIN] = linked;
-                    self.hdr[k::BINS_REMAIN_IN_BLOCK] = bpb;
-                    continue;
-                }
-                break;
-            }
-            let x = self.hdr[k::NEXT_EMPTY_BIN];
-            let bin = self.read_words(x, bs as usize)?;
-            if bin.iter().all(|&w| w == 0) {
-                break;
-            }
-            self.hdr[k::BINS_REMAIN_IN_BLOCK] -= 1;
-            self.hdr[k::NEXT_EMPTY_BIN] += bs;
-        }
+        let (next, remain) = self.advanced_cursor()?;
+        self.hdr[k::NEXT_EMPTY_BIN] = next;
+        self.hdr[k::BINS_REMAIN_IN_BLOCK] = remain;
+        // 2b. An empty cursor bin (first word zero) that still holds the body a
+        // killed Publish wrote is cleared, so the file is clean even when no later write
+        // takes a new bin: `zcheckPathnameBins()` (lines 111-125) requires every word of
+        // a bin after its last entry to be zero, except the overflow word.
+        self.clear_cursor_bin()?;
         // 3. Pending info status.
         if let Some(path) = &path {
             let mut rdr = self.reader()?;
@@ -1124,7 +1154,7 @@ impl<'a> Engine<'a> {
         Ok(true)
     }
 
-    /// Reconcile an interrupted delete (P21; marker = −info address). The Allocation
+    /// Reconcile an interrupted delete (marker = −info address). The Allocation
     /// step already stored the delete's `knumberDeletes`, `kcatSortDeletes` and `kdead`
     /// in the header, so:
     /// - bin entry still live (crash before Publish): the delete is rolled back, the
@@ -1135,6 +1165,9 @@ impl<'a> Engine<'a> {
     /// The counter changes reach the disk together with the cleared marker, so a crash
     /// inside this repair repeats it exactly once. `kcatSortStatus` stays 3 (conservative:
     /// the stored sort list is treated as unusable).
+    ///
+    /// The counters taken back are written only with the cleared marker,
+    /// never in a header that keeps the marker, so a retry takes them back exactly once.
     fn reconcile_delete(&mut self, addr: i64) -> Result<(), WriteError> {
         if let Some(path) = self.pending_pathname(addr)? {
             let mut rdr = self.reader()?;
@@ -1155,6 +1188,197 @@ impl<'a> Engine<'a> {
         let h = self.hdr;
         self.write_header(h)?;
         self.sync()
+    }
+
+    /// Step 2 of [`Engine::reconcile`], read-only: the cursor after adopting a block the
+    /// chain word already links and skipping bins that hold an entry (first word
+    /// non-zero; heclib's bin-empty test, see the doc comment of `reconcile`).
+    fn advanced_cursor(&self) -> Result<(i64, i64), WriteError> {
+        let bs = self.hdr[k::BIN_SIZE];
+        let bpb = self.hdr[k::BINS_PER_BLOCK];
+        let (mut next, mut remain) = (
+            self.hdr[k::NEXT_EMPTY_BIN],
+            self.hdr[k::BINS_REMAIN_IN_BLOCK],
+        );
+        let max_steps = self.hdr[k::FILE_SIZE] / bs.max(1) + 2;
+        for _ in 0..max_steps {
+            if remain <= 0 {
+                let linked = self.read_word(next)?;
+                if linked >= header::MIN_HEADER_SIZE && linked + bs * bpb < self.hdr[k::FILE_SIZE] {
+                    next = linked;
+                    remain = bpb;
+                    continue;
+                }
+                break;
+            }
+            if self.read_word(next)? == 0 {
+                break;
+            }
+            remain -= 1;
+            next += bs;
+        }
+        Ok((next, remain))
+    }
+
+    /// The bin allocation cursor (`kaddNextEmptyBin`,
+    /// `kbinsRemainInBlock`) as heclib keeps it. `zbinNew()` sets a new block's cursor to
+    /// its second bin with `kbinsPerBlock − 1` remaining (lines 114, 123) and otherwise
+    /// moves it one bin forward per bin handed out (lines 131-134), so the cursor is
+    /// always `block + (kbinsPerBlock − remaining) · kbinSize` for a block of the
+    /// bin-block chain, with `0 ≤ remaining ≤ kbinsPerBlock` (at 0 it is the block's
+    /// chain word). Each block must lie inside the file. Returns the reason when it is
+    /// not; never writes.
+    fn cursor_problem(&self, next: i64, remain: i64) -> Result<Option<String>, WriteError> {
+        let bs = self.hdr[k::BIN_SIZE];
+        let bpb = self.hdr[k::BINS_PER_BLOCK];
+        if bs < 4 || bpb < 1 {
+            return Ok(Some(format!("bin size {bs} / bins per block {bpb}")));
+        }
+        if !(0..=bpb).contains(&remain) {
+            return Ok(Some(format!(
+                "kbinsRemainInBlock {remain} outside 0..={bpb}"
+            )));
+        }
+        let want_offset = (bpb - remain) * bs;
+        let max_blocks = self.hdr[k::FILE_SIZE] / (bs * bpb) + 1;
+        let mut block = self.hdr[k::FIRST_BIN];
+        let mut n = 0;
+        while block != 0 {
+            n += 1;
+            if n > max_blocks
+                || block < header::MIN_HEADER_SIZE
+                || block + bs * bpb + 1 > self.hdr[k::FILE_SIZE]
+            {
+                return Ok(Some(format!(
+                    "bin-block chain leaves the file or loops at word {block}"
+                )));
+            }
+            if next == block + want_offset {
+                return Ok(None);
+            }
+            block = self.read_word(block + bs * bpb)?;
+        }
+        Ok(Some(format!(
+            "kaddNextEmptyBin {next} with {remain} bins remaining is not a bin boundary of \
+             any block of the bin-block chain"
+        )))
+    }
+
+    /// Error unless the cursor is valid (see [`Engine::cursor_problem`]).
+    fn check_cursor(&self, next: i64, remain: i64) -> Result<(), WriteError> {
+        match self.cursor_problem(next, remain)? {
+            None => Ok(()),
+            Some(why) => Err(corrupt(format!(
+                "refusing to repair: the bin allocation cursor is invalid ({why}); nothing \
+                 was written"
+            ))),
+        }
+    }
+
+    /// Whether the cursor bin that `reconcile` would reach holds this interrupted
+    /// write's own leftover entry body (finding F1): `Some(address)` when it must be
+    /// cleared, `None` when there is nothing to clear. The
+    /// bin must be exactly the body that this write's Publish writes (`entry_words()`),
+    /// word for word, except the hash word 0 that Publish had not written yet. Every word
+    /// is derived from the marker's info block and the header:
+    /// - 1: status 1; 2: the pathname's byte and word lengths; 3: the marker's address;
+    /// - 4: the info block's record type and the header's `kcatSequenceNumber` (the
+    ///   native writer never changes it, and the marker means no write followed);
+    /// - 5: the info block's last-write time (both are the transaction's clock);
+    /// - 6: the Julian days of the info block's first and last dates;
+    /// - then the pathname the info block names, and zeros to the end of the bin.
+    ///
+    /// Any other non-empty content is not this write's own and is refused, with nothing
+    /// written. No scan of the file is involved. An exact match does not prove that no
+    /// other record's (damaged) pointer also names these words: limitation R12, documented
+    /// limitation.
+    fn cursor_bin_to_clear(&self, next: i64, remain: i64) -> Result<Option<i64>, WriteError> {
+        if remain <= 0 {
+            return Ok(None);
+        }
+        let bs = self.hdr[k::BIN_SIZE] as usize;
+        if next < header::MIN_HEADER_SIZE || next + bs as i64 > self.hdr[k::FILE_SIZE] {
+            return Ok(None);
+        }
+        let bin = self.read_words(next, bs)?;
+        if bin[0] != 0 || bin.iter().all(|&w| w == 0) {
+            return Ok(None);
+        }
+        let refuse = |why: &str| {
+            Err(corrupt(format!(
+                "refusing to reconcile: the next empty pathname bin at word {next} holds data \
+                 that is not this interrupted write's own entry ({why}); nothing was written"
+            )))
+        };
+        let pending = self.hdr[PENDING_WORD];
+        if pending <= 0 {
+            return refuse("no new-record marker");
+        }
+        let Some(path) = self.pending_pathname(pending)? else {
+            return refuse("the marker names no valid info block");
+        };
+        let pw = longs_in_bytes(path.len());
+        let want_path = bytes_to_words(&path, pw);
+        let end = BIN_ENTRY + pw;
+        if bin[1] != status::PRIMARY
+            || bin[2] != i4toi8(path.len() as i32, pw as i32)
+            || bin[3] != pending
+            || end > bs
+            || bin[BIN_ENTRY..end] != want_path[..]
+            || bin[end..].iter().any(|&w| w != 0)
+        {
+            return refuse("entry words differ");
+        }
+        let iw = self.read_words(pending, info::INFO_FIXED_WORDS)?;
+        let want4 = i4toi8(
+            split_i4(iw[info::key::TYPE_VERSION]).0,
+            self.hdr[k::CAT_SEQUENCE_NUMBER] as i32,
+        );
+        let want5 = iw[info::key::LAST_WRITE_TIME];
+        let want6 = i4toi8(
+            split_i4(iw[info::key::FIRST_DATE]).0,
+            split_i4(iw[info::key::LAST_DATE]).0,
+        );
+        if bin[4] != want4 || bin[5] != want5 || bin[6] != want6 {
+            return refuse(
+                "entry words 4-6 (type and catalog sequence, write time, first/last days) \
+                 differ from the marker's info block",
+            );
+        }
+        Ok(Some(next))
+    }
+
+    /// Everything the repair writes of a reconciliation depend on,
+    /// checked before its first write. The stored cursor must be valid; the cursor that
+    /// step 2 reaches must be valid; a leftover body there must be clearable.
+    fn preflight_repair(&self) -> Result<(), WriteError> {
+        self.check_cursor(
+            self.hdr[k::NEXT_EMPTY_BIN],
+            self.hdr[k::BINS_REMAIN_IN_BLOCK],
+        )?;
+        let (next, remain) = self.advanced_cursor()?;
+        self.check_cursor(next, remain)?;
+        self.cursor_bin_to_clear(next, remain)?;
+        Ok(())
+    }
+
+    /// Step 2b of [`Engine::reconcile`]: zero words 1..`kbinSize` of the cursor bin when
+    /// it holds exactly this interrupted write's own leftover entry body
+    /// ([`Engine::cursor_bin_to_clear`]). Such a bin is empty by heclib's test;
+    /// `zbinNew()` would hand it out and `zbinUpdate()` overwrite it whole (lines 130-139,
+    /// 271). The cursor is valid (checked before the first write). The
+    /// working header is unchanged, so this is restartable.
+    fn clear_cursor_bin(&mut self) -> Result<(), WriteError> {
+        let (next, remain) = (
+            self.hdr[k::NEXT_EMPTY_BIN],
+            self.hdr[k::BINS_REMAIN_IN_BLOCK],
+        );
+        if let Some(x) = self.cursor_bin_to_clear(next, remain)? {
+            let bs = self.hdr[k::BIN_SIZE] as usize;
+            self.write_zeros(x + 1, bs - 1)?;
+            self.sync()?;
+        }
+        Ok(())
     }
 
     /// Pathname of the info block at `pending`, when it is a valid info block.
@@ -1249,10 +1473,122 @@ impl<'a> Engine<'a> {
         Ok(out)
     }
 
+    /// The blocks of the bin-block chain, by the same bounded walk as
+    /// [`Engine::cursor_problem`] (already validated before any reconciliation write).
+    fn bin_blocks(&self) -> Result<Vec<i64>, WriteError> {
+        let bs = self.hdr[k::BIN_SIZE];
+        let bpb = self.hdr[k::BINS_PER_BLOCK];
+        let max_blocks = self.hdr[k::FILE_SIZE] / (bs * bpb).max(1) + 1;
+        let mut out = Vec::new();
+        let mut block = self.hdr[k::FIRST_BIN];
+        while block != 0 {
+            if out.len() as i64 >= max_blocks
+                || block < header::MIN_HEADER_SIZE
+                || block + bs * bpb + 1 > self.hdr[k::FILE_SIZE]
+            {
+                return Err(corrupt(format!(
+                    "refusing to reconcile: the bin-block chain leaves the file or loops at \
+                     word {block}; nothing was written"
+                )));
+            }
+            out.push(block);
+            block = self.read_word(block + bs * bpb)?;
+        }
+        Ok(out)
+    }
+
+    /// Whether `a` is the first word of a bin of one of `blocks`.
+    fn is_bin_start(&self, blocks: &[i64], a: i64) -> bool {
+        let bs = self.hdr[k::BIN_SIZE];
+        let span = bs * self.hdr[k::BINS_PER_BLOCK];
+        blocks
+            .iter()
+            .any(|&b| a >= b && a < b + span && (a - b) % bs == 0)
+    }
+
+    /// The bins of the chain of table slot `th`, each verified to be a bin start of the
+    /// bin-block chain `blocks`, without loops. Refuses otherwise.
+    fn checked_chain(&self, th: i64, blocks: &[i64]) -> Result<Vec<i64>, WriteError> {
+        let bs = self.hdr[k::BIN_SIZE];
+        let slot = self.hdr[k::HASH_TABLE_START] + th;
+        let mut a = self.read_word(slot)?;
+        let mut from = slot;
+        let mut out = Vec::new();
+        while a != 0 {
+            if !self.is_bin_start(blocks, a) || out.contains(&a) {
+                return Err(corrupt(format!(
+                    "refusing to reconcile: word {from} of the pending record's hash chain \
+                     names word {a}, which is not a pathname bin of the bin-block chain \
+                     (or loops); nothing was written"
+                )));
+            }
+            out.push(a);
+            from = a + bs - 1;
+            a = self.read_word(from)?;
+        }
+        Ok(out)
+    }
+
+    /// Step 1b of [`Engine::reconcile`]. When the pending record's bin
+    /// entry names the pending info block (the new copy won publication), its words 4-6
+    /// must describe that copy, as an uninterrupted Publish writes them:
+    /// - 4: the info block's record type, with the entry's own catalog sequence number
+    ///   (replacement keeps the old entry's; a new entry is written whole with the header's);
+    /// - 5: the info block's last-write time;
+    /// - 6: the Julian days of its first and last dates.
+    ///
+    /// Engines before 0.1.1 published +3 and +4..+6 in two writes, and process death
+    /// between them left the old type and dates under the new info block. The entry is
+    /// found only through the pending pathname's verified chain; the
+    /// write is idempotent, so a reconciliation killed here repeats it exactly.
+    fn complete_entry_metadata(&mut self, pending: i64, path: &[u8]) -> Result<(), WriteError> {
+        let th = table_hash(path, self.hdr[k::MAX_HASH]);
+        let blocks = self.bin_blocks()?;
+        let chain = self.checked_chain(th, &blocks)?;
+        let bs = self.hdr[k::BIN_SIZE];
+        let mut at = None;
+        for &b in &chain {
+            let bin = self.read_words(b, bs as usize)?;
+            if let Some(e) = Self::bin_entries(&bin)
+                .into_iter()
+                .find(|e| e.5 == pending && e.2 <= 1 && e.4.eq_ignore_ascii_case(path))
+            {
+                at = Some(b + e.0 as i64);
+                break;
+            }
+        }
+        let Some(at) = at else {
+            return Ok(()); // not published: the old copy stands
+        };
+        let iw = self.read_words(pending, info::INFO_FIXED_WORDS)?;
+        let cur = self.read_words(at + 4, 3)?;
+        let want = [
+            i4toi8(split_i4(iw[info::key::TYPE_VERSION]).0, split_i4(cur[0]).1),
+            iw[info::key::LAST_WRITE_TIME],
+            i4toi8(
+                split_i4(iw[info::key::FIRST_DATE]).0,
+                split_i4(iw[info::key::LAST_DATE]).0,
+            ),
+        ];
+        if cur[..] != want[..] {
+            self.write_words(at + 4, &want)?;
+            self.sync()?;
+        }
+        Ok(())
+    }
+
     /// Step 1 of [`Engine::reconcile`].
+    ///
+    /// Before the link is written, every bin the pending pathname's
+    /// chain reaches (from its hash-table slot through each overflow word) must be the
+    /// start of a bin of the bin-block chain, without a loop; otherwise the chain is
+    /// damaged beyond what process death produces and reconciliation refuses, writing
+    /// nothing. The link is then written only into the hash-table slot or into the
+    /// overflow word of a verified bin.
     fn roll_forward(&mut self, pending: i64, path: &[u8]) -> Result<(), WriteError> {
         let th = table_hash(path, self.hdr[k::MAX_HASH]);
-        let chain = self.chain(th)?;
+        let blocks = self.bin_blocks()?;
+        let chain = self.checked_chain(th, &blocks)?;
         let bs = self.hdr[k::BIN_SIZE];
         for &b in &chain {
             let bin = self.read_words(b, bs as usize)?;
@@ -1274,7 +1610,7 @@ impl<'a> Engine<'a> {
         self.sync()
     }
 
-    /// Header statistics rebuilt from the file (P20 review F3), each as heclib keeps it:
+    /// Header statistics rebuilt from the file, each as heclib keeps it:
     ///
     /// - `knumberRecords`: live (status 0/1) entries of a physical walk of every bin
     ///   (`SemiPublic/zcheckPathnames.c` lines 86-185; heclib changes it only in
@@ -1382,7 +1718,7 @@ impl<'a> Engine<'a> {
     /// for a new block, `(block address, block words, chain-link word)`.
     ///
     /// Bins left in use by an interrupted write whose counters did not reach the header
-    /// (P20 §4: the bin allocation state is written with the counters) are skipped: a
+    /// (the bin allocation state is written with the counters, `dss7.md` §6.4) are skipped: a
     /// non-empty "next empty" bin counts as used, and a block already linked from the
     /// chain word is adopted instead of allocating another one.
     fn take_bin(&mut self) -> Result<(i64, Option<NewBlock>), WriteError> {
@@ -1413,15 +1749,65 @@ impl<'a> Engine<'a> {
                 return Ok((addr, Some((addr, words as usize, link))));
             }
             let addr = self.hdr[k::NEXT_EMPTY_BIN];
-            let bin = self.read_words(addr, bs as usize)?;
+            let first = self.read_word(addr)?;
             self.hdr[k::TOTAL_BINS] += 1;
             self.hdr[k::BINS_REMAIN_IN_BLOCK] -= 1;
             self.hdr[k::NEXT_EMPTY_BIN] += bs;
-            if bin.iter().all(|&x| x == 0) {
+            // Empty by heclib's test, the first word (`zcatalogInternal()` line 280,
+            // `zbinUpdate()` line 194). Other words a killed Publish left are overwritten
+            // when add_new() writes the whole bin (`zbinUpdate()` line 271).
+            if first == 0 {
+                // add_new() writes this bin whole. Reconciliation clears the
+                // body a killed Publish leaves, so non-zero words here mean the cursor
+                // or the bin is not what the header says: refuse before anything is
+                // written.
+                if self.read_words(addr, bs as usize)?.iter().any(|&w| w != 0) {
+                    return Err(corrupt(format!(
+                        "the next empty pathname bin at word {addr} holds data; refusing \
+                         to write (nothing was written)"
+                    )));
+                }
+                // Cheap, no scan: never hand out a bin that overlaps the
+                // permanent section as `zpermCreate()` lays it out.
+                if self.overlaps_fixed_regions(addr, bs) {
+                    return Err(corrupt(format!(
+                        "the next empty pathname bin at word {addr} lies in the permanent \
+                         section; refusing to write (nothing was written)"
+                    )));
+                }
                 return Ok((addr, None));
             }
         }
         Err(corrupt("no empty pathname bin found"))
+    }
+
+    /// Whether `[addr, addr + len)` overlaps a fixed region of the permanent section as
+    /// `zpermCreate()` lays it out: the header (`[0, max(100, kfileHeaderSize))`, line
+    /// 95), the lock word (3 words, line 272), the write-lock, read-lock and PID arrays
+    /// (`klockArraySizes` each, lines 278, 287, 296), the hash table (line 312) and the
+    /// first reclaim table (line 325). Header words only; no scan.
+    fn overlaps_fixed_regions(&self, addr: i64, len: i64) -> bool {
+        let h = &self.disk;
+        let mut regions = vec![
+            (
+                0,
+                h[header::key::FILE_HEADER_SIZE].max(header::MIN_HEADER_SIZE),
+            ),
+            (h[k::LOCK_ADDRESS_WORD], 3),
+            (h[k::HASH_TABLE_START], h[k::MAX_HASH]),
+            (h[k::RECLAIM_TABLE_ADDRESS], h[k::RECLAIM_SIZE]),
+        ];
+        for a in [
+            h[k::LOCK_WRITE_ARRAY],
+            h[k::LOCK_READ_ARRAY],
+            h[k::PID_ARRAY],
+        ] {
+            regions.push((a, h[k::LOCK_ARRAY_SIZES]));
+        }
+        regions
+            .into_iter()
+            .filter(|&(a, n)| a >= 0 && n > 0)
+            .any(|(a, n)| addr < a.saturating_add(n) && a < addr + len)
     }
 
     /// Walk the table-hash chain (`zcheckInternal()` statistics) and pick the insertion
@@ -1528,7 +1914,7 @@ impl<'a> Engine<'a> {
 
     // -- add / replace / delete ------------------------------------------------------------
 
-    /// New record (`zwriteNew()`, `zbinNew()`, `zbinUpdate()`), in P20 §4 order.
+    /// New record (`zwriteNew()`, `zbinNew()`, `zbinUpdate()`), in the `dss7.md` §6.4 order.
     fn add_new(&mut self, path: &[u8], a: &Areas) -> Result<i64, WriteError> {
         let bh = pathname_hash(path);
         let th = table_hash(path, self.hdr[k::MAX_HASH]);
@@ -1575,7 +1961,7 @@ impl<'a> Engine<'a> {
         // Publish: entry words, then the one word that makes the entry exist. In a new
         // bin the entry is not reachable yet: no table slot or overflow word points at
         // the bin until the Link step, so a bin a crashed write left behind is never
-        // referenced while empty (P20 review M1).
+        // referenced while empty.
         let e = self.entry_words(path, rec_addr, a);
         let at = bin + icount as i64;
         if reuse {
@@ -1585,6 +1971,18 @@ impl<'a> Engine<'a> {
             self.write_words(at + 3, &[e[3]])?;
             self.sync()?;
             self.write_words(at + 1, &[e[1]])?;
+        } else if link.is_some() {
+            // A new bin is written whole, words 1..kbinSize (entry body, then zeros
+            // up to and including the overflow word), as `zbinUpdate()` line 271 writes
+            // the bin `zbinNew()` cleared (lines 136-139). The cursor bin may hold the
+            // body a killed Publish left (finding F1); a shorter entry must not leave its
+            // tail behind. Same writes in the same order as before, with the zero tail
+            // in the body write; then the publication word.
+            let mut whole = vec![0i64; self.hdr[k::BIN_SIZE] as usize];
+            whole[..e.len()].copy_from_slice(&e);
+            self.write_words(bin + 1, &whole[1..])?;
+            self.sync()?;
+            self.write_words(bin, &[e[0]])?;
         } else {
             self.write_words(at + 1, &e[1..])?;
             self.sync()?;
@@ -1653,7 +2051,7 @@ impl<'a> Engine<'a> {
     }
 
     /// Rewrite an existing record (`zwriteExisting()` sizes and versions; always a new
-    /// copy at EOF, P20 §5).
+    /// copy at EOF).
     fn replace(&mut self, r: &RecordRef, a: &Areas) -> Result<i64, WriteError> {
         let old: &InfoBlock = &r.info;
         let pw = longs_in_bytes(r.pathname.len());
@@ -1735,13 +2133,17 @@ impl<'a> Engine<'a> {
         self.write_words(r.info_address + info::key::STATUS as i64, &[status::MOVED])?;
         self.sync()?;
         self.step(WriteStep::Retire)?;
-        // Publish: bin +3 (info address), then +4..+6 (type, last write, dates).
+        // Publish: bin +3 (info address) and +4..+6 (type, last write, dates) in one
+        // write call. They were two calls: process death between them
+        // left the new info block published under the old type, dates and write time. One
+        // `write` is not split by process death. Reconciliation also completes +4..+6
+        // from the published info block (`complete_entry_metadata`), for files that an
+        // earlier engine left in that state.
         let e = self.entry_words(&r.pathname, rec_addr, a);
         let at = r.bin_entry_address;
         let old_tc = self.read_word(at + 4)?;
         let cat = split_i4(old_tc).1;
-        self.write_words(at + 3, &[rec_addr])?;
-        self.write_words(at + 4, &[i4toi8(a.data_type, cat), e[5], e[6]])?;
+        self.write_words(at + 3, &[rec_addr, i4toi8(a.data_type, cat), e[5], e[6]])?;
         self.sync()?;
         self.step(WriteStep::Publish)?;
         // Counters (zwriteExisting() lines 241-251; dead space of the old copy).
@@ -1828,7 +2230,7 @@ fn overwrite(full: &mut BlockValues, at: usize, new: &BlockValues) {
 }
 
 // ---------------------------------------------------------------------------------
-// Irregular-interval series (P21): ztsProcessTimes (store branch, irregular) and the
+// Irregular-interval series: ztsProcessTimes (store branch, irregular) and the
 // main loop of ztsStoreIrreg7, then ztsIrregStoreBlock / ztsIrregMergeBlocks for
 // storage flag 1 ("replace": the values inside the new time window replace what is
 // stored, the rest of each block is kept). Paths relative to `heclib/heclib_c/src/` of
@@ -1952,7 +2354,7 @@ pub(super) fn plan_its(input: &ItsInput) -> Result<ItsPlan, WriteError> {
     let century = path.block_size == iv::BLOCK_1_CENTURY;
     // Times: defined, within years 1..=9999, strictly ascending. heclib refuses only a
     // descending pair (TIMES_NOT_ASCENDING, `ztsStoreIrreg7()` lines 257-278) and stores
-    // equal times as two values; the writer refuses duplicates (P21 §2.4).
+    // equal times as two values; the writer refuses duplicates.
     let mut prev: Option<i64> = None;
     for (i, &t) in input.times.iter().enumerate() {
         if t == 0 {
@@ -2108,11 +2510,10 @@ struct ItsBlockData {
 /// stored values before the window (first block only, `!boolFromStartOfBlock`), the new
 /// values, then stored values after the window (last block only, `!boolToEndOfBlock`).
 ///
-/// heclib 7-IU-15 (and the 7-JA oracle) bound the copy of the stored values after the
+/// heclib 7-IU-15 (and the 7-JA build) bound the copy of the stored values after the
 /// window by `combinedTotal`, which was reduced by the values kept before the window
 /// (line 488), so that copy stops early when more stored values precede the window
-/// than it replaces (line 552). The writer keeps every stored value after the window
-/// (P21 §5, REPORT §3).
+/// than it replaces (line 552). The writer keeps every stored value after the window.
 fn merge_replace(
     old: ItsBlockData,
     new: ItsBlockData,
@@ -2283,7 +2684,7 @@ impl Engine<'_> {
     }
 
     /// One irregular block: `ztsIrregStoreBlock()` with storage flag 1, then
-    /// `ztsWriteBlock()` (P21 §3).
+    /// `ztsWriteBlock()`.
     fn prepare_its_block(
         &self,
         input: &ItsInput,
@@ -2311,7 +2712,7 @@ impl Engine<'_> {
         if let Some(r) = &found {
             self.check_existing_its(r)?;
         }
-        // Width: the 7-JA oracle build (`hec-dss` `f14554d`) widens floats written into a
+        // Width: the 7-JA build of HEC's C library (`hec-dss` `f14554d`) widens floats written into a
         // double record to doubles inside the block loop of `ztsStoreIrreg7()`, with the
         // write's time window unchanged; this port follows it. 7-IU-15 instead calls
         // `ztsStore()` recursively on a clone holding only this block's values
@@ -2392,12 +2793,13 @@ impl Engine<'_> {
             last: (last.0 as i32, last.1 as i32),
             // ztsWriteBlock() lines 199-203: values, quality and the time array.
             total_expanded: logical * (elem + qes as i64) + logical,
+            copy_out: false,
         };
         Ok(Prepared { path, found, areas })
     }
 
     /// Refusals for an existing irregular record that a store would merge into or a
-    /// delete would remove (P21 review M1, m4): only ITS/ITD records without notes,
+    /// delete would remove: only ITS/ITD records without notes,
     /// profile depths or multi-word quality are written or deleted. heclib's `zdelete()`
     /// is type-blind; the writer refuses rather than delete a record it would not store.
     fn check_existing_its(&self, r: &RecordRef) -> Result<(), WriteError> {
@@ -2436,7 +2838,7 @@ impl Engine<'_> {
         self.commit_areas(p.path, p.found, &p.areas)
     }
 
-    /// Lookup with P20's handling of damaged and alias records.
+    /// Lookup with the writer's handling of damaged and alias records.
     fn lookup_for_write(&self, path: &[u8]) -> Result<Option<RecordRef>, WriteError> {
         let mut rdr = self.reader()?;
         let found = match rdr.lookup(path) {
@@ -2467,7 +2869,7 @@ impl Engine<'_> {
         Ok(found)
     }
 
-    /// Add, replace or skip one record (P20 §3.3 items 10-11, §4).
+    /// Add, replace or skip one record (an equal rewrite writes nothing).
     fn commit_areas(
         &mut self,
         path: Vec<u8>,
@@ -2577,7 +2979,7 @@ impl Engine<'_> {
     }
 
     /// Delete one record (`Internal/zdeleteInternal.c:zdeleteInternal()` lines 157-231)
-    /// in the P20 §4 order, adapted (P21 §4): Allocation (marker = −info address, with
+    /// in the `dss7.md` §6.4 order, adapted: Allocation (marker = −info address, with
     /// `knumberDeletes`, `kcatSortDeletes`, `kcatSortStatus` and `kdead`),
     /// Retire (info status DELETED), Publish (bin status DELETED: the record is gone),
     /// Counters, Finish. Steps that do not apply write nothing.
@@ -2586,7 +2988,7 @@ impl Engine<'_> {
         self.step(WriteStep::EndOfFile)?;
         // Allocation: the marker (−info address: a delete) and the counters that only a
         // delete changes and that cannot be rebuilt from the bins (deleted entries can be
-        // reused), so reconcile can take them back exactly (P21 review m6).
+        // reused), so reconcile can take them back exactly.
         let released = released_words(r);
         {
             let h = &mut self.hdr;
@@ -2621,7 +3023,7 @@ impl Engine<'_> {
         self.sync()?;
         self.step(WriteStep::Publish)?;
         // Counters (lines 219-231): the record and area counts. The released space went
-        // to kdead in words at Allocation; reclaim tables are not used (P20 §5).
+        // to kdead in words at Allocation; reclaim tables are not used.
         let i = &r.info;
         let h = &mut self.hdr;
         h[k::NUMBER_RECORDS] -= 1;
@@ -2657,7 +3059,7 @@ pub(super) fn write_its_planned(
     plan: &ItsPlan,
     opts: &WriteOptions,
 ) -> Result<WriteReport, WriteError> {
-    // P38: the variant entry point keeps P21's preflight, and P21's path for plain blocks.
+    // The variant entry point keeps the irregular writer's preflight and its path for plain blocks.
     write_its_v(file, input, plan, &Default::default(), opts)
 }
 
@@ -2665,8 +3067,8 @@ pub(super) fn write_its_planned(
 // Entry point
 // ---------------------------------------------------------------------------------
 
-/// One locked write session: the P19 guard, the held lock, reconciliation of an
-/// interrupted write, then the caller's transactions (P20 §2.1, §4).
+/// One locked write session: the lock guard, the held lock, reconciliation of an
+/// interrupted write, then the caller's transactions (`dss7.md` §6.4).
 struct Session<'a> {
     file: &'a File,
     eng: Engine<'a>,
@@ -2678,7 +3080,7 @@ struct Session<'a> {
 
 impl<'a> Session<'a> {
     fn begin(file: &'a File, opts: &'a WriteOptions) -> Result<Self, WriteError> {
-        // G1: lock test on our own handle, then the explicit policy (P19a).
+        // Lock test on our own handle, then the explicit policy.
         let report = lock::lock_status_of(file).map_err(WriteError::Lock)?;
         let guard = lock::ensure_unlocked_for_write(&report, &opts.lock_policy)
             .map_err(WriteError::Locked)?;
@@ -2755,11 +3157,11 @@ pub(super) fn write_planned(
     plan: &Plan,
     opts: &WriteOptions,
 ) -> Result<WriteReport, WriteError> {
-    // P38: the variant entry point keeps P20's preflight, and P20's path for plain blocks.
+    // The variant entry point keeps the regular writer's preflight and its path for plain blocks.
     write_rts_v(file, input, plan, &Default::default(), opts)
 }
 
-/// P24: store one record whose areas the caller built (a grid), as one P20 §4
+/// Store one record whose areas the caller built (a grid), as one `dss7.md` §6.4
 /// transaction. `check` sees the existing record, if any, after the lookup and before
 /// anything is written, and may refuse the write.
 pub(super) fn write_areas(
@@ -2775,6 +3177,761 @@ pub(super) fn write_areas(
     session.eng.block_index = 0;
     let block = session.eng.commit_areas(path.to_vec(), found, areas)?;
     session.finish(vec![block])
+}
+
+/// The six areas of a record, read raw from a reader, as the writer stores them.
+fn record_areas<R: Read + Seek>(f: &mut Dss7File<R>, r: &RecordRef) -> Result<Areas, String> {
+    let i = &r.info;
+    let area = |f: &mut Dss7File<R>, a: &info::Area| -> Result<Vec<i32>, String> {
+        if a.number_ints <= 0 {
+            return Ok(Vec::new());
+        }
+        if a.number_ints > 1 << 31 {
+            return Err(format!("area of {} ints", a.number_ints));
+        }
+        let words = longs_in_ints(a.number_ints);
+        let b = f.read_words(a.address, words).map_err(|e| e.to_string())?;
+        let mut v = Vec::with_capacity(a.number_ints as usize);
+        for c in b.chunks_exact(4) {
+            v.push(i32::from_le_bytes([c[0], c[1], c[2], c[3]]));
+        }
+        v.truncate(a.number_ints as usize);
+        Ok(v)
+    };
+    Ok(Areas {
+        data_type: i.record_type,
+        ih: area(f, &i.internal_header)?,
+        h2: area(f, &i.header2)?,
+        uh: area(f, &i.user_header)?,
+        v1: area(f, &i.values1)?,
+        v2: area(f, &i.values2)?,
+        v3: area(f, &i.values3)?,
+        number_data: i.number_data,
+        logical: i.logical_number,
+        first: i.first_date,
+        last: i.last_date,
+        total_expanded: 0,
+        copy_out: true,
+    })
+}
+
+/// The first field in which two records' areas differ (bit for bit), if any.
+fn areas_difference(a: &Areas, b: &Areas) -> Option<&'static str> {
+    if a.data_type != b.data_type {
+        Some("record type")
+    } else if a.ih != b.ih {
+        Some("internal header")
+    } else if a.h2 != b.h2 {
+        Some("header2")
+    } else if a.uh != b.uh {
+        Some("user header")
+    } else if a.v1 != b.v1 {
+        Some("values1")
+    } else if a.v2 != b.v2 {
+        Some("values2")
+    } else if a.v3 != b.v3 {
+        Some("values3")
+    } else if a.number_data != b.number_data {
+        Some("number of data")
+    } else if a.logical != b.logical {
+        Some("logical number")
+    } else if a.first != b.first || a.last != b.last {
+        Some("first/last dates")
+    } else {
+        None
+    }
+}
+
+/// The record as the normal readers decode it, for the semantic part of copy-out's
+/// verification (time-dependent fields cleared). `None` for kinds without a decoder;
+/// those are verified by their raw areas alone.
+fn decoded<R: Read + Seek>(f: &mut Dss7File<R>, r: &RecordRef) -> Option<Result<String, String>> {
+    let e = |x: &dyn std::fmt::Display| x.to_string();
+    Some(match r.record_type {
+        102 | 107 | 112 | 117 => f
+            .read_ts_profile_record(r)
+            .map(|x| format!("{x:?}"))
+            .map_err(|x| e(&x)),
+        100..=119 => f
+            .read_ts_record(r)
+            .map(|x| format!("{x:?}"))
+            .map_err(|x| e(&x)),
+        200..=209 => f
+            .read_pd_record(r)
+            .map(|x| format!("{:?}", x.pd))
+            .map_err(|x| e(&x)),
+        400..=499 => f
+            .read_grid_record(r)
+            .map(|x| format!("{x:?}"))
+            .map_err(|x| e(&x)),
+        20 => f
+            .read_location_record(r)
+            .map(|mut l| {
+                l.last_write_ms = 0;
+                l.program.clear();
+                format!("{l:?}")
+            })
+            .map_err(|x| e(&x)),
+        _ => return None,
+    })
+}
+
+/// The pathname a record's info block stores (its own identity; for an alias, the
+/// primary's). `None` when it cannot be read.
+fn info_pathname<R: Read + Seek>(f: &mut Dss7File<R>, r: &RecordRef) -> Option<Vec<u8>> {
+    let n = r.info.pathname_length;
+    if !(1..=392).contains(&n) {
+        return None;
+    }
+    let n = n as usize;
+    f.read_words(
+        r.info_address + info::INFO_FIXED_WORDS as i64,
+        longs_in_bytes(n) as i64,
+    )
+    .ok()
+    .map(|b| b.into_iter().take(n).collect())
+}
+
+fn plausible_pathname(p: &[u8]) -> bool {
+    (3..=392).contains(&p.len())
+        && p.first() == Some(&b'/')
+        && p.last() == Some(&b'/')
+        && p.iter().filter(|&&c| c == b'/').count() == 7
+}
+
+/// The temporary file of a copy-out, removed when dropped unless `keep` is set:
+/// every returned error after the file was created removes it. Only a file
+/// this call created (`create_new` succeeded) is ever owned, so a pre-existing file is
+/// never removed.
+struct TempFile {
+    path: std::path::PathBuf,
+    keep: bool,
+}
+
+impl Drop for TempFile {
+    fn drop(&mut self) {
+        if !self.keep {
+            let _ = std::fs::remove_file(&self.path);
+        }
+    }
+}
+
+/// Publish `tmp` at `dest` with an atomic rename that never replaces an
+/// existing file. `Ok(true)`: renamed; `Ok(false)`: no such primitive here (the caller
+/// fails, keeping `tmp`); an existing `dest` is `ErrorKind::AlreadyExists`.
+#[cfg(target_os = "linux")]
+fn rename_noreplace(tmp: &std::path::Path, dest: &std::path::Path) -> std::io::Result<bool> {
+    use nix::errno::Errno;
+    use nix::fcntl::{renameat2, RenameFlags, AT_FDCWD};
+    match renameat2(AT_FDCWD, tmp, AT_FDCWD, dest, RenameFlags::RENAME_NOREPLACE) {
+        Ok(()) => Ok(true),
+        Err(Errno::EEXIST) => Err(std::io::Error::from(std::io::ErrorKind::AlreadyExists)),
+        Err(Errno::EINVAL) | Err(Errno::ENOSYS) | Err(Errno::EOPNOTSUPP) => Ok(false),
+        Err(e) => Err(std::io::Error::from(e)),
+    }
+}
+
+/// No atomic no-replace rename is available to this crate here (Windows'
+/// `MoveFileExW` would need `unsafe` FFI, which `dss-core` forbids).
+#[cfg(not(target_os = "linux"))]
+fn rename_noreplace(_tmp: &std::path::Path, _dest: &std::path::Path) -> std::io::Result<bool> {
+    Ok(false)
+}
+
+/// A copy-out candidate as read: the record, its areas (or why they do not read), and
+/// the pathname its info block stores.
+type ReadCandidate = (RecordRef, Result<Areas, String>, Option<Vec<u8>>);
+
+/// One source record chosen for copying: the pathname it is written under, its areas, and
+/// the exact source record they were read from (used again by the verification).
+type Chosen = (Vec<u8>, Areas, RecordRef);
+
+use super::{Candidate, CandidateOutcome};
+
+/// Copy-out: see [`super::repair_dss7`].
+pub(super) fn copy_out(
+    src: &std::path::Path,
+    dest: &std::path::Path,
+) -> Result<RepairReport, WriteError> {
+    use super::copy_out_fault as fault;
+    if std::fs::symlink_metadata(dest).is_ok() {
+        return Err(WriteError::AlreadyExists(dest.to_path_buf()));
+    }
+    // Read the source (opened read-only; never written).
+    let mut rdr = Dss7File::open(src)?;
+    let src_interrupted_write = rdr.header().words[PENDING_WORD] != 0;
+    // Before 7-HA, time-series values use a deprecated aggregate layout that the reader
+    // interprets by the file revision (`ts.rs`, `Internal/ztsDisaggregate.c`). Copied raw
+    // into a new file they would mean something else, so they are not copied.
+    let deprecated_ts = rdr.header().fver < crate::dss7::ts::FVER_7_HA;
+    let plain = rdr.catalog()?;
+    let listed: std::collections::HashSet<Vec<u8>> = plain
+        .catalog
+        .live()
+        .map(|e| e.pathname.to_ascii_uppercase())
+        .collect();
+    // Candidates come from one documented discovery procedure
+    // (`Dss7File::discover`): the bin-block chain, every hash slot and every overflow
+    // link of every bin reached, empty bins included, bounded.
+    let found = rdr.discover()?;
+    let mut report = RepairReport {
+        records_copied: 0,
+        hidden_records_copied: 0,
+        not_copied: Vec::new(),
+        aliases_skipped: 0,
+        duplicates_skipped: 0,
+        fallback_copies: Vec::new(),
+        variants_copied: Vec::new(),
+        ledger: Vec::new(),
+        src_listed_records: listed.len(),
+        src_interrupted_write,
+    };
+    // Live entries grouped by pathname (case-insensitive, as lookups are), in discovery
+    // order; aliases are resolved after every primary has been tried.
+    let mut order: Vec<Vec<u8>> = Vec::new();
+    let mut groups: std::collections::HashMap<Vec<u8>, Vec<usize>> =
+        std::collections::HashMap::new();
+    let mut aliases: Vec<usize> = Vec::new();
+    for (i, e) in found.entries.iter().enumerate() {
+        let st = e.status;
+        if st == status::ALIAS {
+            aliases.push(i);
+            continue;
+        }
+        if !matches!(st, status::VALID | status::PRIMARY) {
+            continue; // deleted, renamed or moved entries are not records
+        }
+        let key = e.pathname.to_ascii_uppercase();
+        groups
+            .entry(key.clone())
+            .or_insert_with(|| {
+                order.push(key);
+                Vec::new()
+            })
+            .push(i);
+    }
+    let mut records: Vec<Chosen> = Vec::new();
+    // Ledger index of each record in `records`.
+    let mut rec_ledger: Vec<usize> = Vec::new();
+    // Uppercase destination pathname -> index into `records` (what a later
+    // duplicate or alias is compared with before it may be skipped).
+    let mut seen: std::collections::HashMap<Vec<u8>, usize> = std::collections::HashMap::new();
+    // Groups with nothing copied: their ledger entries and readable payloads, which an
+    // alias's copy of the same primary may cover.
+    let mut unresolved: std::collections::HashMap<Vec<u8>, Vec<(usize, Option<Areas>)>> =
+        std::collections::HashMap::new();
+    let mut ledger: Vec<Candidate> = Vec::new();
+    let not = |s: String| CandidateOutcome::NotCopied(s);
+    // What a pointer reaches but discovery cannot classify is listed,
+    // never dropped.
+    for (a, what) in &found.unclassified {
+        ledger.push(Candidate::new(
+            format!("(unclassified pointer target at word {a})").as_bytes(),
+            None,
+            false,
+            not(format!("unclassified: {what}")),
+        ));
+    }
+    for key in &order {
+        let idxs = &groups[key];
+        let e = &found.entries[idxs[0]];
+        let path = e.pathname.clone();
+        report.duplicates_skipped += idxs.len() - 1;
+        // A pathname refused as a whole: one ledger entry per distinct info address its
+        // entries name (a brute-force sweep in the tests finds them by address).
+        let refuse = |ledger: &mut Vec<Candidate>, why: &str| {
+            let mut infos: Vec<i64> = Vec::new();
+            for &i in idxs {
+                let a = found.entries[i].info_address;
+                if !infos.contains(&a) {
+                    infos.push(a);
+                    ledger.push(Candidate::new(&path, Some(a), false, not(why.into())));
+                }
+            }
+        };
+        if !plausible_pathname(&path) {
+            refuse(&mut ledger, "implausible pathname");
+            continue;
+        }
+        if deprecated_ts && (100..=119).contains(&e.record_type) {
+            refuse(
+                &mut ledger,
+                "time series in the pre-7-HA layout: not converted by copy-out",
+            );
+            continue;
+        }
+        // The candidates are the hash lookup's record (what a reader of
+        // the pathname gets) and then every catalog copy of the pathname, each distinct
+        // info block once.
+        let mut candidates: Vec<RecordRef> = Vec::new();
+        let mut lookup_problem: Option<String> = None;
+        let mut other_problems: Vec<String> = Vec::new();
+        // Entries whose info block the reader rejects (zeroed, bad flag, reused space):
+        // each still gets a ledger entry at its info address.
+        let mut failed: Vec<(i64, String)> = Vec::new();
+        match rdr.lookup(&path) {
+            Ok(Some(r)) => candidates.push(r),
+            Ok(None) => {}
+            Err(err) => lookup_problem = Some(format!("hash lookup: {err}")),
+        }
+        for &i in idxs {
+            match rdr.record_from_entry(&found.entries[i]) {
+                Ok(r) => {
+                    if !candidates.iter().any(|c| c.info_address == r.info_address) {
+                        candidates.push(r);
+                    }
+                }
+                Err(err) => {
+                    let why = format!(
+                        "bin entry at word {}: {err}",
+                        found.entries[i].bin_entry_address
+                    );
+                    failed.push((found.entries[i].info_address, why.clone()));
+                    other_problems.push(why);
+                }
+            }
+        }
+        // Every candidate is read. One is usable only when its areas
+        // read in full and its info block names this pathname (equal ignoring ASCII
+        // case); the first usable one is copied. Every other candidate gets its own
+        // ledger outcome: equal to the copy, unreadable (covered by the copy), or not
+        // copied with its reason.
+        let read: Vec<ReadCandidate> = candidates
+            .into_iter()
+            .map(|r| {
+                let a = record_areas(&mut rdr, &r);
+                let c = if a.is_ok() {
+                    info_pathname(&mut rdr, &r)
+                } else {
+                    None
+                };
+                (r, a, c)
+            })
+            .collect();
+        let usable = |a: &Result<Areas, String>, c: &Option<Vec<u8>>| {
+            a.is_ok() && c.as_ref().is_some_and(|c| c.eq_ignore_ascii_case(&path))
+        };
+        let why = |r: &RecordRef, a: &Result<Areas, String>, c: &Option<Vec<u8>>| match (a, c) {
+            (Err(err), _) => format!("info block at word {}: {err}", r.info_address),
+            (Ok(_), Some(c)) => format!(
+                "info block at word {} names another record, {}",
+                r.info_address,
+                String::from_utf8_lossy(c)
+            ),
+            (Ok(_), None) => format!(
+                "info block at word {}: its pathname cannot be read",
+                r.info_address
+            ),
+        };
+        let chosen = read.iter().position(|(_, a, c)| usable(a, c));
+        match chosen {
+            Some(k) => {
+                let (r0, a0, c0) = &read[k];
+                let (a, canon) = (a0.clone().unwrap(), c0.clone().unwrap());
+                let mut r = r0.clone();
+                // R19: a fallback only when the preferred candidate was not usable.
+                let mut preferred: Vec<String> = lookup_problem.into_iter().collect();
+                preferred.extend(read[..k].iter().map(|(r, a, c)| why(r, a, c)));
+                if !preferred.is_empty() {
+                    report.fallback_copies.push((
+                        path.clone(),
+                        r.info_address,
+                        preferred.join("; "),
+                    ));
+                }
+                let li = ledger.len();
+                ledger.push(Candidate::new(
+                    &path,
+                    Some(r.info_address),
+                    false,
+                    CandidateOutcome::Copied,
+                ));
+                for (j, (o, oa, oc)) in read.iter().enumerate() {
+                    if j == k {
+                        continue;
+                    }
+                    let outcome = match oa {
+                        Err(_) => CandidateOutcome::UnreadableCoveredBy {
+                            copied_info: r.info_address,
+                        },
+                        Ok(b) => match areas_difference(&a, b) {
+                            None => CandidateOutcome::EqualToCopied {
+                                copied_info: r.info_address,
+                            },
+                            Some(what) => {
+                                report.duplicates_skipped =
+                                    report.duplicates_skipped.saturating_sub(1);
+                                let lead = if usable(oa, oc) {
+                                    format!("a duplicate at info word {}", o.info_address)
+                                } else {
+                                    why(o, oa, oc)
+                                };
+                                not(format!(
+                                    "{lead}: its payload differs ({what}) from the copy at \
+                                     info word {} that was copied",
+                                    r.info_address
+                                ))
+                            }
+                        },
+                    };
+                    ledger.push(Candidate::new(&path, Some(o.info_address), false, outcome));
+                }
+                let mut listed_infos: Vec<i64> = read.iter().map(|x| x.0.info_address).collect();
+                for (fi, _) in &failed {
+                    if !listed_infos.contains(fi) {
+                        listed_infos.push(*fi);
+                        ledger.push(Candidate::new(
+                            &path,
+                            Some(*fi),
+                            false,
+                            CandidateOutcome::UnreadableCoveredBy {
+                                copied_info: r.info_address,
+                            },
+                        ));
+                    }
+                }
+                // The record is written and verified under its own
+                // identity, the pathname its info block stores; a case variant of the
+                // catalog's spelling is recorded.
+                if canon != path {
+                    report.variants_copied.push((
+                        path.clone(),
+                        canon.clone(),
+                        "case variant".into(),
+                    ));
+                }
+                seen.insert(key.clone(), records.len());
+                r.pathname = canon.clone();
+                records.push((canon, a, r));
+                rec_ledger.push(li);
+            }
+            None => {
+                let mut open = Vec::new();
+                let mut listed_infos: Vec<i64> = read.iter().map(|x| x.0.info_address).collect();
+                for (fi, why) in &failed {
+                    if !listed_infos.contains(fi) {
+                        listed_infos.push(*fi);
+                        open.push((ledger.len(), None));
+                        ledger.push(Candidate::new(&path, Some(*fi), false, not(why.clone())));
+                    }
+                }
+                if read.is_empty() && failed.is_empty() {
+                    let mut p: Vec<String> = lookup_problem.into_iter().collect();
+                    p.extend(other_problems);
+                    if p.is_empty() {
+                        p.push("no readable copy".into());
+                    }
+                    open.push((ledger.len(), None));
+                    ledger.push(Candidate::new(&path, None, false, not(p.join("; "))));
+                }
+                for (r, a, c) in &read {
+                    open.push((ledger.len(), a.as_ref().ok().cloned()));
+                    ledger.push(Candidate::new(
+                        &path,
+                        Some(r.info_address),
+                        false,
+                        not(why(r, a, c)),
+                    ));
+                }
+                unresolved.insert(key.clone(), open);
+            }
+        }
+    }
+    // An alias's data is its primary record's. It counts as covered only
+    // when that primary was copied (or reads the same); otherwise the primary is copied
+    // through the alias, or the alias is reported as not copied.
+    for i in aliases {
+        let alias = found.entries[i].pathname.clone();
+        let r = match rdr.record_from_entry(&found.entries[i]) {
+            Ok(r) => r,
+            Err(err) => {
+                ledger.push(Candidate::new(
+                    &alias,
+                    None,
+                    true,
+                    not(format!("alias: its primary record cannot be read: {err}")),
+                ));
+                continue;
+            }
+        };
+        let primary: Vec<u8> = info_pathname(&mut rdr, &r).unwrap_or_default();
+        let pk = primary.to_ascii_uppercase();
+        if let Some(&j) = seen.get(&pk) {
+            // Covered only when it is the copied record, or reads the same.
+            let copied_info = records[j].2.info_address;
+            let same = copied_info == r.info_address
+                || matches!(record_areas(&mut rdr, &r), Ok(b) if areas_difference(&records[j].1, &b).is_none());
+            let outcome = if same {
+                report.aliases_skipped += 1;
+                CandidateOutcome::EqualToCopied { copied_info }
+            } else {
+                not(format!(
+                    "alias: it resolves to info word {}, which differs from the copied \
+                     primary at info word {copied_info}",
+                    r.info_address
+                ))
+            };
+            ledger.push(Candidate::new(&alias, Some(r.info_address), true, outcome));
+            continue;
+        }
+        if !plausible_pathname(&primary) {
+            ledger.push(Candidate::new(
+                &alias,
+                Some(r.info_address),
+                true,
+                not("alias: its primary record's pathname is implausible".into()),
+            ));
+            continue;
+        }
+        match record_areas(&mut rdr, &r) {
+            Ok(a) => {
+                // Written and verified under the primary's own pathname.
+                let mut r = r;
+                r.pathname = primary.clone();
+                report
+                    .variants_copied
+                    .push((alias.clone(), primary.clone(), "alias".into()));
+                report.aliases_skipped += 1;
+                report.fallback_copies.push((
+                    primary.clone(),
+                    r.info_address,
+                    format!(
+                        "its primary record was reachable only through alias {}",
+                        String::from_utf8_lossy(&alias)
+                    ),
+                ));
+                // The primary's own unresolved candidates are covered only
+                // when unreadable or equal to this copy; an unequal readable one stays
+                // not copied.
+                if let Some(open) = unresolved.remove(&pk) {
+                    for (li, b) in open {
+                        let covered = match &b {
+                            None => Some(CandidateOutcome::UnreadableCoveredBy {
+                                copied_info: r.info_address,
+                            }),
+                            Some(b) if areas_difference(&a, b).is_none() => {
+                                Some(CandidateOutcome::EqualToCopied {
+                                    copied_info: r.info_address,
+                                })
+                            }
+                            Some(_) => None,
+                        };
+                        if let Some(c) = covered {
+                            ledger[li].outcome = c;
+                        }
+                    }
+                }
+                let li = ledger.len();
+                ledger.push(Candidate::new(
+                    &alias,
+                    Some(r.info_address),
+                    true,
+                    CandidateOutcome::Copied,
+                ));
+                seen.insert(pk, records.len());
+                records.push((primary, a, r));
+                rec_ledger.push(li);
+            }
+            Err(err) => ledger.push(Candidate::new(
+                &alias,
+                Some(r.info_address),
+                true,
+                not(format!("alias: its primary record cannot be read: {err}")),
+            )),
+        }
+    }
+    drop(rdr);
+    // Write a new file next to `dest`, under a temporary name, with the normal writer.
+    let name = dest
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| "repair".into());
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    let tmp = dest.with_file_name(format!(".{name}.{}.{nanos}.partial", std::process::id()));
+    let mut created = match std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&tmp)
+    {
+        Ok(f) => f,
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+            return Err(WriteError::AlreadyExists(tmp));
+        }
+        Err(e) => return Err(e.into()),
+    };
+    // From here on the temporary file is ours: every returned error removes it (R16).
+    let mut guard = TempFile {
+        path: tmp.clone(),
+        keep: false,
+    };
+    fault("create")?;
+    {
+        use std::io::Write as _;
+        let words = new_file_words(now_ms());
+        let mut bytes = Vec::with_capacity(words.len() * 8);
+        for w in &words {
+            bytes.extend_from_slice(&w.to_le_bytes());
+        }
+        created.write_all(&bytes)?;
+        fault("write_header")?;
+        created.sync_all()?;
+    }
+    drop(created);
+    let file = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(&tmp)?;
+    fault("open")?;
+    // Flushes between steps buy nothing in a file no one can see yet: one sync_all
+    // before the file is published (`sync: false` keeps the write order).
+    let wopts = WriteOptions {
+        sync: false,
+        ..WriteOptions::default()
+    };
+    let mut session = Session::begin(&file, &wopts)?;
+    let mut keep = Vec::with_capacity(records.len());
+    for (n, (path, a, _)) in records.iter().enumerate() {
+        session.eng.block_index = n;
+        if session.eng.lookup_for_write(path)?.is_some() {
+            // A destination collision is a duplicate only when its
+            // payload is the one already written; otherwise it is reported.
+            let first = keep
+                .iter()
+                .find(|&&j: &&usize| records[j].0.eq_ignore_ascii_case(path));
+            ledger[rec_ledger[n]].outcome = match first {
+                Some(&j) if areas_difference(&records[j].1, a).is_none() => {
+                    report.duplicates_skipped += 1;
+                    CandidateOutcome::EqualToCopied {
+                        copied_info: records[j].2.info_address,
+                    }
+                }
+                _ => CandidateOutcome::NotCopied(
+                    "another record was already copied under this pathname with a \
+                     different payload"
+                        .into(),
+                ),
+            };
+            continue;
+        }
+        session.eng.commit_areas(path.clone(), None, a)?;
+        keep.push(n);
+    }
+    fault("commit")?;
+    session.finish(Vec::new())?;
+    fault("finish")?;
+    file.sync_all()?;
+    fault("sync")?;
+    drop(file);
+    // Verify: every copied record reads back bit for bit, and decodes with the normal
+    // readers exactly as the very source record it was copied from does; the new file
+    // is clean.
+    let mut check = Dss7File::open(&tmp)?;
+    let mut orig = Dss7File::open(src)?;
+    fault("verify")?;
+    for &n in &keep {
+        let (path, a, sr) = &records[n];
+        let back = check
+            .lookup(path)?
+            .ok_or_else(|| corrupt("a copied record is missing from the new file"))?;
+        let b = record_areas(&mut check, &back).map_err(corrupt)?;
+        if let (Some(x), Some(y)) = (decoded(&mut orig, sr), decoded(&mut check, &back)) {
+            // Records that neither reader decodes are compared by their raw areas alone
+            // (below); the error text names each file's address.
+            if (x.is_ok() || y.is_ok()) && x != y {
+                let at = |v: &Result<String, String>| match v {
+                    Ok(t) | Err(t) => t.clone(),
+                };
+                let (xs, ys) = (at(&x), at(&y));
+                let i = xs
+                    .bytes()
+                    .zip(ys.bytes())
+                    .position(|(p, q)| p != q)
+                    .unwrap_or(xs.len().min(ys.len()));
+                let snip = |t: &str| {
+                    let (a, b) = (i.saturating_sub(40), (i + 40).min(t.len()));
+                    t.get(a..b).unwrap_or("").to_string()
+                };
+                return Err(corrupt(format!(
+                    "verification failed for {}: the copy decodes differently \
+                     (source …{}…, copy …{}…)",
+                    String::from_utf8_lossy(path),
+                    snip(&xs),
+                    snip(&ys)
+                )));
+            }
+        }
+        if let Some(what) = areas_difference(a, &b) {
+            return Err(corrupt(format!(
+                "verification failed for {}: {what} differs",
+                String::from_utf8_lossy(path)
+            )));
+        }
+        report.records_copied += 1;
+        if !listed.contains(&path.to_ascii_uppercase()) {
+            report.hidden_records_copied += 1;
+        }
+    }
+    // `not_copied` is derived from the ledger, and `complete()` reads the
+    // ledger itself, so the two cannot disagree.
+    report.not_copied = ledger
+        .iter()
+        .filter_map(|c| match &c.outcome {
+            CandidateOutcome::NotCopied(why) => Some((c.pathname.clone(), why.clone())),
+            _ => None,
+        })
+        .collect();
+    report.ledger = ledger;
+    fault("catalog")?;
+    let c = check.catalog()?;
+    if !c.catalog.anomalies.is_empty() || c.catalog.live().count() != keep.len() {
+        return Err(corrupt("the new file does not catalog cleanly"));
+    }
+    drop(check);
+    drop(orig);
+    // Publish without replacing anything (R13): a hard link fails if `dest` exists.
+    let linked = match super::copy_out_fault_is(&["hard_link", "hard_link_race"]) {
+        Some(step) => {
+            if step == "hard_link_race" {
+                std::fs::write(dest, b"created by another process")?;
+            }
+            Err(std::io::Error::other(format!("injected fault at {step}")))
+        }
+        None => std::fs::hard_link(&tmp, dest),
+    };
+    match linked {
+        Ok(()) => Ok(report), // the guard removes the temporary name
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+            Err(WriteError::AlreadyExists(dest.to_path_buf()))
+        }
+        Err(link_err) => match rename_noreplace(&tmp, dest) {
+            Ok(true) => {
+                guard.keep = true; // renamed: the temporary name no longer exists
+                Ok(report)
+            }
+            Ok(false) => {
+                // Nothing here can publish without risking replacing a file that appears
+                // meanwhile: fail, keeping the verified copy for the caller.
+                guard.keep = true;
+                Err(WriteError::Io(std::io::Error::new(
+                    link_err.kind(),
+                    format!(
+                        "cannot publish {} without risking replacing an existing file: the \
+                         hard link failed ({link_err}) and no atomic no-replace rename is \
+                         available here; the verified copy is kept at {}",
+                        dest.display(),
+                        tmp.display()
+                    ),
+                )))
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                Err(WriteError::AlreadyExists(dest.to_path_buf()))
+            }
+            Err(e) => Err(e.into()),
+        },
+    }
 }
 
 /// See [`super::value_times`].

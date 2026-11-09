@@ -3,7 +3,7 @@
 //! `src/optimized/{asin,atan,atan2,hypot}.c`. Those are C, and the reference matches them with
 //! their multiply-adds contracted into fused steps, which is what is written here. `hypot` keeps
 //! the source's scaling and drops its head-and-tail correction. These forms were identified by
-//! black-box comparison; see the P44a report. Only `f64::sqrt`, exactly rounded by IEEE 754, is
+//! black-box comparison; `tests/maths_parity.rs` checks them. Only `f64::sqrt`, exactly rounded by IEEE 754, is
 //! taken from `std`.
 
 use super::fma;

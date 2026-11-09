@@ -1,4 +1,4 @@
-//! Reference checks for the functions Transverse Mercator added to `dss_vortex::maths` (P53b):
+//! Reference checks for the functions Transverse Mercator added to `dss_vortex::maths`:
 //! `sinh`, `asinh` and `tmerc_exp`.
 //!
 //! `data/maths_tm_reference.txt` holds results recorded from `ucrtbase.dll` 10.0.26100.9711 with

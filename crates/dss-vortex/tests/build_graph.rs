@@ -1,4 +1,4 @@
-//! D40: "No C in the build graph", with exact pins and a locked, checksummed graph.
+//! "No C in the build graph", with exact pins and a locked, checksummed graph.
 //!
 //! Reads `Cargo.lock`, which records every platform and every enabled feature, so a C
 //! dependency on any target fails here, including one this host would not build.
@@ -122,7 +122,7 @@ fn real_lock() -> String {
 #[test]
 fn shipped_graphs_have_no_native_build_dependency() {
     let found = native_dependencies(&real_lock(), SHIPPED_ROOTS);
-    assert!(found.is_empty(), "C in the build graph (D40): {found:?}");
+    assert!(found.is_empty(), "C in the build graph: {found:?}");
 }
 
 #[test]

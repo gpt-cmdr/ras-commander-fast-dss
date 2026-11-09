@@ -1,6 +1,6 @@
 //! Version-neutral catalog types shared by the DSS6 and DSS7 readers.
 //!
-//! The DSS7 reader (`dss7`, packet P06) and the DSS6 reader (`dss6`, packet P07)
+//! The DSS7 reader (`dss7`) and the DSS6 reader (`dss6`)
 //! each walk their own on-disk structures and map what they find into these types.
 //! Layout rules live in the version modules; this file holds no format knowledge.
 //! Changes here affect both readers, so keep them additive.
@@ -15,7 +15,7 @@
 pub enum RecordStatus {
     /// Readable record (DSS7 0 or 1, DSS6 1 or 11).
     Live,
-    /// DSS7 alias entry (status 2). Absent from the P02 corpus.
+    /// DSS7 alias entry (status 2). Absent from the test corpus.
     Alias,
     /// Deleted record whose space has not been reused.
     Deleted,

@@ -1,18 +1,18 @@
-//! DSS6 location update (packet P39). DSS6 has no location records
+//! DSS6 location update. DSS6 has no location records
 //! (`Public/zlocationStore.c` lines 131-135: `INCOMPATIBLE_VERSION`). A location lives in
 //! the time-series records themselves:
 //! - coordinates and the six codes in the internal header, 0-based words 12..24 (regular,
 //!   `zsrtsi6.f` lines 876-887) or 16..28 (irregular, `zsitsi6.f`), set by
 //!   `ztsStoreReg6.c` lines 50-75 from `tss->locationStruct`;
-//! - supplemental text in the user header (P27; Monolith: `Hec_ztsStore.c` lines 599-606,
+//! - supplemental text in the user header (Monolith: `Hec_ztsStore.c` lines 599-606,
 //!   `Utilities/verticalDatum.c:stringToUserHeader()`, four bytes per word, zero filled).
 //!
 //! `write_location6` rewrites every live time-series block of the dataset (same A, B, C,
 //! E, F parts): the readers' location is one value per dataset, and blocks that disagree
-//! raise `DssLocationConflictError` on read (P15 §8). Every block is built and checked
-//! before the first store; each store is one P22 transaction. Values, times, quality and
+//! raise `DssLocationConflictError` on read. Every block is built and checked
+//! before the first store; each store is one transaction (`dss6.md` §9.3). Values, times, quality and
 //! precision stay as stored; a compressed regular float block is rewritten uncompressed,
-//! as P22's merge does.
+//! as the merge does.
 
 use super::engine::{Engine, Found, Record6, I_COMP, I_LNDA, I_NCHE, I_PREC, I_QUAL, I_TYPE};
 use super::{BlockReport, WriteError, WriteOptions, WriteReport};
@@ -112,7 +112,7 @@ fn store(
     let cat = rdr
         .catalog()
         .map_err(|e| WriteError::Corrupt(e.to_string()))?;
-    // `DatasetIndex::build`: the record types of a time-series dataset (P27 §3).
+    // `DatasetIndex::build`: the record types of a time-series dataset.
     let mut names: Vec<Vec<u8>> = cat
         .entries
         .iter()
@@ -172,7 +172,7 @@ fn store(
             })
         {
             // zsrtsi6.f lines 252-441 and the readers act on datum items in an elevation
-            // record's user header; this is not informational text there (D37).
+            // record's user header; this is not informational text there.
             return Err(WriteError::Unsupported(format!(
                 "{shown}: vertical-datum text in an elevation record's user header; HEC applies \
                  its datum rules to it (zsrtsi6.f lines 252-441), which the writer does not port"

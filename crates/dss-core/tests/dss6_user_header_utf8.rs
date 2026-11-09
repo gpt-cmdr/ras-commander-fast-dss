@@ -1,12 +1,12 @@
-//! DSS6 user-header text decoding (packet P28).
+//! DSS6 user-header text decoding (`docs/format/dss6.md` §14.2).
 //!
-//! Maintainer decision (2026-10-28): DSS6 user-header text is "probably UTF-8". The text
-//! bytes, after the NUL cut and the trailing-blank trim (P26), are decoded as UTF-8 when
-//! they are valid UTF-8 (else Java modified UTF-8); otherwise, since P31, as UTF-8 with
-//! each malformed sequence replaced by one U+FFFD as Java does (P28 used whole-text
-//! Latin-1; see `dss6_user_header_lossy.rs` for the P31 cases). Monolith reads
+//! Rule: DSS6 user-header text is treated as probably UTF-8. The text
+//! bytes, after the NUL cut and the trailing-blank trim, are decoded as UTF-8 when
+//! they are valid UTF-8 (else Java modified UTF-8); otherwise as UTF-8 with
+//! each malformed sequence replaced by one U+FFFD as Java does (earlier engines used
+//! whole-text Latin-1; see `dss6_user_header_lossy.rs` for those cases). Monolith reads
 //! the same bytes through JNI `NewStringUTF` (`javaHeclib/src/Hec_ztsRetrieve.c`, "User
-//! header (supplemental)"). The DSS6 location supplemental text (P27) uses the same
+//! header (supplemental)"). The DSS6 location supplemental text uses the same
 //! decode. Raw bytes are unchanged.
 //!
 //! `fixtures/public/synthetic_userheader_utf8_6.dss` is generated here (no HEC software;
@@ -24,16 +24,16 @@ use dss_core::user_header::{
 };
 use std::path::PathBuf;
 
-/// Valid UTF-8: two-byte `ý` (`C3 BD`, the g54 byte pair) and three-byte `€`.
+/// Valid UTF-8: two-byte `ý` (`C3 BD`, a byte pair found in a private HEC-written test file) and three-byte `€`.
 const P_UTF8: &str = "/P28/GAGE U/FLOW/01JAN2000/1HOUR/OBS/";
 const B_UTF8: &[u8] = b"Gage: Y\xc3\xbd;VerticalDatum: NAVD88;Note: \xe2\x82\xac 5";
-/// Invalid UTF-8 (lone `E9`): one U+FFFD, the valid `C3 BD` keeps its character (P31).
+/// Invalid UTF-8 (lone `E9`): one U+FFFD, the valid `C3 BD` keeps its character.
 const P_LATIN1: &str = "/P28/GAGE L/FLOW/01JAN2000/1HOUR/OBS/";
 const B_LATIN1: &[u8] = b"Gage: Caf\xe9;Note: Y\xc3\xbd";
 /// Pure ASCII.
 const P_ASCII: &str = "/P28/GAGE A/FLOW/01JAN2000/1HOUR/OBS/";
 const B_ASCII: &[u8] = b"Gage: plain;Note: ascii";
-/// `C3 BD` split by a NUL: the text is `Gage: Y` + `C3`, which is one U+FFFD (P31).
+/// `C3 BD` split by a NUL: the text is `Gage: Y` + `C3`, which is one U+FFFD.
 const P_SPLIT_NUL: &str = "/P28/GAGE N/FLOW/01JAN2000/1HOUR/OBS/";
 const B_SPLIT_NUL: &[u8] = b"Gage: Y\xc3\x00\xbd;Hidden: 1";
 /// `C3` as the last stored byte (two whole words, no NUL, no padding): one U+FFFD.
@@ -54,7 +54,7 @@ const P_D_JAN: &str = "/P28/GAGE D/FLOW/01JAN2000/1HOUR/OBS/";
 const P_D_FEB: &str = "/P28/GAGE D/FLOW/01FEB2000/1HOUR/OBS/";
 const B_D_JAN: &[u8] = b"Gage: D \xc3\xa9";
 const B_D_FEB: &[u8] = b"Gage: D \xe9";
-/// Java modified UTF-8 (review m5): U+1F30A as the surrogate pair D83C DF0A, each as a
+/// Java modified UTF-8: U+1F30A as the surrogate pair D83C DF0A, each as a
 /// 3-byte sequence (how JNI writes a character outside the BMP), NUL-terminated.
 const P_MUTF8_PAIR: &str = "/P28/GAGE P/FLOW/01JAN2000/1HOUR/OBS/";
 const B_MUTF8_PAIR: &[u8] = b"Note: wave \xed\xa0\xbc\xed\xbc\x8a\x00";
@@ -226,7 +226,7 @@ fn location_supplemental_uses_the_same_decode() {
     }
 }
 
-/// Conflicts between blocks are still counted on bytes (P26); the reported header is
+/// Conflicts between blocks are still counted on bytes; the reported header is
 /// decoded on its own.
 #[test]
 fn dataset_reports_last_block_decoded_alone() {

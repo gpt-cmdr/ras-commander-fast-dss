@@ -1,13 +1,13 @@
-//! Transverse Mercator through the importer, with no oracle at run time (P53b).
+//! Transverse Mercator through the importer, with no oracle at run time.
 //!
 //! `fixtures/public/vortex_p53b/expected.json` holds every record Vortex 1.1.0's importer wrote from
-//! 20 cases (`oracle/vortex/make_p53b_fixture.py`): a GRIB2 source to a UTM zone, to a State Plane
+//! 20 cases: a GRIB2 source to a UTM zone, to a State Plane
 //! zone in US survey feet and to a zone in international feet, and rasters in each of those three
 //! as they stand and warped to SHG by each method. This runs the same cases and compares placement,
 //! names, statistics and a digest of every cell, in DSS7 and DSS6.
 //!
-//! Where Vortex stores GDAL's wording of a CRS, the file holds this engine's text beside it. The
-//! generator accepted each such pair only as one CRS by rasterio with the grid's middle unmoved;
+//! Where Vortex stores GDAL's wording of a CRS, the file holds this engine's text beside it. Each
+//! such pair was accepted only when rasterio read both as one CRS with the grid's middle unmoved;
 //! here this engine's text must be the recorded one exactly.
 
 use dss_core::dss6::Dss6File;
@@ -187,11 +187,11 @@ fn differences(wanted: &[Value], got: &BTreeMap<String, Grid>, upper: bool) -> V
             Value::from(g.lower_left_cell_y),
         );
         // In DSS6 an SHG grid is an Albers record holding parameters, not the text DSS7 holds: its
-        // CRS text is left to `run_import.py`'s DSS6 route, as in `import_fixture.rs`. A specified
+        // CRS text is not compared, as in `import_fixture.rs`. A specified
         // grid's text is compared in both.
         if !(upper && w["grid_type"] == "albers") {
             field("srs_name", &w["srs_name"], Value::from(g.srs_name.clone()));
-            // This engine's text of the CRS Vortex states, pinned beside Vortex's by the generator.
+            // This engine's text of the CRS Vortex states, recorded beside Vortex's in the fixture.
             field(
                 "srs_definition",
                 &w["engine_srs_definition"],
@@ -476,7 +476,7 @@ fn nearest_f32(metres: u128, num: u128, den: u128) -> f32 {
     }
 }
 
-/// The re-check's finding: with the CRS's own foot, `cell_size=2000` on a US survey foot zone and
+/// Regression: with the CRS's own foot, `cell_size=2000` on a US survey foot zone and
 /// on an international foot zone was refused as off whole cells, because the lattice was built on
 /// the converted `f64` and the record checked against its `f32`. The lattice is now built on the
 /// spacing the record stores, so 2,000 m, 1,200 m and 10,000 m are written at any origin, on cells

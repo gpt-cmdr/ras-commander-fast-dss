@@ -3,7 +3,7 @@
 //! NumPy arrays plus plain dicts (SPEC §5). Pandas assembly stays in Python.
 //!
 //! Reads run with the GIL released. Errors are raised as the exception classes defined
-//! in `ras_commander_fast_dss.exceptions` (decision D32); OS errors become the matching builtin
+//! in `ras_commander_fast_dss.exceptions`; OS errors become the matching builtin
 //! `OSError` subclass.
 
 use dss_core::dss6::{
@@ -32,7 +32,7 @@ pyo3::import_exception!(ras_commander_fast_dss.exceptions, DssPathnameNotFoundEr
 // P29: HEC DSS6 "no data" (a DssPathnameNotFoundError subclass).
 pyo3::import_exception!(ras_commander_fast_dss.exceptions, DssNoDataError);
 
-// P46: gridded import (`dss-vortex`), behind the `vortex` feature (D42).
+// P46: gridded import (`dss-vortex`), behind the `vortex` feature.
 #[cfg(feature = "vortex")]
 mod vortex;
 #[cfg(feature = "vortex")]
@@ -60,7 +60,7 @@ enum BindErr {
     Format(String),
     /// Pathname not in the file (or no data for it).
     NotFound(String),
-    /// Record type this reader does not decode as a time series (D29).
+    /// Record type this reader does not decode as a time series.
     Unsupported(String),
     /// Other DSS failure (limits, password protection).
     Dss(String),
@@ -311,7 +311,27 @@ fn anomaly_name(k: AnomalyKind) -> &'static str {
     }
 }
 
+/// P62: which catalog rows are exported to Python. The native catalog (cached for
+/// DSS7) always holds every physical entry; only the export is narrowed, so anomalies,
+/// duplicate/recovered flags and forensic catalog indices are unchanged.
+#[derive(Clone, Copy)]
+struct CatalogSelect {
+    /// Export only live and alias entries (`DssFile.catalog()`'s default rows), without
+    /// the `stored_pathname` and `raw_status` columns that only `all_entries=True` shows.
+    live_only: bool,
+}
+
+impl CatalogSelect {
+    fn keep(self, s: RecordStatus) -> bool {
+        !self.live_only || matches!(s, RecordStatus::Live | RecordStatus::Alias)
+    }
+}
+
 struct CatalogData {
+    /// P62: physical entries in the native catalog, before the export selection.
+    entries: usize,
+    /// P62: `stored_pathname` and `raw_status` are exported (every row selected).
+    full: bool,
     pathname: Vec<String>,
     stored_pathname: Vec<String>,
     record_type: Vec<i32>,
@@ -326,6 +346,8 @@ struct CatalogData {
 impl CatalogData {
     fn with_capacity(n: usize) -> Self {
         Self {
+            entries: n,
+            full: true,
             pathname: Vec::with_capacity(n),
             stored_pathname: Vec::with_capacity(n),
             record_type: Vec::with_capacity(n),
@@ -338,15 +360,24 @@ impl CatalogData {
         }
     }
 
-    fn from_dss7(cat: &Dss7Catalog) -> Self {
+    fn from_dss7(cat: &Dss7Catalog, sel: CatalogSelect) -> Self {
         let mut d = Self::with_capacity(cat.catalog.entries.len());
+        d.full = !sel.live_only;
         for (e, m) in cat.catalog.entries.iter().zip(cat.meta.iter()) {
+            // P62: unselected rows are skipped before their pathname is decoded.
+            if !sel.keep(e.status) {
+                continue;
+            }
             let p = lossy(&e.pathname);
-            d.stored_pathname.push(p.clone());
+            if d.full {
+                d.stored_pathname.push(p.clone());
+            }
             d.pathname.push(p);
             d.record_type.push(e.record_type);
             d.status.push(status_name(e.status));
-            d.raw_status.push(i64::from(e.raw_status));
+            if d.full {
+                d.raw_status.push(i64::from(e.raw_status));
+            }
             d.last_write_ms.push(e.last_write_ms.unwrap_or(-1));
             d.duplicate.push(m.duplicate_of.is_some());
             d.recovered.push(m.recovered);
@@ -355,21 +386,30 @@ impl CatalogData {
         d
     }
 
-    fn from_dss6(walk: &dss6::BinWalk) -> Self {
+    fn from_dss6(walk: &dss6::BinWalk, sel: CatalogSelect) -> Self {
         let mut d = Self::with_capacity(walk.entries.len());
+        d.full = !sel.live_only;
         let mut seen = std::collections::HashSet::new();
         for e in &walk.entries {
-            let stored = lossy(&e.pathname);
+            let st = e.record_status();
+            // The duplicate rule only counts live entries, which every selection keeps,
+            // so evaluating it on selected rows gives the full catalog's flags.
+            if !sel.keep(st) {
+                continue;
+            }
             d.pathname.push(lossy(&e.display_pathname()));
             d.record_type.push(e.record_type);
-            let st = e.record_status();
             d.status.push(status_name(st));
-            d.raw_status.push(i64::from(e.status));
+            if d.full {
+                d.raw_status.push(i64::from(e.status));
+            }
             d.last_write_ms.push(-1);
             d.duplicate
                 .push(st == RecordStatus::Live && !seen.insert(e.pathname.clone()));
             d.recovered.push(false);
-            d.stored_pathname.push(stored);
+            if d.full {
+                d.stored_pathname.push(lossy(&e.pathname));
+            }
         }
         d.anomalies = walk.anomalies.clone();
         d
@@ -377,11 +417,16 @@ impl CatalogData {
 
     fn into_py<'py>(self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let d = PyDict::new(py);
+        d.set_item("entries", self.entries)?;
         d.set_item("pathname", PyList::new(py, self.pathname)?)?;
-        d.set_item("stored_pathname", PyList::new(py, self.stored_pathname)?)?;
+        if self.full {
+            d.set_item("stored_pathname", PyList::new(py, self.stored_pathname)?)?;
+        }
         d.set_item("record_type", self.record_type.into_pyarray(py))?;
         d.set_item("status", PyList::new(py, self.status)?)?;
-        d.set_item("raw_status", self.raw_status.into_pyarray(py))?;
+        if self.full {
+            d.set_item("raw_status", self.raw_status.into_pyarray(py))?;
+        }
         d.set_item("last_write_ms", self.last_write_ms.into_pyarray(py))?;
         d.set_item("duplicate", PyList::new(py, self.duplicate)?)?;
         d.set_item("recovered", PyList::new(py, self.recovered)?)?;
@@ -603,7 +648,7 @@ fn array_2d<'py, T: numpy::Element>(
     v.into_pyarray(py).reshape([rows, cols])
 }
 
-/// A decoded paired-data record (P10), version-neutral.
+/// A decoded paired-data record, version-neutral.
 struct PdData {
     pd: PairedData,
     version: u8,
@@ -653,7 +698,7 @@ fn grid_type_name(t: GridType) -> &'static str {
     }
 }
 
-/// A decoded grid record (P11), version-neutral.
+/// A decoded grid record, version-neutral.
 struct GridData {
     grid: Grid,
     version: u8,
@@ -726,7 +771,7 @@ impl GridData {
             g.number_equal_or_exceeding_range_limit.into_pyarray(py),
         )?;
         // Native order: x fastest, lowest row first (index = y * nx + x), so the C-order
-        // (ny, nx) view has row 0 at the bottom (P11; Java heclib GridData.getValue).
+        // (ny, nx) view has row 0 at the bottom (Java heclib GridData.getValue).
         d.set_item("data", array_2d(py, g.data, g.ny, g.nx, "grid cells")?)?;
         Ok(d)
     }
@@ -743,8 +788,8 @@ enum Inner {
     },
     V7 {
         file: Box<Dss7File<File>>,
-        catalog: Option<Box<Dss7Catalog>>,
-        recover_catalog: Option<Box<Dss7Catalog>>,
+        catalog: Option<Box<dss7::IndexedDss7Catalog>>,
+        recover_catalog: Option<Box<dss7::IndexedDss7Catalog>>,
     },
     Closed,
 }
@@ -764,7 +809,7 @@ fn record_is_ts(t: i32) -> bool {
 
 fn v7_catalog<'a>(
     file: &mut Dss7File<File>,
-    slot: &'a mut Option<Box<Dss7Catalog>>,
+    slot: &'a mut Option<Box<dss7::IndexedDss7Catalog>>,
     recover: bool,
     path: &str,
 ) -> BResult<&'a Dss7Catalog> {
@@ -773,15 +818,27 @@ fn v7_catalog<'a>(
             recover_unlinked: recover,
             ..CatalogOptions::default()
         };
-        *slot = Some(Box::new(
+        *slot = Some(Box::new(dss7::IndexedDss7Catalog::new(
             file.catalog_with(&opts).map_err(|e| map_dss7(path, e))?,
-        ));
+        )));
     }
+    Ok(slot.as_deref().expect("catalog just set").catalog())
+}
+
+/// P61: the cached catalog snapshot with its whole-dataset range index (built on the
+/// first whole read and dropped with the cached catalog).
+fn v7_indexed<'a>(
+    file: &mut Dss7File<File>,
+    slot: &'a mut Option<Box<dss7::IndexedDss7Catalog>>,
+    recover: bool,
+    path: &str,
+) -> BResult<&'a dss7::IndexedDss7Catalog> {
+    v7_catalog(file, slot, recover, path)?;
     Ok(slot.as_deref().expect("catalog just set"))
 }
 
 impl Inner {
-    fn catalog(&mut self, recover: bool, path: &str) -> BResult<CatalogData> {
+    fn catalog(&mut self, recover: bool, path: &str, sel: CatalogSelect) -> BResult<CatalogData> {
         match self {
             Inner::V7 {
                 file,
@@ -789,21 +846,22 @@ impl Inner {
                 recover_catalog,
             } => {
                 let slot = if recover { recover_catalog } else { catalog };
-                Ok(CatalogData::from_dss7(v7_catalog(
-                    file, slot, recover, path,
-                )?))
+                Ok(CatalogData::from_dss7(
+                    v7_catalog(file, slot, recover, path)?,
+                    sel,
+                ))
             }
             Inner::V6 { file, .. } => {
                 let walk = file
                     .walk_bins(&dss6::CatalogOptions::default())
                     .map_err(|e| map_dss6(path, e))?;
-                Ok(CatalogData::from_dss6(&walk))
+                Ok(CatalogData::from_dss6(&walk, sel))
             }
             Inner::Closed => Err(BindErr::Value("I/O operation on closed DSS file".into())),
         }
     }
 
-    /// Record type of `pathname` when the file holds it, for typed errors (D29).
+    /// Record type of `pathname` when the file holds it, for typed errors.
     fn record_type_of(&mut self, pathname: &str) -> Option<i32> {
         for p in encodings(pathname) {
             let t = match self {
@@ -828,9 +886,7 @@ impl Inner {
                 if !record_is_ts(t) {
                     return BindErr::Unsupported(ctx(
                         path,
-                        format!(
-                            "record {pathname} has type {t}, which is not a time series (decision D29)"
-                        ),
+                        format!("record {pathname} has type {t}, which is not a time series"),
                     ));
                 }
             }
@@ -942,8 +998,8 @@ impl Inner {
                     };
                     if window.is_none() {
                         let slot = if recover { recover_catalog } else { catalog };
-                        let cat = v7_catalog(file, slot, recover, path)?;
-                        file.read_ts_with_catalog(cat, &p, &opts)
+                        let cat = v7_indexed(file, slot, recover, path)?;
+                        file.read_ts_with_indexed_catalog(cat, &p, &opts)
                     } else {
                         file.read_ts(&p, &opts)
                     }
@@ -1243,16 +1299,39 @@ impl NativeFile {
 
     /// Every catalog entry (all statuses), as a dict of parallel lists and arrays.
     /// `recover` (DSS7) overrides the open-time setting; it is ignored for DSS6.
-    #[pyo3(signature = (recover = None))]
-    fn catalog<'py>(&self, py: Python<'py>, recover: Option<bool>) -> PyResult<Bound<'py, PyDict>> {
+    /// `live_only` exports only live and alias rows, without the
+    /// `stored_pathname` and `raw_status` keys; `entries` is always the physical count.
+    #[pyo3(signature = (recover = None, live_only = false))]
+    fn catalog<'py>(
+        &self,
+        py: Python<'py>,
+        recover: Option<bool>,
+        live_only: bool,
+    ) -> PyResult<Bound<'py, PyDict>> {
         let rec = recover.unwrap_or(self.recover);
-        let data = self.with_inner(py, |inner, path| inner.catalog(rec, path))?;
+        let sel = CatalogSelect { live_only };
+        let data = self.with_inner(py, |inner, path| inner.catalog(rec, path, sel))?;
         data.into_py(py)
+    }
+
+    /// P62: live and alias pathnames in catalog order, as `catalog(live_only=True)`
+    /// lists them. Only the pathname column is exported to Python and no DataFrame is
+    /// built; the native side still assembles the selected rows' other columns.
+    #[pyo3(signature = (recover = None))]
+    fn pathnames<'py>(
+        &self,
+        py: Python<'py>,
+        recover: Option<bool>,
+    ) -> PyResult<Bound<'py, PyList>> {
+        let rec = recover.unwrap_or(self.recover);
+        let sel = CatalogSelect { live_only: true };
+        let data = self.with_inner(py, |inner, path| inner.catalog(rec, path, sel))?;
+        PyList::new(py, data.pathname)
     }
 
     /// Read one record (one block for regular data) by its full pathname, values as
     /// stored. Missing markers are not converted.
-    /// `refuse_no_data` (P29): a DSS6 regular record whose values are all -901/-902
+    /// `refuse_no_data`: a DSS6 regular record whose values are all -901/-902
     /// raises `DssNoDataError` (HEC status 4); ignored for DSS7.
     #[pyo3(signature = (pathname, refuse_no_data = false))]
     fn read_record<'py>(
@@ -1274,7 +1353,7 @@ impl NativeFile {
     /// "retrieve all times").
     /// `trim_missing` removes leading and trailing missing values (regular data) as
     /// heclib's `ztsTrim` does: -901, -902 and -FLT_MAX are trimmed, a stored NaN is kept.
-    /// `refuse_no_data` (P29): a DSS6 regular window with no value other than
+    /// `refuse_no_data`: a DSS6 regular window with no value other than
     /// -901/-902 raises `DssNoDataError` (HEC status 4); ignored for DSS7.
     #[pyo3(signature = (pathname, start = None, end = None, trim_missing = true, refuse_no_data = false))]
     fn read_dataset<'py>(
@@ -1644,8 +1723,8 @@ impl Inner {
                     };
                     if window.is_none() {
                         let slot = if recover { recover_catalog } else { catalog };
-                        let cat = v7_catalog(file, slot, recover, path)?;
-                        file.read_ts_profile_with_catalog(cat, &p, &opts)
+                        let cat = v7_indexed(file, slot, recover, path)?;
+                        file.read_ts_profile_with_indexed_catalog(cat, &p, &opts)
                     } else {
                         file.read_ts_profile(&p, &opts)
                     }
@@ -1735,7 +1814,7 @@ fn map_profile7(path: &str, e: dss7::TsError) -> BindErr {
 }
 
 // ---------------------------------------------------------------------------------
-// Location records (P15; decision D37). Module-level functions taking a NativeFile, so
+// Location records. Module-level functions taking a NativeFile, so
 // this block stays self-contained.
 // ---------------------------------------------------------------------------------
 
@@ -1771,7 +1850,7 @@ impl LocData {
         let l = self.loc;
         let supplemental_source = l.supplemental_source().map(|s| s.as_str());
         // P28: the decoded text and its decoding, from dss-core (DSS6 user-header text:
-        // UTF-8, else UTF-8 with U+FFFD (P31); DSS7: Latin-1). `None` when
+        // UTF-8, else UTF-8 with U+FFFD; DSS7: Latin-1). `None` when
         // `supplemental` is `None`.
         let supplemental_text = l.supplemental_text();
         let supplemental_encoding = l.supplemental_encoding();
@@ -1919,7 +1998,7 @@ fn v7_associated(
 /// not exist. DSS6: the coordinates in the time-series record's internal header (the
 /// record must exist; non-time-series records have no location and give `None`), with
 /// the supplemental text taken from the same record's user header (P27, Monolith
-/// `supplementalInfo` behavior; informational, D37).
+/// `supplementalInfo` behavior; informational).
 #[pyfunction]
 fn location_read_associated<'py>(
     py: Python<'py>,
@@ -1972,11 +2051,12 @@ fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(lock_status, m)?)?;
     m.add_function(wrap_pyfunction!(location_read, m)?)?;
     m.add_function(wrap_pyfunction!(location_read_associated, m)?)?;
-    // P16 (DT6): catalog-index time-series route.
+    // Catalog-index time-series route.
     m.add_function(wrap_pyfunction!(ts_entry_provenance, m)?)?;
     m.add_function(wrap_pyfunction!(read_record_at, m)?)?;
     // P20: DSS7 regular time-series writer.
     m.add_function(wrap_pyfunction!(create_dss7, m)?)?;
+    m.add_function(wrap_pyfunction!(repair_dss7, m)?)?;
     m.add_function(wrap_pyfunction!(write_rts, m)?)?;
     m.add_function(wrap_pyfunction!(rts_value_times, m)?)?;
     // P21: DSS7 irregular time-series writer.
@@ -2011,14 +2091,14 @@ fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
 }
 
 // =================================================================================
-// P16 (DSS_TASK DT6): explicit catalog-index route for time series.
+// Explicit catalog-index route for time series.
 //
 // Forensic reads of one catalog entry (any live or alias row of the full catalog,
 // including duplicates, orphan-bin entries and DSS7 recovery-mode entries), with
 // catalog-entry provenance. Integrity checks are those of `Dss7File::record_at`
-// (info flag and info hash, P06 addendum) and `Dss6File::read_ts_entry`; nothing is
+// (info flag and info hash) and `Dss6File::read_ts_entry`; nothing is
 // bypassed. A zeroed or invalid info block raises `DssRecordUnavailableError`, a
-// `DssFormatError` subclass (decision D32). The ordinary pathname reads above are not
+// `DssFormatError` subclass. The ordinary pathname reads above are not
 // changed.
 // =================================================================================
 
@@ -2380,7 +2460,7 @@ impl Inner {
             AtErr::Bind(BindErr::Unsupported(ctx(
                 path,
                 format!(
-                    "catalog entry {} ({}) has record type {}, which the time-series record reader does not decode (decision D29)",
+                    "catalog entry {} ({}) has record type {}, which the time-series record reader does not decode",
                     p.index, p.pathname, p.record_type
                 ),
             )))
@@ -2427,7 +2507,7 @@ impl Inner {
                     return Err(unavailable(&p));
                 };
                 // Password-protected records fall through to the decoder, which raises
-                // the documented DssError (D32 table).
+                // the documented DssError.
                 if !p.ts_supported {
                     return Err(unsupported(&p));
                 }
@@ -2506,7 +2586,7 @@ fn read_record_at<'py>(
 }
 
 // =================================================================================
-// P19a (DSS_TASK DT7, decision D10): read-only HEC lock detection.
+// P19a : read-only HEC lock detection.
 //
 // `lock_status(path)` reports which HEC lock words another handle holds
 // (`dss_core::lock`). It is a diagnostic: reads never call it and never raise
@@ -2565,7 +2645,7 @@ struct UserHeaderData {
 }
 
 /// Add the `user_header_*` keys (docs/format/dss6.md §14). DSS7 reads (`None`) get
-/// `None` for every key: DSS7 user headers are not decoded by this packet.
+/// `None` for every key: DSS7 user headers are not decoded by this reader.
 fn user_header_into_py<'py>(
     py: Python<'py>,
     d: &Bound<'py, PyDict>,
@@ -2624,7 +2704,7 @@ fn write_err(py: Python<'_>, path: &str, e: dss7::write::WriteError) -> PyErr {
         E::Ts(t) => map_ts7(path, t).into_py(),
         E::Lock(l) => map_lock(path, l).into_py(),
         E::Locked(ref r) => {
-            // P19 REPORT open item 4: HEC programs release their locks late.
+            // HEC programs release their locks late (Monolith about 6 s after done()).
             let err = DssLockedError::new_err(ctx(
                 path,
                 format!(
@@ -2649,6 +2729,81 @@ fn write_err(py: Python<'_>, path: &str, e: dss7::write::WriteError) -> PyErr {
         E::Corrupt(_) => DssFormatError::new_err(ctx(path, &e)),
         E::InjectedFault { .. } | E::Internal(_) => DssError::new_err(ctx(path, &e)),
     }
+}
+
+/// Copy every readable record that the documented discovery procedure reaches in the
+/// DSS7 file `src` into a new file `dest` (`src` is only read; an existing `dest` raises
+/// `FileExistsError`). A bin block whose declared span does not fit the file is reported
+/// as unclassified in `not_copied`, not salvaged, so check `complete`. Returns the report
+/// as a dict.
+#[pyfunction]
+fn repair_dss7(py: Python<'_>, src: &str, dest: &str) -> PyResult<PyObject> {
+    let (s, d) = (src.to_string(), dest.to_string());
+    let r = py
+        .allow_threads(move || {
+            dss7::write::repair_dss7(std::path::Path::new(&s), std::path::Path::new(&d))
+        })
+        .map_err(|e| {
+            // Name the file the error is about: a missing source is not the destination.
+            let ctx = if std::path::Path::new(src).exists() {
+                dest
+            } else {
+                src
+            };
+            write_err(py, ctx, e)
+        })?;
+    let out = PyDict::new(py);
+    out.set_item("records_copied", r.records_copied)?;
+    out.set_item("hidden_records_copied", r.hidden_records_copied)?;
+    let nc = PyList::empty(py);
+    for (p, why) in &r.not_copied {
+        nc.append((String::from_utf8_lossy(p).into_owned(), why.clone()))?;
+    }
+    out.set_item("not_copied", nc)?;
+    out.set_item("aliases_skipped", r.aliases_skipped)?;
+    out.set_item("duplicates_skipped", r.duplicates_skipped)?;
+    let fb = PyList::empty(py);
+    for (p, info, why) in &r.fallback_copies {
+        fb.append((String::from_utf8_lossy(p).into_owned(), *info, why.clone()))?;
+    }
+    out.set_item("fallback_copies", fb)?;
+    let vc = PyList::empty(py);
+    for (a, b, why) in &r.variants_copied {
+        vc.append((
+            String::from_utf8_lossy(a).into_owned(),
+            String::from_utf8_lossy(b).into_owned(),
+            why.clone(),
+        ))?;
+    }
+    out.set_item("variants_copied", vc)?;
+    let lg = PyList::empty(py);
+    for c in &r.ledger {
+        use dss7::write::CandidateOutcome as O;
+        let (outcome, detail): (&str, PyObject) = match &c.outcome {
+            O::Copied => ("copied", py.None()),
+            O::EqualToCopied { copied_info } => (
+                "equal_to_copied",
+                copied_info.into_pyobject(py)?.into_any().unbind(),
+            ),
+            O::UnreadableCoveredBy { copied_info } => (
+                "unreadable_covered",
+                copied_info.into_pyobject(py)?.into_any().unbind(),
+            ),
+            O::NotCopied(why) => ("not_copied", why.into_pyobject(py)?.into_any().unbind()),
+        };
+        lg.append((
+            String::from_utf8_lossy(&c.pathname).into_owned(),
+            c.info_address,
+            c.alias,
+            outcome,
+            detail,
+        ))?;
+    }
+    out.set_item("ledger", lg)?;
+    out.set_item("src_listed_records", r.src_listed_records)?;
+    out.set_item("src_interrupted_write", r.src_interrupted_write)?;
+    out.set_item("complete", r.complete())?;
+    Ok(out.into_any().unbind())
 }
 
 /// Create an empty DSS7 file (refuses an existing path with `FileExistsError`).

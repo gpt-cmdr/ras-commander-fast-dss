@@ -1,8 +1,8 @@
-"""DSS6 time-series user header (P26).
+"""DSS6 time-series user header.
 
-The fixture ``synthetic_userheader6.dss`` was written by HEC Monolith 3.3.27 (see
-``evidence/P26/scripts/UhMonolith.java``); the expected texts and
-items below are what Monolith itself returns for the same reads (P26 REPORT §4).
+The fixture ``synthetic_userheader6.dss`` was written by HEC Monolith 3.3.27
+through its Java API; the expected texts and
+items below are what Monolith itself returns for the same reads.
 """
 
 import numpy as np
@@ -99,7 +99,7 @@ def test_no_header(f):
 
 def test_non_ascii_bytes_are_utf8(f):
     # Monolith's JNI writer stored "Café" as doubly UTF-8 encoded bytes. They are valid
-    # UTF-8 for "CafÃ©", which is what Monolith reads back (P26 fixture read r8).
+    # UTF-8 for "CafÃ©", which is what Monolith reads back.
     # Since P28 the engine decodes UTF-8 too; P26 decoded Latin-1 (4 characters).
     d = f.read_record_arrays("/P26/GAGE G/FLOW/01JAN2020/1DAY/SYNTH/")
     assert b"Caf\xc3\x83\xc2\xa9" in d["user_header_bytes"]
@@ -155,7 +155,7 @@ def test_dataset_irregular_last_window_block(f):
 
 
 def test_vertical_datum_stays_informational(f):
-    # D37: a datum named in the user header never becomes a typed field.
+    # A datum named in the user header never becomes a typed field.
     d = f.read_record_arrays("/P26/GAGE A/STAGE/01JAN2020/1HOUR/SYNTH/")
     assert d["user_header_items"]["VerticalDatum"] == " NAVD88"
     assert not any("datum" in k.lower() for k in d if not k.startswith("user_header"))
@@ -187,7 +187,7 @@ def test_existing_dss6_fixtures_have_keys():
         assert isinstance(d["user_header_items"], dict)
 
 
-# -- review follow-up -----------------------------------------------------------------
+# -- NUL handling -------------------------------------------------------------------
 
 NUL_FIX = "synthetic_userheader_nul6.dss"  # crates/dss-core/tests/dss6_user_header.rs
 

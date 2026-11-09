@@ -9,12 +9,13 @@
 #![forbid(unsafe_code)]
 
 pub mod catalog;
+mod chain;
 pub mod grid;
 pub mod header;
 pub mod paireddata;
 pub mod time;
 pub mod timeseries;
-// Version readers; each owned by one packet: dss6 (P07), dss7 (P06).
+// Version readers: dss6, dss7.
 pub mod dss6;
 pub mod dss7;
 
@@ -23,28 +24,28 @@ pub use grid::{AlbersProjection, Grid, GridError, GridReadOptions, GridType, GRI
 pub use header::{ByteOrder, DssVersion, FileSignature, HeaderError};
 pub use paireddata::{PairedData, PdValues, ValueWidth};
 pub use timeseries::{is_missing, IrregularBlock, TimeSeries, TsKind, TsValues};
-// Location metadata (P15).
+// Location metadata.
 pub mod location;
 pub use location::{
     CoordinateSystem, HorizontalDatum, HorizontalUnits, Location, LocationSource, VerticalDatum,
     VerticalUnits,
 };
-// P19a: HEC lock-word detection for writers (D10). Not built for wasm32 (no writer there).
+// HEC lock-word detection for writers. Not built for wasm32 (no writer there).
 #[cfg(not(target_arch = "wasm32"))]
 pub mod lock;
-// Record user-header text (P26).
+// Record user-header text.
 pub mod user_header;
 pub use user_header::{parse_user_header_items, user_header_text};
-// P28.
+// User-header text decoding.
 pub use user_header::{decode_user_header_text, user_header_text_encoding, UserHeaderEncoding};
 
-// P31: UTF-8 with U+FFFD per malformed sequence, as Java's decoder does.
+// UTF-8 with U+FFFD per malformed sequence, as Java's decoder does.
 pub use user_header::decode_utf8_replacing;
-// DSS6 location supplemental text from the user header (P27).
+// DSS6 location supplemental text from the user header.
 pub use location::SupplementalSource;
-// P30: HEC's `zisMissingFloat` / `zisMissingDouble` test (NaN is a value), for `ztsTrim`.
+// HEC's `zisMissingFloat` / `zisMissingDouble` test (NaN is a value), for `ztsTrim`.
 pub use timeseries::is_hec_missing;
-// P24: grid writer, version-neutral part (input, statistics, compression). Not built for
+// Grid writer, version-neutral part (input, statistics, compression). Not built for
 // wasm32 (no writer there).
 #[cfg(not(target_arch = "wasm32"))]
 pub mod grid_write;

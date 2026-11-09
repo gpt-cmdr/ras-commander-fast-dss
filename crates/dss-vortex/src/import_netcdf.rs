@@ -1,4 +1,4 @@
-//! NetCDF and HDF5 files through the importer (packet P46b): [`NetcdfFile`] behind
+//! NetCDF and HDF5 files through the importer: [`NetcdfFile`] behind
 //! [`GridSource`], with the reader's limits and a stop a caller can reach.
 //!
 //! The source reads what `GridDatasetReader` in Vortex 1.1.0 reads (`source/netcdf.rs`), and the
@@ -58,11 +58,11 @@ const HOUR_MS: i64 = 3_600_000;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct NetcdfOptions {
     /// Seconds one read may take. **Not a deadline:** it is checked before each chunk and each filter
-    /// stage, and a deflate or szip stage cannot be interrupted, so a read ends that much late. The
-    /// P46b review measured 17.6 s for a limit of 1 s on `double_deflate_8x8.nc4`, whose chunks each
+    /// stage, and a deflate or szip stage cannot be interrupted, so a read ends that much late. A
+    /// limit of 1 s took 17.6 s (measured) on `double_deflate_8x8.nc4`, whose chunks each
     /// inflate to 256 MiB twice. No limit by default: a read's time is bounded by
     /// [`Self::max_decoded_bytes_per_read`], and one small file can still take about 45 s in one read
-    /// (P48 report, "Time").
+    /// (measured).
     pub max_seconds_per_read: Option<u64>,
     /// Bytes one read may decode. The reader's default is 32 GiB; a step over it is a typed refusal
     /// naming this setting.
@@ -94,8 +94,8 @@ impl NetcdfOptions {
 
 /// A stop a caller holds while a run it cannot otherwise reach is in progress. Asking ends the run
 /// before its next frame, and ends a NetCDF read in progress before its next chunk or filter stage
-/// ([`NetcdfFile::request_stop`]). A stage in progress finishes first: the P46b review measured
-/// 17.1 s from the request to the return on a file whose chunks each inflate to 256 MiB twice. A
+/// ([`NetcdfFile::request_stop`]). A stage in progress finishes first: 17.1 s from the request to
+/// the return was measured on a file whose chunks each inflate to 256 MiB twice. A
 /// warp or a write in progress also finishes. Clones share one flag.
 #[derive(Debug, Clone, Default)]
 pub struct StopHandle(Arc<AtomicBool>);

@@ -103,7 +103,7 @@ pub struct Dss6Header {
 impl Dss6Header {
     /// Parse and validate the header from at least [`HEADER_BYTES`] leading bytes.
     ///
-    /// Typed errors (P05 acceptance check 1): bad signature, version not `6-`, byte-swapped
+    /// Typed errors: bad signature, version not `6-`, byte-swapped
     /// (`KTABLE > 10000`), `KTABLE` not 1/2, `KBNSIZ` out of range, and other fields that
     /// make the file unreadable. `KFSIZE = -1357` is accepted (write-locked; reads are then
     /// bounded by the physical size, `zopen6Int.f` lines 212-229).

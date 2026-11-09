@@ -1,4 +1,4 @@
-//! Planning overlay shared by the DSS7 and DSS6 writers (P38 re-check): before the first store
+//! Planning overlay shared by the DSS7 and DSS6 writers: before the first store
 //! of a multi-record write, the commit code runs once with its writes held here and its reads
 //! seeing them, so every refusal that depends on the file, including bin allocation, chain
 //! links, counters and address growth carried forward from earlier records, happens with the

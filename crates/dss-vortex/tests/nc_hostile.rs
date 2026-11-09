@@ -2,7 +2,7 @@
 //! points. Each returns a typed error under default limits. An abort here fails the whole test binary,
 //! which is the point: `catch_unwind` could not have caught one.
 //!
-//! Set `NC_HOSTILE_OUT` to write the files to a directory, for `oracle/vortex/nc_job.py`.
+//! Set `NC_HOSTILE_OUT` to write the files to a directory, for `tests/support/nc_job.py`.
 
 mod nc_raw;
 
@@ -36,7 +36,7 @@ fn a_group_cycle_is_refused_before_the_reader_recurses() {
         nc_raw::group_cycle(),
         "more than one link",
     );
-    // A real file: a committed fixture with one hard link added by h5py, from the review.
+    // A real file: a committed fixture with one hard link added by h5py.
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../fixtures/public/netcdf_hostile/group_cycle.nc4");
     let error = NetcdfFile::open(&path).unwrap_err();
@@ -103,7 +103,7 @@ fn a_header_parsed_for_every_shared_reference_is_counted_each_time() {
 
 #[test]
 fn classic_header_counts_are_bounded_before_the_reader_reserves_them() {
-    // The review's file: the count fits the padding, so the reader's own check passes and it asks
+    // A crafted file: the count fits the padding, so the reader's own check passes and it asks
     // for 120 MB at once.
     let bytes = nc_raw::classic_dimension_count(3_000_000);
     assert!(bytes.len() >= 48_000_016);
@@ -137,7 +137,7 @@ fn hostile_fixture(name: &str) -> Vec<u8> {
 #[test]
 fn a_chunk_list_built_from_the_shape_is_limited_before_the_reader_builds_it() {
     // 23 KB. The reader's extensible array path lists 2^24 chunks from the shape, and asked for
-    // 268 MB at once in a process limited to 400 MiB, which aborted. Found by this packet's probes.
+    // 268 MB at once in a process limited to 400 MiB, which aborted (measured).
     // It opens: the limit is on what a read takes, and this read is refused before the reader lists.
     let file = NetcdfFile::from_bytes(
         "chunks_over_limit.nc4",
@@ -406,7 +406,7 @@ fn a_record_longer_than_the_chunk_limit_reads_one_chunk_a_step() {
 
 #[test]
 fn a_chunk_listed_many_times_is_an_error_in_process_too() {
-    // The re-check's shape, at its 40 MB, with memory to list it all. It reaches the reader's own
+    // The same shape, at 40 MB, with memory to list it all. It reaches the reader's own
     // check for repeated chunks. The negative control is the same index with one entry.
     let source = hostile_fixture("chunk_index_source.nc4");
     let file = NetcdfFile::from_bytes(

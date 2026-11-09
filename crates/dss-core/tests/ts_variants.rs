@@ -4,7 +4,8 @@
 //! unchanged, other records unchanged, and a crash test after every step. Synthetic data;
 //! every write goes to a new file or a temporary copy of a public fixture.
 //!
-//! HEC oracle checks are local-only: `evidence/P38/REPORT.md`.
+//! Natively written files were also checked with HEC software; those checks need HEC
+//! software and do not run in this test suite.
 
 use std::path::{Path, PathBuf};
 
@@ -213,7 +214,7 @@ fn damage_user_header(f: &Path, path: &[u8]) {
     h.write_all(&1i64.to_le_bytes()).unwrap();
 }
 
-/// P38 review 1: a stored area the commit would read is checked before the first store, so
+/// A stored area the commit would read is checked before the first store, so
 /// damage in a later block refuses with the file byte-identical.
 #[test]
 fn later_block_damage_refuses_before_the_first_store() {
@@ -260,7 +261,7 @@ fn later_block_damage_refuses_before_the_first_store() {
 
 const NOTE_LIMIT: usize = 1 << 28;
 
-/// P38 review 2: a note the reader would refuse is refused by the writer.
+/// A note the reader would refuse is refused by the writer.
 #[test]
 fn note_over_the_readers_limit_is_refused() {
     let d = tmp("big");
@@ -645,7 +646,7 @@ fn all_records(p: &Path) -> Vec<(Vec<u8>, i32, Vec<u8>)> {
         b.extend_from_slice(&r.info.number_data.to_le_bytes());
         b.extend_from_slice(&r.info.logical_number.to_le_bytes());
         // In the tested sequence a pattern's info block has the dates of the handle's previous
-        // store (`ztsStorePattern()` never sets them); the writer stores 0 (P38 REPORT §3).
+        // store (`ztsStorePattern()` never sets them); the writer stores 0.
         if !matches!(r.record_type, 101 | 106 | 111 | 116) {
             b.extend_from_slice(&r.info.first_date.0.to_le_bytes());
             b.extend_from_slice(&r.info.first_date.1.to_le_bytes());
@@ -739,7 +740,7 @@ impl<'a> Spec<'a> {
     }
 }
 
-/// Replay the spec behind `p38_hec_ts7.dss` (written by heclib 7-JA, P38 §4) with the
+/// Replay the spec behind `p38_hec_ts7.dss` (written by heclib 7-JA) with the
 /// native writer and compare every record's areas, counts and dates word for word.
 #[test]
 fn replay_of_the_hec_written_fixture_is_word_identical() {

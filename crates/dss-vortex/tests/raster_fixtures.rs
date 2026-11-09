@@ -1,5 +1,5 @@
 //! Every committed raster against rasterio's recorded reading, on any platform, with no Python.
-//! `oracle/vortex/compare_raster.py` is the live gate; `make_raster_fixtures.py` writes the record.
+//! The recorded reading is committed with the fixtures; rasterio is not needed at test time.
 
 use dss_vortex::crs::CrsDef;
 use dss_vortex::source::raster::{CrsStatus, RasterFile, ReadOptions, UnknownCrs};
@@ -121,7 +121,7 @@ fn vortex_written_trinity_has_what_rasterio_says() {
     assert_eq!(wet, 21056, "the fixture is wet; rasterio counts this many");
 }
 
-/// EPSG UTM codes are read by the codes' own rule (P53b): `crs_utm.tif` states EPSG:26915, and
+/// EPSG UTM codes are read by the codes' own rule: `crs_utm.tif` states EPSG:26915, and
 /// `every_fixture_reads_as_recorded` holds its cells and CRS to what rasterio reads.
 #[test]
 fn an_epsg_utm_code_reads_as_that_zone() {

@@ -1,4 +1,4 @@
-//! DSS7 time-series reads (packet P08a): single records and stitched datasets.
+//! DSS7 time-series reads: single records and stitched datasets.
 //!
 //! Format rules: `docs/format/dss7.md` §5.1 (info block areas), §7 (time series). The read
 //! path is a port of HEC's `ztsRetrieve` chain so that values, times and metadata match
@@ -30,6 +30,7 @@ use std::io::{Read, Seek};
 use super::compress::{self, Corrupt, Disaggregate};
 use super::info::{Area, InfoBlock};
 use super::interval::{self as iv, StandardInterval};
+use super::range_index::{IndexedDss7Catalog, RangeFrom};
 use super::{word, Dss7Catalog, Dss7Error, Dss7File, RecordRef};
 use crate::time;
 use crate::timeseries::{IrregularBlock, TimeSeries, TsKind, TsValues};
@@ -50,7 +51,7 @@ const MAX_AREA_INTS: i64 = 1 << 30;
 // Record types (`headers/zdataTypeDescriptions.h`).
 pub const RTS: i32 = 100;
 pub const RTS_PATTERN: i32 = 101;
-/// Most depths the reader takes, and so the writer stores (P39 review finding 3).
+/// Most depths the reader takes, and so the writer stores.
 pub const MAX_PROFILE_DEPTHS: usize = 100_000;
 pub const RTS_PROFILE: i32 = 102;
 pub const RTD: i32 = 105;
@@ -667,7 +668,7 @@ impl<R: Read + Seek> Dss7File<R> {
         let elem = a.elem;
         let depth_words = a.profile_depths_words.clone();
         let mut r = self.finish(a, true, rec.record_type)?;
-        // P14: single-word quality also goes in `meta.quality_words` (as read_ts_profile).
+        // Single-word quality also goes in `meta.quality_words` (as read_ts_profile).
         profile_quality_to_meta(&mut r);
         let ih = &r.meta.internal_header;
         let depths = words_to_values(
@@ -728,12 +729,25 @@ impl<R: Read + Seek> Dss7File<R> {
         pathname: &[u8],
         opts: &TsReadOptions,
     ) -> Result<Dss7Ts, TsError> {
-        self.read_ts_impl(Some(cat), pathname, opts)
+        self.read_ts_impl(Some(RangeFrom::Scan(cat)), pathname, opts)
+    }
+
+    /// [`Dss7File::read_ts_with_catalog`] through an [`IndexedDss7Catalog`]: the
+    /// whole-dataset range comes from the snapshot's index, built on the first such
+    /// read, instead of a scan of every catalog entry. Same results; use it when many
+    /// datasets are read through one catalog.
+    pub fn read_ts_with_indexed_catalog(
+        &mut self,
+        cat: &IndexedDss7Catalog,
+        pathname: &[u8],
+        opts: &TsReadOptions,
+    ) -> Result<Dss7Ts, TsError> {
+        self.read_ts_impl(Some(RangeFrom::Indexed(cat)), pathname, opts)
     }
 
     fn read_ts_impl(
         &mut self,
-        cat: Option<&Dss7Catalog>,
+        cat: Option<RangeFrom<'_>>,
         pathname: &[u8],
         opts: &TsReadOptions,
     ) -> Result<Dss7Ts, TsError> {
@@ -814,37 +828,14 @@ impl<R: Read + Seek> Dss7File<R> {
     /// `ztsGetDateRange(path, boolFullSet = 1)`: first and last julian day of the dataset.
     fn dataset_date_range(
         &mut self,
-        cat: &Dss7Catalog,
+        cat: RangeFrom<'_>,
         canon: &[u8],
         interval: &StandardInterval,
     ) -> Result<Option<(i64, i64)>, TsError> {
         let want = path_parts(canon).ok_or(TsError::BadWindow)?;
-        // ztsGetFirstLastPathnames(): catalog with D = "*", types 100..199.
-        let mut range: Option<(i64, i64)> = None;
-        for (i, e) in cat.catalog.entries.iter().enumerate() {
-            let st = cat.meta.get(i).map(|m| m.raw_status).unwrap_or(-1);
-            if !(0..=2).contains(&st) || !(100..200).contains(&e.record_type) {
-                continue;
-            }
-            let Some(p) = path_parts(&e.pathname) else {
-                continue;
-            };
-            let same = [0usize, 1, 2, 4, 5]
-                .iter()
-                .all(|&k| p[k].eq_ignore_ascii_case(want[k]));
-            if !same {
-                continue;
-            }
-            // HEC's dateToJulian() would yield UNDEFINED_TIME for a non-date D part;
-            // such entries are skipped here.
-            let Some(j) = iv::parse_date(p[3]) else {
-                continue;
-            };
-            range = Some(match range {
-                None => (j, j),
-                Some((a, b)) => (a.min(j), b.max(j)),
-            });
-        }
+        // ztsGetFirstLastPathnames(): catalog with D = "*", types 100..199
+        // (`range_index::dataset_extrema_scan`, or its index for an IndexedDss7Catalog).
+        let range = cat.extrema(&want);
         let Some((fj, lj)) = range else {
             return Ok(None);
         };
@@ -1236,7 +1227,7 @@ impl<R: Read + Seek> Dss7File<R> {
     /// after the time window is freed, so `hecdss` reports 0); `ztsRetrievePattern()` sets
     /// the start to one interval after 01Jan3000 00:00. Times here follow the time array
     /// HEC Monolith returns: the first value at 01Jan3000 00:00, then one per interval
-    /// (verified on 4,586 pattern records, P08a report).
+    /// (verified on 4,586 pattern records).
     fn read_pattern(
         &mut self,
         rec: RecordRef,
@@ -1280,7 +1271,7 @@ impl<R: Read + Seek> Dss7File<R> {
         let mut times = Vec::with_capacity(n);
         let j3000 = iv::ymd_to_julian(3000, 1, 1);
         if interval.code > 0 {
-            // P25: the stored INT_HEAD_timeOffset is not applied (as for DSS6); it is
+            // The stored INT_HEAD_timeOffset is not applied (as for DSS6); it is
             // reported raw by `Dss7Ts::pattern_origin`.
             let (j, s) = iv::increment_time(interval.code, 0, j3000, 0);
             for i in 0..n as i64 {
@@ -1288,7 +1279,7 @@ impl<R: Read + Seek> Dss7File<R> {
                 times.push(jj * iv::SECS_IN_1_DAY + ss);
             }
         } else {
-            // P32: irregular patterns (111/116) store their times in granularity units
+            // Irregular patterns (111/116) store their times in granularity units
             // from julian base 0 (`Public/ztsRetrievePattern.c`, hec-dss `7-IU-15`: line 330
             // copies values1 into `tss->times`, line 365 sets `julianBaseDate = 0`;
             // `zStructTimeSeries.h` line 33: times count `timeGranularitySeconds`). HEC's
@@ -1370,7 +1361,7 @@ impl<R: Read + Seek> Dss7File<R> {
             time_granularity_seconds: a.granularity,
             julian_base_date: a.julian_base,
             precision: ih.precision,
-            // Applied offset: 0 for patterns (P25; the stored one is in pattern_origin).
+            // Applied offset: 0 for patterns (the stored one is in pattern_origin).
             time_offset_seconds: if pattern {
                 0
             } else {
@@ -1568,7 +1559,7 @@ fn trim(a: &mut Assembled) {
 }
 
 // ---------------------------------------------------------------------------------
-// P14: profile dataset reads (types 102/107), additive.
+// Profile dataset reads (types 102/107), additive.
 // ---------------------------------------------------------------------------------
 
 impl<R: Read + Seek> Dss7File<R> {
@@ -1587,8 +1578,8 @@ impl<R: Read + Seek> Dss7File<R> {
     /// Quality, when stored, is in `meta.quality_words` (`n × quality_element_size`,
     /// one entry per time) for every element size.
     ///
-    /// Non-profile records, and irregular profiles (112/117, which have no corpus
-    /// evidence), return [`TsError::UnsupportedRecordType`].
+    /// Non-profile records, and irregular profiles (112/117, for which no example
+    /// file was available), return [`TsError::UnsupportedRecordType`].
     pub fn read_ts_profile(
         &mut self,
         pathname: &[u8],
@@ -1609,12 +1600,23 @@ impl<R: Read + Seek> Dss7File<R> {
         pathname: &[u8],
         opts: &TsReadOptions,
     ) -> Result<Dss7Profile, TsError> {
-        self.read_ts_profile_impl(Some(cat), pathname, opts)
+        self.read_ts_profile_impl(Some(RangeFrom::Scan(cat)), pathname, opts)
+    }
+
+    /// [`Dss7File::read_ts_profile_with_catalog`] through an [`IndexedDss7Catalog`]
+    /// (see [`Dss7File::read_ts_with_indexed_catalog`]).
+    pub fn read_ts_profile_with_indexed_catalog(
+        &mut self,
+        cat: &IndexedDss7Catalog,
+        pathname: &[u8],
+        opts: &TsReadOptions,
+    ) -> Result<Dss7Profile, TsError> {
+        self.read_ts_profile_impl(Some(RangeFrom::Indexed(cat)), pathname, opts)
     }
 
     fn read_ts_profile_impl(
         &mut self,
-        cat: Option<&Dss7Catalog>,
+        cat: Option<RangeFrom<'_>>,
         pathname: &[u8],
         opts: &TsReadOptions,
     ) -> Result<Dss7Profile, TsError> {
@@ -1804,7 +1806,7 @@ fn profile_quality_to_meta(r: &mut Dss7Ts) {
 /// (`Public/ztsRetrievePattern.c` lines 360-372): start at 01Jan3000 00:00, step one
 /// interval (`incrementTime(+1)`), then, when `offset_seconds` is nonzero, move to that
 /// offset within the interval (`Public/ztsOffsetAdjustToOffset.c` lines 93-120). Used for
-/// both versions (P25). `None` for a non-positive interval.
+/// both versions. `None` for a non-positive interval.
 pub fn pattern_heclib_first_seconds(interval_seconds: i64, offset_seconds: i64) -> Option<i64> {
     if interval_seconds < 1 {
         return None;
@@ -1818,7 +1820,7 @@ pub fn pattern_heclib_first_seconds(interval_seconds: i64, offset_seconds: i64) 
 }
 
 impl Dss7Ts {
-    /// Time-origin facts of a pattern record (P25); `None` for other records. The stored
+    /// Time-origin facts of a pattern record; `None` for other records. The stored
     /// offset is `INT_HEAD_timeOffset` (`headers/zStructAllocation.h`; word 2), unpacked
     /// as `Internal/ztsInternalHeaderUnpack.c` does, and is never applied to `ts.times`.
     pub fn pattern_origin(&self) -> Option<crate::timeseries::PatternOrigin> {

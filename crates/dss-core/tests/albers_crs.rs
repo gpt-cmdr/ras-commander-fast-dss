@@ -5,7 +5,7 @@
 //! via `AlbersInfoFlat.unflatten` + `AlbersInfo.convertToGridInfo`) or of
 //! `GridStructContainer.setAlbersSpatialReferenceInfo` (modern -100 layout). The
 //! expected value of each record (SHG WKT or empty) was checked against Monolith on
-//! copies of these files (P13 evidence). Synthetic data only; no HEC software is
+//! copies of these files. Synthetic data only; no HEC software is
 //! used to generate the files. To regenerate, set DSS_PY_FIXTURE_OUT to a scratch
 //! directory, run this test, and copy both files into fixtures/public/.
 mod dss7_common;

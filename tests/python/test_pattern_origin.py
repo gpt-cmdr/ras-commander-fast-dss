@@ -1,10 +1,10 @@
-"""P25: pattern time-origin metadata (DSS_TASK DT5 follow-up); public/synthetic data only.
+"""P25: pattern time-origin metadata; public/synthetic data only.
 
 The first value of a regular pattern is at 01JAN3000 00:00 on both DSS versions; the stored
 offset is reported raw and never applied. ``pattern_heclib_first_seconds`` is the start heclib
 C ``ztsRetrievePattern`` reports. For ``pattern_offset7.dss`` the expected starts below were
 verified against pydsstools 3.1.0, Monolith 3.3.27 ``startTime`` and hecdss 0.1.33
-(``start_date`` + one interval); see evidence/P25/REPORT.md.
+(``start_date`` + one interval); see ``docs/format/dss7.md`` §7.5a.
 """
 
 import numpy as np

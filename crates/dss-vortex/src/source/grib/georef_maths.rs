@@ -6,7 +6,7 @@
 //!
 //! The reference here is `java.lang.Math` under NetCDF-Java, not the UCRT that `crate::maths`
 //! targets. Its results are not bit-identical to `crate::maths`, so the reference for this layer
-//! is the `f32` the axis keeps: `Array.makeArray` rounds the start point to `f32` km. The evidence
-//! report counts the `f64` differences and shows the `f32` is exact.
+//! is the `f32` the axis keeps: `Array.makeArray` rounds the start point to `f32` km. The `f64`
+//! results can differ, but the `f32` was measured to be exact.
 
 pub(super) use crate::maths::{cos, log, pow, sin, tan};

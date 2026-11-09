@@ -1,12 +1,12 @@
 //! Version-neutral time-series model shared by the DSS6 and DSS7 readers.
 //!
-//! The DSS7 reader (packet P08a) and the DSS6 reader (P08b) decode their own on-disk
+//! The DSS7 reader and the DSS6 reader decode their own on-disk
 //! layouts and map them into these types. This file holds no format knowledge; keep
 //! changes additive because both readers depend on it.
 //!
 //! Values keep the stored bits. HEC's missing markers (−901.0, −902.0, −FLT_MAX) are
 //! not converted, so a raw read can be compared bit for bit with `hecdss`; use
-//! [`is_missing`] (or the Python layer) to map them to NaN (P02 report §6).
+//! [`is_missing`] (or the Python layer) to map them to NaN.
 
 /// Stored value array. DSS keeps float and double records apart (types 100/110 vs
 /// 105/115); the stored width is preserved.
@@ -109,9 +109,9 @@ pub fn is_hec_missing(v: f64) -> bool {
     v == -901.0 || v == -902.0 || v == -f64::from(f32::MAX)
 }
 
-/// The time convention of pattern records (P25): the first value of a regular pattern is
+/// The time convention of pattern records: the first value of a regular pattern is
 /// at 01JAN3000 00:00, then one value per interval. The stored offset is never applied.
-/// This is the time array HEC Monolith returns (`HecDss.get(path, false)`, P08a/P17).
+/// This is the time array HEC Monolith returns (`HecDss.get(path, false)`).
 pub const PATTERN_TIME_CONVENTION: &str = "first-value-at-3000-01-01T00:00";
 
 /// Where a pattern record's stored time offset comes from.

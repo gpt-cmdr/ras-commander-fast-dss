@@ -282,7 +282,7 @@ impl CrsDef {
                         ("PARAMETER", 0, 16),
                         ("UNIT", 1, 1),
                         ("AXIS", 0, 2),
-                        // GDAL reads the stated parameters, whatever this says (measured, P43).
+                        // GDAL reads the stated parameters, whatever this says (measured).
                         ("AUTHORITY", 0, 1),
                     ],
                 )?;
@@ -668,7 +668,7 @@ fn geogcs(geog: &Node) -> Result<(Datum, f64, f64), VortexError> {
     {
         return Err(unsupported("angular unit other than the degree"));
     }
-    // CENTER_LONG in WKT text has no effect in GDAL 3.2.1 (measured, P43), so it is ignored here
+    // CENTER_LONG in WKT text has no effect in GDAL 3.2.1 (measured), so it is ignored here
     // too. See `Transformer::with_center_long`.
     for e in geog.children("EXTENSION") {
         shape(e, 2, &[])?;
@@ -761,7 +761,7 @@ fn axes(root: &Node, projection: &Projection) -> Result<(), VortexError> {
     let dirs = axis_directions(root)?;
     // Traditional GIS order: Vortex sets it on both CRSs. GDAL's SetPS writes a pole's axes as
     // both pointing away from or towards it; the transformation is the same as with none
-    // (measured against PROJ, P43).
+    // (measured against PROJ).
     let pole_axes = match projection {
         Projection::Stereographic {
             lat_ts: Some(ts), ..

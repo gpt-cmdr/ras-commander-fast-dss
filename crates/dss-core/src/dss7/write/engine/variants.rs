@@ -1,5 +1,5 @@
-//! DSS7 store of the P38 variants: multi-word quality, integer and character notes, and
-//! pattern records, on P20's records and transactions.
+//! DSS7 store of the time-series variants: multi-word quality, integer and character notes, and
+//! pattern records, on the regular writer's records and transactions.
 //!
 //! Regular blocks follow `Internal/ztsRegStoreBlock.c:ztsRegStoreBlock()` with storage
 //! flag 0, irregular blocks `Internal/ztsIrregStoreBlock.c:ztsIrregStoreBlock()` and
@@ -8,10 +8,10 @@
 //! `heclib/heclib_c/src/` of `hec-dss` tag `7-IU-15`.
 //!
 //! A write with no optional array, into a block with no notes or multi-word quality, stays
-//! on the P20 and P21 code paths.
+//! on the regular and irregular code paths.
 //!
 //! Deliberate differences from heclib, as observed in the tested build and synthetic cases
-//! (P38 REPORT §3):
+//! (observed with HEC's C library and Monolith on synthetic files):
 //! - alignment-preserving policy: a write without notes that keeps stored character notes,
 //!   and whose first valid value is not at the block start, stores the whole block; the tested
 //!   heclib case trims the leading values and keeps every note;
@@ -36,15 +36,15 @@ struct StoredArrays {
 }
 
 impl StoredArrays {
-    /// Blocks the P20 and P21 paths refuse.
+    /// Blocks the regular and irregular paths refuse.
     fn needs_variant_path(&self, new_quality: bool) -> bool {
         self.nes > 0 || self.cnotes_length > 0 || (new_quality && self.qes > 1)
     }
 }
 
 impl Engine<'_> {
-    /// The last checks on a built block, before any block of the write is committed
-    /// (P38 review 1, 2): the reader's limits on what was built, and every area of the record
+    /// The last checks on a built block, before any block of the write is committed:
+    /// the reader's limits on what was built, and every area of the record
     /// it replaces, including areas being dropped, because the commit's equality test reads
     /// them. A damaged area in a later block therefore refuses with the file unchanged.
     pub(super) fn preflight(&self, p: &Prepared) -> Result<(), WriteError> {
@@ -72,7 +72,7 @@ impl Engine<'_> {
         Ok(())
     }
 
-    /// Run the commits of a multi-record write with the file untouched (P38 re-check): writes
+    /// Run the commits of a multi-record write with the file untouched: writes
     /// are held in an overlay, reads see them, and the engine's state is restored afterwards.
     /// Every refusal that depends on the file, including bin allocation and chain links after
     /// the earlier records, comes from here. A single record refuses before its first write.
@@ -120,7 +120,7 @@ impl Engine<'_> {
         })
     }
 
-    /// One regular block: chooses the P20 path, or the port of the full
+    /// One regular block: chooses the regular path, or the port of the full
     /// `ztsRegStoreBlock()` below.
     fn prepare_block_v(
         &self,
@@ -140,7 +140,7 @@ impl Engine<'_> {
             }
             _ => None,
         };
-        // Single-word quality given as the input's `quality` is what the P20 path stores.
+        // Single-word quality given as the input's `quality` is what the regular path stores.
         let single = input.quality.is_some() && x.nes == 0 && x.cnotes.is_none();
         if (!x.any() || single) && !stored.is_some_and(|s| s.needs_variant_path(single)) {
             return self.prepare_block(input, plan, bp);
@@ -342,6 +342,7 @@ impl Engine<'_> {
             last: (jl as i32, sl as i32),
             // ztsWriteBlock() line 199.
             total_expanded: bp.number_in_block * (elem + qes + nes) as i64,
+            copy_out: false,
         };
         Ok(Prepared { path, found, areas })
     }
@@ -368,7 +369,7 @@ impl Engine<'_> {
         Ok(st)
     }
 
-    /// One irregular block: the P21 path, or the port of the full `ztsIrregStoreBlock()`.
+    /// One irregular block: the irregular path, or the port of the full `ztsIrregStoreBlock()`.
     fn prepare_its_block_v(
         &self,
         input: &ItsInput,
@@ -481,6 +482,7 @@ impl Engine<'_> {
             last: (last.0 as i32, last.1 as i32),
             // ztsWriteBlock() lines 199-203.
             total_expanded: logical * (elem + qes + nes) as i64 + logical,
+            copy_out: false,
         };
         Ok(Prepared { path, found, areas })
     }
@@ -559,7 +561,7 @@ impl Engine<'_> {
 /// area. From `ztsAggregate()`, the tested compressed case stores `INT_HEAD_cnotesLength` with
 /// no characters behind it (line 719 tests `inoteElementSize == 0`), which the native decoder
 /// rejects; the uncompressed branch (line 443) was not qualified. Mixed representations are
-/// not qualified, so the writer refuses (P38 REPORT §3).
+/// not qualified, so the writer refuses.
 fn refuse_inotes_over_cnotes(st: StoredArrays, nes: usize, path: &[u8]) -> Result<(), WriteError> {
     if nes > 0 && st.cnotes_length > 0 {
         return Err(WriteError::Unsupported(format!(
@@ -666,8 +668,8 @@ pub(in crate::dss7::write) fn write_rts_v(
 ) -> Result<WriteReport, WriteError> {
     let x = check_extras(input.values.len(), input.quality, v)?;
     let mut session = Session::begin(file, opts)?;
-    // Preflight every block before the first commit (P21 review M1; P20 had the same
-    // gap: a refusal in block k left blocks 0..k-1 written).
+    // Preflight every block before the first commit (without it, a refusal in block k
+    // would leave blocks 0..k-1 written).
     let mut prepared = Vec::with_capacity(plan.blocks.len());
     for bp in &plan.blocks {
         let p = session.eng.prepare_block_v(input, plan, bp, &x)?;
@@ -700,10 +702,10 @@ pub(in crate::dss7::write) fn write_its_v(
 ) -> Result<WriteReport, WriteError> {
     let x = check_extras(input.values.len(), input.quality, v)?;
     let mut session = Session::begin(file, opts)?;
-    // Preflight (P21 review M1): every lookup, read and refusal of every block and
+    // Preflight: every lookup, read and refusal of every block and
     // every delete, before the first transaction. Later transactions touch other
     // pathnames only, so what was read stays valid while earlier ones commit.
-    // P24: Areas gained values2/values3, which tips this short-lived enum over clippy's
+    // Areas gained values2/values3, which tips this short-lived enum over clippy's
     // size-ratio threshold; boxing would add an allocation per block for nothing.
     #[allow(clippy::large_enum_variant)]
     enum Op {
@@ -770,8 +772,8 @@ pub(in crate::dss7::write) struct PatternPlan {
 }
 
 /// `ztsStorePattern()` and `ztsProcessTimes()` lines 268-289. The stored time offset is 0:
-/// `ztsProcessTimes()` returns before it derives one, so HEC writers store 0 (P25), and the
-/// P25 convention gives a regular pattern no start time to keep.
+/// `ztsProcessTimes()` returns before it derives one, so HEC writers store 0, and the
+/// The pattern convention gives a regular pattern no start time to keep.
 pub(in crate::dss7::write) fn plan_pattern(p: &PatternInput) -> Result<PatternPlan, WriteError> {
     let (path, regular_seconds) = validate_pattern_pathname(p.pathname)?;
     let n = p.values.len();
@@ -813,7 +815,7 @@ pub(in crate::dss7::write) fn plan_pattern(p: &PatternInput) -> Result<PatternPl
     let (data_type, v1) = if let Some(secs) = regular_seconds {
         if p.times.is_some() {
             return Err(bad_input(
-                "a regular pattern is positional and takes no times (P25)",
+                "a regular pattern is positional and takes no times",
             ));
         }
         if p.time_granularity.is_some() {
@@ -882,6 +884,7 @@ pub(in crate::dss7::write) fn plan_pattern(p: &PatternInput) -> Result<PatternPl
         first: (0, 0),
         last: (0, 0),
         total_expanded: 0,
+        copy_out: false,
     };
     Ok(PatternPlan { path, areas })
 }

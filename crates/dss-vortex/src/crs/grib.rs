@@ -87,7 +87,7 @@ pub enum GribGrid {
 /// - Template 3.30 on a spherical earth uses the file's radius.
 ///
 /// Ellipsoidal projected grids take other NetCDF-Java classes, and no sample has exercised
-/// them, so they are refused until one does (P45).
+/// them, so they are refused until one does.
 pub fn vortex_grib_crs(grid: GribGrid, earth: Earth) -> Result<CrsDef, VortexError> {
     let sphere = |radius: f64, projection: Projection| CrsDef {
         datum: Datum::Sphere,

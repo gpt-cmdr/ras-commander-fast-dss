@@ -1,4 +1,4 @@
-//! Maintainer decision, "Platform parity": the value path must not call platform maths,
+//! Design rule, "Platform parity": the value path must not call platform maths,
 //! including `f64::sin` and friends, because Linux and macOS must match the Windows reference
 //! bit for bit. Under `src/crs/`, all maths goes through `crs/maths.rs`.
 
@@ -86,7 +86,8 @@ fn shipped_platform_paths(maths: &str, manifest: &str) -> Vec<&'static str> {
 }
 
 /// Nothing in the shipped crate can select platform maths, so no build of it, wheel or not, can
-/// include it. Evidence runs replace the file in a copy outside the workspace.
+/// include it. A build that compares platform maths replaces the file in a copy outside the
+/// workspace.
 #[test]
 fn the_shipped_crate_has_no_platform_maths_path() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));

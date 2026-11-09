@@ -1,6 +1,5 @@
-//! Paired-data writer input (packet P23), shared by the DSS7 writer
+//! Paired-data writer input, shared by the DSS7 writer
 //! ([`super::write_pd`]) and the DSS6 writer (`crate::dss6::write::write_pd6`).
-//! Specification: `packets/P23_pd_writer.md`.
 //!
 //! A paired-data record is a set of ordinates (the independent variable, "rows") and one
 //! or more curves (the dependent variable, "columns") over them. The record type follows

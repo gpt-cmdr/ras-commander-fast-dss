@@ -1,9 +1,9 @@
-//! DSS7 regular profile reads (packet P14): `Dss7File::read_ts_profile` (dataset) and
+//! DSS7 regular profile reads: `Dss7File::read_ts_profile` (dataset) and
 //! `read_ts_profile_record` (one block).
 //!
-//! `fixtures/public/synthetic_profile7.dss` is written by HEC Monolith 3.3.27
-//! (`evidence/P14/scripts/ProfileMonolith.java`), so the expected
-//! values below are that program's inputs, computed with the same IEEE double
+//! `fixtures/public/synthetic_profile7.dss` is written by HEC Monolith 3.3.27 through its
+//! Java API, so the expected values below are the values it was given, computed with the
+//! same IEEE double
 //! arithmetic. Monolith always stores profiles as doubles (107; javaHeclib
 //! `Hec_ztsStore.c`), so the float (102) case uses an in-memory synthetic record built
 //! here from the DSS7 layout (`Internal/ztsInternalHeaderPack.c`,

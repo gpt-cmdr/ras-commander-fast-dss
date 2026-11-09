@@ -19,7 +19,7 @@ dss-core.workspace = true
 pyo3 = { version = "0.24", features = ["extension-module", "abi3-py310"] }
 # NumPy arrays for the binding only; dss-core stays dependency-free.
 numpy = "0.24"
-# Tier V gridded import (D42): one wheel, feature off until the importer works.
+# Tier V gridded import: one wheel, feature off until the importer works.
 dss-vortex = { workspace = true, optional = true }
 
 [features]

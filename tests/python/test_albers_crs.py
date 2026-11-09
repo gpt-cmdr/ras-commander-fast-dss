@@ -45,9 +45,9 @@ MODERN = {
 }
 
 
-# P34 F2: Albers parameters of the modern (-100) records as Monolith 3.3.27 reports them
+# Albers parameters of the modern (-100) records as Monolith 3.3.27 reports them
 # (GridStructContainer.returnGridInfo -> setAlbersSpatialReferenceInfo, parsed from the
-# stored WKT), recorded with evidence/P34/scripts/GridP34.java on a copy of
+# stored WKT), as Monolith 3.3.27 returned them when reading a copy of
 # synthetic_albers7.dss: (datum, units, (sp1, sp2, cm, lat0, fe, fn)).
 MODERN_ALBERS = {
     "M-CM-INT": (2, 'Meter', (29.5, 45.5, -96.0, 23.0, 0.0, 0.0)),
@@ -113,7 +113,7 @@ def test_modern_albers_keeps_stored_string():
 @pytest.mark.parametrize("name", ["synthetic_grid6.dss", "synthetic_grid7.dss"])
 def test_p12_synthetic_albers_record_is_not_shg(name):
     # Units "Meters  " (blanks kept by Heclib.holString) and origin 1000/2000:
-    # Monolith returns "" for this record (P12 report section 8 item A).
+    # Monolith returns "" for this record.
     with dss.open(fixture_path(name)) as f:
         g = f.read_grid("/PUBLIC/ALBERS/PRECIP/01JAN2020:0000/01JAN2020:0100/SYNTH/")
         assert g.srs_definition == ""

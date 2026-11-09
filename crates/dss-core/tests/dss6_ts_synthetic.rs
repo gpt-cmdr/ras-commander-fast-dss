@@ -1,4 +1,4 @@
-//! DSS6 time-series reads on synthetic files (packet P08b). No external files needed.
+//! DSS6 time-series reads on synthetic files. No external files needed.
 
 mod dss6_ts_support;
 

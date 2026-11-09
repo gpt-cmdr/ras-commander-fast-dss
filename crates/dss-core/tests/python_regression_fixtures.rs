@@ -21,7 +21,7 @@ const ORDINARY: [&str; 2] = [
 ];
 const VALUES: [f32; 5] = [-901.0, 10.0, 20.0, 30.0, -902.0];
 
-/// DSS6 location series (P15): `(pathname bytes, coordinates, descriptors)`. Blocks of
+/// DSS6 location series: `(pathname bytes, coordinates, descriptors)`. Blocks of
 /// `AGREE` share one location; blocks of `DISAGREE` do not. `É` (0xC9) is Latin-1.
 pub fn location_blocks6() -> Vec<(Vec<u8>, [f64; 3], [i32; 6])> {
     let a = [-97.25, 30.5, 612.5];
@@ -136,7 +136,7 @@ fn synthetic7() -> Vec<u8> {
     set_word(&mut bytes, info + key::VALUES1_NUMBER, VALUES.len() as i64);
     set_word(&mut bytes, info + key::NUMBER_DATA, VALUES.len() as i64);
     set_word(&mut bytes, info + key::ALLOCATED_SIZE, 6);
-    // Location record (P15), layout of Public/zlocationStore.c:zlocationStore():
+    // Location record, layout of Public/zlocationStore.c:zlocationStore():
     // values1 = x, y, z doubles, six codes, time-zone name; values2 = supplemental text.
     let loc_info = built.info_addr[1] as usize;
     bytes.truncate(eof * 8);
@@ -173,7 +173,7 @@ fn synthetic7() -> Vec<u8> {
     bytes
 }
 
-/// Latin-1 (`É` = 0xC9) location record in `synthetic_python7.dss` (P15).
+/// Latin-1 (`É` = 0xC9) location record in `synthetic_python7.dss`.
 const LOCATION7: &[u8] = b"/P15 LOC/GAGE \xC9/Location Info////";
 
 #[test]

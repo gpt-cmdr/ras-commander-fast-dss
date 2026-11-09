@@ -1,15 +1,15 @@
-"""DSS6 user-header text that is invalid UTF-8 (P31).
+"""DSS6 user-header text that is invalid UTF-8.
 
-Maintainer decision (2026-10-30): "use UTF-8". Text that is neither standard nor Java
+Text that is neither standard nor Java
 modified UTF-8 decodes as UTF-8 with each malformed sequence replaced by one U+FFFD,
 exactly as Java's decoder does (``new String(bytes, UTF_8)``); the encoding is
 ``"utf-8-replaced"``. P28 decoded such text as whole-text Latin-1.
 
 ``synthetic_userheader_lossy6.dss`` was written by HEC Monolith 3.3.27 through heclib
-``ZSRTSX`` (``evidence/P31/scripts/P31Utf8.java``) and is not
+``ZSRTSX`` and is not
 regenerated; its SHA-256 is pinned here. Expected texts are Java 17.0.11
 ``new String(text, UTF_8)``; Monolith's own read (JNI ``NewStringUTF``) differs and is
-pinned as a strict xfail (P31 REPORT §1).
+pinned as a strict xfail.
 """
 
 import hashlib
@@ -107,7 +107,7 @@ def test_attrs_and_items_from_replaced_text(f):
 @pytest.mark.xfail(
     strict=True,
     reason=(
-        "P31 finding: Monolith reads the text with JNI NewStringUTF; HotSpot maps each "
+        "Monolith reads the text with JNI NewStringUTF; HotSpot maps each "
         "bad byte to its Latin-1 character (no U+FFFD) and truncates the string to its "
         "count of non-continuation bytes. The engine follows Java's UTF-8 decoder."
     ),

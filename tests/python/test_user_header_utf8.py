@@ -1,9 +1,9 @@
-"""DSS6 user-header text decoding (P28).
+"""DSS6 user-header text decoding.
 
-Maintainer decision (2026-10-28): the text bytes, after the NUL cut and the trailing-blank
+The text bytes, after the NUL cut and the trailing-blank
 trim, are decoded as UTF-8 when they are valid UTF-8 (else Java modified UTF-8);
 otherwise, since P31, as UTF-8 with each malformed sequence replaced by one U+FFFD, as
-Java's decoder does (``"utf-8-replaced"``; P28 used whole-text Latin-1). The same decode
+Java's decoder does (``"utf-8-replaced"``; earlier versions used whole-text Latin-1). The same decode
 feeds ``user_header_text``/``user_header_items``, dataframe ``attrs`` and the DSS6
 location ``supplemental*`` fields. Raw bytes are unchanged.
 
@@ -60,8 +60,8 @@ CASES = {
         "Gage: été",
         "utf-8",
     ),
-    # Java modified UTF-8 (review m5): a surrogate pair for U+1F30A and C0 80 for U+0000.
-    # Monolith 3.3.27 reads both the same way (P28 REPORT §8).
+    # Java modified UTF-8: a surrogate pair for U+1F30A and C0 80 for U+0000.
+    # Monolith 3.3.27 reads both the same way.
     "/P28/GAGE P/FLOW/01JAN2000/1HOUR/OBS/": (
         b"Note: wave \xed\xa0\xbc\xed\xbc\x8a\x00",
         "Note: wave \U0001f30a",
@@ -125,7 +125,7 @@ def test_location_items_and_datum_from_utf8_text(f):
     loc = f.read_associated_location("/P28/GAGE U/FLOW/01JAN2000/1HOUR/OBS/")
     assert loc.supplemental_items["Gage"] == " Yý"
     assert loc.supplemental_vertical_datum == " NAVD88"
-    assert loc.vertical_datum_code == 0 and loc.vertical_datum_unknown  # D37
+    assert loc.vertical_datum_code == 0 and loc.vertical_datum_unknown  # text only
 
 
 def test_dataset_reports_last_block_decoded_alone(f):
@@ -145,7 +145,7 @@ def test_dss7_reads_have_no_encoding_and_location_stays_latin1():
         cat = f7.catalog()
         ts = cat[cat["record_type"].between(100, 119)]["pathname"].iloc[0]
         assert f7.read_record_arrays(ts)["user_header_encoding"] is None
-    # Review m4: a DSS7 location whose values2 holds C3 BD (valid UTF-8 for "ý") and
+    # A DSS7 location whose values2 holds C3 BD (valid UTF-8 for "ý") and
     # a lone E9. It must stay Latin-1: a UTF-8 decode would give "ý" and fail here.
     with dss.open(fixture_path("synthetic_location_latin1_7.dss")) as f7:
         loc = f7.read_location("/P28 LOC/GAGE L7/Location Info////")
@@ -157,7 +157,7 @@ def test_dss7_reads_have_no_encoding_and_location_stays_latin1():
 
 
 def test_empty_text_has_no_encoding():
-    # Review m3: no text (blank-only header here) gives user_header_encoding None and
+    # No text (blank-only header here) gives user_header_encoding None and
     # no attr, as supplemental_encoding is None without supplemental text.
     with dss.open(fixture_path("synthetic_location_uh6.dss")) as f6:
         p = "/P27/GAGE L/FLOW/01JAN2000/1HOUR/OBS/"

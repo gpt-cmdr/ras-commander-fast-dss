@@ -1,6 +1,5 @@
-//! NetCDF through the importer (packet P46b), with no oracle: stamps against the file's own times,
+//! NetCDF through the importer, with no oracle: stamps against the file's own times,
 //! refusals that leave an output as it was, the stop, the limits, and an output that is an input.
-//! `oracle/vortex/run_import.py --netcdf` compares the records with Vortex.
 //!
 //! The AORC hours hold real rain: NOAA's values and times for 19 and 20 September 2019 over the Texas
 //! Panhandle, in the layout of the real `AORC_APCP_MARFC_1984010100.nc4`, which is a dry hour
@@ -660,7 +659,7 @@ fn a_header_states_what_its_frame_does_on_every_step_of_every_fixture() {
         }
     }
     // Counted on this run and pinned, so a file or step dropped from the loop fails. The 9 refused
-    // steps are the ones P48's report lists for its fixtures.
+    // steps are the fixtures' known refusals.
     assert_eq!((files, variables, frames, refused), (64, 89, 150, 9));
 
     // The comparison can fail on each field.
@@ -768,8 +767,8 @@ fn digits_in_an_aorc_name_are_not_read_and_one_step_has_no_spacing_to_check() {
     );
 }
 
-// Unit strings of real NetCDF products that Vortex 1.1.0 stores as UNDEF, with no conversion: read
-// from its records by `oracle/vortex/nc_refused_on_vortex.py`, where this importer had refused them.
+// Unit strings of real NetCDF products that Vortex 1.1.0 stores as UNDEF, with no conversion (as
+// its records show), where this importer had refused them.
 #[test]
 fn unit_strings_vortex_stores_as_undef_are_read_as_it_reads_them() {
     use dss_vortex::units::{parse_unit, Unit};

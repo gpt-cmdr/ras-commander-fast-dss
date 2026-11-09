@@ -14,9 +14,10 @@ FAST-DSS on the [RAS Commander website](https://rascommander.info/ras/native-eng
 pip install ras-commander-fast-dss
 ```
 
-Wheels are abi3 (one wheel covers CPython 3.10 and later) for Windows x86_64, Linux x86_64 and
-aarch64 (manylinux), Linux x86_64 (musllinux), and macOS arm64 and x86_64. Other platforms can
-build the source distribution with a Rust toolchain; the build has no C dependencies.
+Wheels are abi3 (one wheel covers CPython 3.10 and later) for Windows x86_64 and for Linux
+x86_64 and aarch64 (manylinux and musllinux). There are no macOS wheels, and CI does not build
+or test on macOS. macOS users, and other platforms, can build the source distribution with a
+Rust toolchain; the build has no C dependencies.
 
 ## Quick example
 
@@ -49,6 +50,37 @@ and grids come back as NumPy arrays with their metadata. Errors are typed
 (`ras_commander_fast_dss.exceptions`), and a file that HEC software holds open for writing is
 refused rather than written (`DssLockedError`). The gridded importer and tools are in
 `ras_commander_fast_dss.gridded`.
+
+## Interrupted writes, `sync=` and `repair`
+
+Writers order their steps so that a DSS7 or DSS6 file that was consistent before a write
+can be reconciled after the writing process dies part-way through; the next native write
+does this from the file itself. The crash model is process death, not power loss. The
+format notes ([`dss7.md`](docs/format/dss7.md), [`dss6.md`](docs/format/dss6.md)) give the exact steps, what is
+and is not guaranteed, and the known limitations.
+
+- `sync=` on `write_timeseries`, `write_paired_data`, `write_grid`, `write_profile` and
+  `write_location`. The default, `sync=True`, flushes (`fsync`) at the write's flush points between steps.
+  `sync=False` is opt-in and faster for many small writes: it skips those flushes but
+  keeps the write order that process-death recovery relies on. Neither mode claims
+  durability on power loss.
+- `repair(src, dest)` copies the readable records of a damaged DSS7 file into a new file:
+  every readable record that its documented discovery procedure reaches
+  ([`dss7.md`](docs/format/dss7.md), copy-out repair). It does not find everything a
+  catalog might: a bin block whose declared span does not fit the file is reported as
+  unclassified rather than salvaged, while the catalog walk salvages the whole bins of such
+  a partial block. `src` is opened read-only, each copied record is verified against the
+  source, and an existing `dest` is never replaced. Always check the result: when the
+  recovery is partial, `complete` is `False` and `not_copied` lists what was left out.
+
+```python
+report = dss.repair("damaged.dss", "recovered.dss")
+if not report["complete"]:
+    print(report["not_copied"])
+```
+
+`FEATURES` lists optional capabilities by name (`repair_copy_out`, `write_sync_policy`,
+...), so callers can test for them.
 
 ## With ras-commander and hms-commander
 
@@ -101,9 +133,9 @@ record is covered. Comparison with HEC software does not imply HEC or USACE endo
 | `fixtures/public/` | Public and synthetic test files, each with its provenance in [README.md](fixtures/public/README.md) |
 | `docs/format/` | DSS6 and DSS7 format specifications |
 
-Comments and test docstrings name development packets (`P20`, `P46`, ...) and paths under
-`packets/` and `evidence/`. Those are the engine's private development records (task
-specifications and qualification evidence); they are not part of this repository.
+Some comments, test names and synthetic fixture pathnames carry development labels (`P20`,
+`P46`, ...) that date when a rule or test was added. They are labels only: the rules
+themselves are stated in the code, the committed tests and [`docs/format/`](docs/format/).
 
 ## Build from source
 

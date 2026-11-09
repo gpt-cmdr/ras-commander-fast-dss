@@ -138,7 +138,7 @@ pub struct Limits {
     pub max_chunks_per_read: u64,
     /// Most bytes one read may decode: each filter's output for each chunk in its selection, whole,
     /// however few cells it returns. This is the limit on a read's time. A read over it is a typed
-    /// refusal that names this setting. The largest real read in evidence is 0.279 GiB. The default
+    /// refusal that names this setting. The largest real read measured is 0.279 GiB. The default
     /// also admits a NetCDF-4 file in AORC's Zarr chunk shape, 144 x 128 x 256 of `i2` under shuffle
     /// and deflate, whose step takes 1,089 chunks and 20.6 GB. A time-series rechunking at about 100 GB
     /// a step, which Vortex reads, needs this raised.

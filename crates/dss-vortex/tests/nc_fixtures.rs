@@ -1,5 +1,5 @@
 //! NetCDF fixtures against Vortex 1.1.0's own decoded output, recorded in
-//! `fixtures/public/netcdf/expected.json` by `oracle/vortex/make_nc_fixtures.py`. Bits are compared
+//! `fixtures/public/netcdf/expected.json`. Bits are compared
 //! by hash, so this is also the cross-platform determinism check for this source.
 
 use dss_vortex::source::netcdf::{parse_time_cell_method, NetcdfFile};

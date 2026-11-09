@@ -1,4 +1,4 @@
-"""A local Zarr v2 store as a gridded source (packet P49): the route for AORC v1.1.
+"""A local Zarr v2 store as a gridded source: the route for AORC v1.1.
 
 No network: fetch the store's metadata and the chunks you need into a folder, and read the folder.
 A chunk that is not in the folder reads as missing, never as zero.

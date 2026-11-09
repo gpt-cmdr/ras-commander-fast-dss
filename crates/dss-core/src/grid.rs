@@ -1,9 +1,10 @@
-//! Version-neutral spatial grids (P11).
+//! Version-neutral spatial grids.
 //!
 //! Sources: heclib `zStructSpatialGrid.h`, `zspatialGridRetrieve.c`; Java heclib
 //! `GridInfoFlat`, `HrapInfoFlat`, `AlbersInfoFlat`, `SpecifiedGridInfoFlat`
 //! (`flatten`/`unflatten`) and `DataCompression.uncompress` in HEC Monolith 3.3.27.
-//! Legacy Java layout rules were checked with `javap -p -c` and oracle grids.
+//! Legacy Java layout rules were checked with `javap -p -c` and with grids read
+//! through HEC Monolith.
 
 use std::fmt;
 
@@ -33,7 +34,7 @@ impl GridType {
 
 /// Albers projection parameters. Legacy grids: as stored by Java heclib
 /// `AlbersInfoFlat.flatten` (`units` is the trimmed display text). Modern (-100)
-/// grids: parsed from the stored WKT as Monolith does (`albers_from_wkt`, P34), so
+/// grids: parsed from the stored WKT as Monolith does (`albers_from_wkt`), so
 /// `units` is the last `UNIT["..."]` name (for the SHG WKT, `Meter`).
 #[derive(Debug, Clone, PartialEq)]
 pub struct AlbersProjection {
@@ -132,7 +133,7 @@ pub struct Grid {
 
 impl Grid {
     /// Missingness without changing stored bits: NaN, `GRID_UNDEFINED`, -901, -902,
-    /// and the grid's `null_value` **for specified grids only** (P34 F1, as Monolith).
+    /// and the grid's `null_value` **for specified grids only** (as Monolith).
     ///
     /// heclib's C header documents `_nullValue` as "the value used in the grid's data
     /// array to represent a 'no data' cell" (`zStructSpatialGrid.h:74`), but Monolith
@@ -298,7 +299,7 @@ pub(crate) fn legacy_header(
     // SpecifiedGridInfoFlat constructs _infoFlatSize before filling variable
     // strings: it can retain 296 although KINIHE includes the longer strings.
     // unflatten uses the actual transfer length, never this stale size as a stride.
-    // P60: nor as a bound. `GridInfoFlat.unflatten` (Monolith 3.3.27, offsets 0-18)
+    // Nor as a bound. `GridInfoFlat.unflatten` (Monolith 3.3.27, offsets 0-18)
     // stores int 0 in `_infoFlatSize` and reads only the array it was given;
     // `SpecifiedGridInfoFlat.unflatten` checks each count against `arraylength`. So a
     // byte count larger than the stored header (pydsstools `put_grid0` writes 764 into
@@ -338,7 +339,7 @@ pub(crate) fn legacy_header(
         time_zone_raw_offset: 0,
         is_interval: matches!(h[9], 0 | 1),
         is_time_stamped: rt % 2 == 0,
-        // P24: an unset HecTime is stored as -2147483647 (`UNDEFINED_TIME`,
+        // An unset HecTime is stored as -2147483647 (`UNDEFINED_TIME`,
         // `headers/heclibDate.h`); Monolith writes it for grids without times and
         // reports no time for it (`GridInfo.getStartTime` returns "").
         start_time: defined_minutes(h[4]).then_some(i64::from(h[4]) * 60),
@@ -390,7 +391,7 @@ pub(crate) fn legacy_header(
             grid.srs_name = "ALBERS".into();
             // AlbersInfo.convertToGridInfo: Heclib.holString(_projectionUnits, 12)
             // yields the bytes before the first NUL, with blanks kept (checked against
-            // Monolith 3.3.27, P13). `albers.units` stays the trimmed display text.
+            // Monolith 3.3.27). `albers.units` stays the trimmed display text.
             let units = &bytes[256..268];
             let units = &units[..units.iter().position(|&v| v == 0).unwrap_or(12)];
             grid.srs_definition = albers_srs(&AlbersSrsInputs {
@@ -557,7 +558,7 @@ pub(crate) fn decode_data(
                     )
                 } else {
                     // A zero-length run is valid: DataCompression.compress ends a run of
-                    // exactly 16000*k cells with one (P24), and uncompress adds no cells.
+                    // exactly 16000*k cells with one, and uncompress adds no cells.
                     let count = usize::from(v & 0x3fff);
                     let value = if v & 0xc000 == 0xc000 {
                         GRID_UNDEFINED
@@ -703,7 +704,7 @@ pub(crate) fn albers_srs_from_wkt(wkt: &str, x0: f32, y0: f32) -> String {
     })
 }
 
-/// Modern (-100) Albers projection parameters as Monolith reports them (P34 F2).
+/// Modern (-100) Albers projection parameters as Monolith reports them.
 /// `GridStructContainer.returnGridInfo` (offsets 288-326 in `javap -c` of Monolith
 /// 3.3.27) creates `new AlbersInfo()` and calls `setAlbersSpatialReferenceInfo(info,
 /// _srsDefinition)`, which sets, in order: the datum from
@@ -711,7 +712,7 @@ pub(crate) fn albers_srs_from_wkt(wkt: &str, x0: f32, y0: f32) -> String {
 /// 83 -> 2; no match leaves the constructor's 0); each of the six parameters from
 /// `getParameter` (offsets 102-157; no match or a parse failure gives 0.0); and the
 /// units from the last `UNIT\["(.*?)"` match (offsets 160-193; no match leaves the
-/// constructor's empty string). Same emulation as the P13 `albers_srs_from_wkt`.
+/// constructor's empty string). Same emulation as `albers_srs_from_wkt`.
 pub(crate) fn albers_from_wkt(wkt: &str) -> AlbersProjection {
     let p = |name| wkt_parameter(wkt, name);
     AlbersProjection {
@@ -890,7 +891,7 @@ mod p60_legacy_header_tests {
     }
     const UNDEFINED_TIME_MINUTES: i32 = -2_147_483_647;
 
-    /// P60 E2: Java `GridInfoFlat.unflatten` never bounds the parse by int 0; a byte
+    /// Java `GridInfoFlat.unflatten` never bounds the parse by int 0; a byte
     /// count beyond the stored header (pydsstools `put_grid0`: 764 in 183 ints) reads.
     #[test]
     fn byte_count_beyond_stored_header_reads() {

@@ -2,7 +2,7 @@
 
 Value parity is ``crates/dss-vortex/tests/grid_tools.rs``, on what Vortex 1.1.0 wrote from its own test
 resources. This file covers the API: arguments, typed errors, what a record says about itself, locks
-and the process. HEC oracle comparisons are local-only (evidence/P53/REPORT.md).
+and the process. These tests do not run HEC software.
 """
 
 from __future__ import annotations

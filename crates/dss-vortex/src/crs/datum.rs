@@ -1,12 +1,13 @@
-//! The datum policy (V9): WGS84, NAD83 and spheres are treated as no shift, as observed in
+//! The datum policy: WGS84, NAD83 and spheres are treated as no shift, as observed in
 //! GDAL 3.2.1 and PROJ 7.2.0, where the pipelines between them contain no datum step. Any
 //! other datum is refused unless the caller opts in. A caller-supplied shift grid is not
 //! implemented yet, so that route is also a refusal.
 //!
-//! Stated limitation (D50): PROJ 7.2.0 applies EPSG "NAD83 to WGS 84 (3)" (+1, +1, -1 m, Hawaii)
+//! Stated limitation: PROJ 7.2.0 applies EPSG "NAD83 to WGS 84 (3)" (+1, +1, -1 m, Hawaii)
 //! and "(2)" (-2, 0, +4 m, Aleutians) from a NAD83 geographic CRS to a WGS84-based CRS or a
 //! WGS84 geographic CRS to a NAD83 geographic CRS. This library applies neither, so those points
-//! differ from PROJ. WGS84 to SHG shows no shift in PROJ either. Figures: P43 report.
+//! differ from PROJ. WGS84 to SHG shows no shift in PROJ either. The affected points are listed in
+//! `tests/crs_golden.json` and checked by `tests/crs_transform.rs`.
 
 use super::proj::proj_param;
 use crate::error::VortexError;
@@ -24,7 +25,7 @@ pub enum Datum {
     Shifted(String),
 }
 
-/// What to do with a datum outside the V9 set.
+/// What to do with a datum outside the no-shift set.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum DatumPolicy {
     #[default]
@@ -81,7 +82,7 @@ impl Datum {
             }
             _ if unnamed && rf == 0.0 => Datum::Sphere,
             // HEC's HRAP (`zStructSpatialGrid.h`, HRAP_SRC_DEFINITION): a sphere with no EPSG code,
-            // which PROJ 7.2.0 relates to the others with no datum step (P53, clip.hrap_*).
+            // which PROJ 7.2.0 relates to the others with no datum step (measured).
             "SPHERE_LFM" if rf == 0.0 && proj_param(a) == 6371200.0 => Datum::Sphere,
             _ if unnamed && is_wgs84 => Datum::Wgs84,
             _ if unnamed && is_grs80 => Datum::Nad83,
@@ -90,7 +91,7 @@ impl Datum {
         let (datum_code, spheroid_code, geogcs_code) = match classified {
             Datum::Wgs84 => ("6326", "7030", "4326"),
             Datum::Nad83 => ("6269", "7019", "4269"),
-            // A sphere has no EPSG code in the V9 set.
+            // A sphere has no EPSG code in the no-shift set.
             _ => ("", "", ""),
         };
         let agrees = |stated: Option<String>, code: &str| stated.is_none_or(|s| s == code);

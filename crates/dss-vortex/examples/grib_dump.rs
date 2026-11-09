@@ -1,4 +1,4 @@
-//! Test harness: writes what this crate reads from a GRIB2 file, for `compare_grib.py`.
+//! Test harness: writes what this crate reads from a GRIB2 file, for comparison with HEC-Vortex.
 //! Usage: grib_dump <input> <out-dir>
 use dss_vortex::products::WindowRule;
 use dss_vortex::source::grib::{Grib2File, Limits};

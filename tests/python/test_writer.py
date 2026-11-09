@@ -1,8 +1,8 @@
 """P20: DSS7 regular time-series writer (create, add, replace), synthetic data only.
 
 Every file is created in ``tmp_path``; nothing is written to the public fixtures.
-Round trips read back through the native reader; the HEC oracle comparisons (hecdss,
-Monolith, heclib C ``zcheckFile``) are local-only, see evidence/P20/REPORT.md.
+Round trips read back through the native reader. These tests do not run HEC software
+(hecdss, Monolith, heclib C ``zcheckFile``).
 """
 
 from __future__ import annotations
@@ -378,7 +378,7 @@ def test_other_records_byte_identical(tmp_path):
             np.testing.assert_array_equal(r0["times"], r1["times"])
 
 
-# -- HEC-written public fixture (heclib C 7-JA via evidence/P20/scripts/p20hec.c) ---------
+# -- HEC-written public fixture (heclib C 7-JA, written by a small C program) ------------
 
 FIXTURE = "p20_hec_rts7.dss"
 FIXTURE_SHA256 = "a3c89f155e9b938b14f22913a491bccafda0724abcc52f228e5df8bdecb68c5f"
@@ -568,9 +568,9 @@ def test_silent_conversions_refused(new_file):
 @pytest.mark.xfail(
     strict=True,
     raises=AssertionError,
-    reason="deliberate deviation (P20 REPORT §3.4): heclib 7-JA reads a double record as "
+    reason="deliberate deviation: heclib 7-JA reads a double record as "
     "floats before merging float data into it, so untouched values lose precision; the "
-    "native writer keeps the stored doubles (oracle case float_into_double)",
+    "native writer keeps the stored doubles",
 )
 def test_float_into_double_matches_hec(new_file):
     p = "/A/B/C//1Hour/FD/"

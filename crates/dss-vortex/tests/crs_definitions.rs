@@ -385,7 +385,7 @@ fn envelope_is_the_bounding_box_of_the_corners_only() {
     ));
 }
 
-// Each form below was accepted silently before the P43 review. `sub` makes it from a valid WKT,
+// Each form below was once accepted silently. `sub` makes it from a valid WKT,
 // so a failure to refuse cannot be a typo in a whole hand-written string.
 fn sub(wkt: &str, from: &str, to: &str) -> String {
     assert!(wkt.contains(from), "{from} not in {wkt}");

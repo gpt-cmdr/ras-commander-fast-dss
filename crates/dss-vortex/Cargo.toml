@@ -7,11 +7,11 @@ authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
 edition.workspace = true
-# D48: this crate's own MSRV, not the workspace's. hayro-jpeg2000 0.4.1 declares 1.92.
+# This crate's own MSRV, not the workspace's. hayro-jpeg2000 0.4.1 declares 1.92.
 rust-version = "1.92"
 publish.workspace = true
 
-# D40: exact versions, a committed lock with checksums, no C in the build graph. Enforced by
+# Exact versions, a committed lock with checksums, no C in the build graph. Enforced by
 # tests/build_graph.rs.
 # netcdf-reader's own dependency, named here for its parsers: source/netcdf/budget.rs walks a file's
 # metadata with them first. The version must stay the one netcdf-reader locks.

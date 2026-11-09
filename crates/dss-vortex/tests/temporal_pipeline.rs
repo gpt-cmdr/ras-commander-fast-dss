@@ -1,5 +1,5 @@
 //! The time tools from file to file: failure partway, crash recovery, an existing output, stamps per
-//! data type. Oracle comparison lives in `oracle/vortex/run_temporal.py`; these run on any platform.
+//! data type. These run on any platform, with no oracle.
 
 #![allow(clippy::result_large_err)]
 

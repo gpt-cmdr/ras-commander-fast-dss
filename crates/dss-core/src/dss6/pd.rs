@@ -1,4 +1,4 @@
-//! DSS6 paired-data reads (packet P10): record types 200 (PD, `REAL*4`) and 205 (PDD,
+//! DSS6 paired-data reads: record types 200 (PD, `REAL*4`) and 205 (PDD,
 //! `REAL*8`).
 //!
 //! The read path ports what HEC's C API returns for a DSS6 record,
@@ -16,7 +16,7 @@
 //! | precision | info `KIPREC` (`10*x + y`, negative = unset) | `zrecordInfo6.f` line 72; `zpdRetrieve6.c` lines 129–136 |
 //!
 //! Sizes come from the internal header, never from `KILNDA`, which is stale for many PD
-//! records (dss6.md §5.2; P05 O9). The data length `KINDAT` bounds every read: HEC reads
+//! records (dss6.md §5.2). The data length `KINDAT` bounds every read: HEC reads
 //! `KINDAT` words into a zeroed buffer, so a record whose header declares more values
 //! than `KINDAT` holds would come back zero-filled; this reader reports it as
 //! [`PdError::Corrupt`] instead (see [`Dss6PdMeta`]). Vertical-datum conversion
@@ -49,7 +49,7 @@ pub enum PdError {
     Dss6(Dss6Error),
     /// No live record with this pathname.
     NotFound { pathname: Vec<u8> },
-    /// Not paired data (200/205): `zrpdi6.f` lines 68–80 (`ISTAT = 20`); decision D29.
+    /// Not paired data (200/205): `zrpdi6.f` lines 68–80 (`ISTAT = 20`).
     UnsupportedRecordType { record_type: i32 },
     /// Record password set; HEC denies access for files `6-E` and later.
     PasswordProtected,
@@ -118,7 +118,7 @@ pub struct Dss6PdMeta {
     /// `KINDAT` (stored data words) and `KILNDA` (logical count; stale for PD).
     pub data_words: i32,
     pub logical_values: i32,
-    /// `KILNDA` differs from `NORD*(NCURVE+1)` (P05 O9; informational).
+    /// `KILNDA` differs from `NORD*(NCURVE+1)` (informational).
     pub logical_values_stale: bool,
     /// Data words stored beyond `NORD*(NCURVE+1)` values (ignored, as HEC does).
     pub extra_data_words: i64,

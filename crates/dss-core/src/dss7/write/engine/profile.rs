@@ -1,8 +1,8 @@
-//! DSS7 regular-interval profile store (packet P39): `Public/ztsStore.c:ztsStore()` ->
+//! DSS7 regular-interval profile store: `Public/ztsStore.c:ztsStore()` ->
 //! `Internal/ztsStoreReg7.c:ztsStoreReg7()` -> `Internal/ztsRegStoreBlock.c:
 //! ztsRegStoreBlock()` (storage flag 0) -> `Internal/ztsWriteBlock.c:ztsWriteBlock()`, tag
-//! `7-IU-15`, committed with P20's transaction order. Times and block splitting are
-//! P20's [`plan`] (`ztsProcessTimes()` has no profile branch).
+//! `7-IU-15`, committed with the transaction order of `dss7.md` §6.4. Times and block splitting
+//! are the regular writer's [`plan`] (`ztsProcessTimes()` has no profile branch).
 //!
 //! What a profile changes (the rest follows `prepare_block()`):
 //! - `ztsStoreReg7()` lines 183-206: `INT_HEAD_profileDepthsNumber` = depths,
@@ -15,7 +15,7 @@
 //! - `ztsInternalHeaderPack()` lines 76-83: depth units, value units, type, time zone;
 //! - `zwriteInternal()` line 316: both types count in `kmaxOtherSize`.
 //!
-//! Refused where heclib would misalign data (P14 REPORT §3.1): `ztsRegStoreBlock()` lines
+//! Refused where heclib would misalign data: `ztsRegStoreBlock()` lines
 //! 481-485 never compares the stored depths, and `ztsWriteBlock()` overwrites them.
 
 use super::{
@@ -106,7 +106,7 @@ pub(crate) fn plan_profile(input: &ProfileInput) -> Result<ProfilePlan, WriteErr
     if !(-1..=127).contains(&input.precision) {
         return Err(bad_input("precision must be -1 (unset) or 0..=127"));
     }
-    // P20's planning takes the number of times from the values; the strings are replaced.
+    // The regular writer's planning takes the number of times from the values; the strings are replaced.
     let times = vec![0f32; n];
     let scalar = RtsInput::new(
         input.pathname,
@@ -379,11 +379,12 @@ impl Engine<'_> {
             first: (jf as i32, sf as i32),
             last: (jl as i32, sl as i32),
             total_expanded: bp.number_in_block * (value_size + qes),
+            copy_out: false,
         };
         Ok(Prepared { path, found, areas })
     }
 
-    /// P14 §3.1: readers cannot stitch a dataset whose blocks differ in depths or width
+    /// Readers cannot stitch a dataset whose blocks differ in depths or width
     /// (HEC misaligns them; the native reader refuses). A block outside this write must
     /// already match.
     fn check_profile_dataset(
@@ -444,7 +445,7 @@ pub(crate) fn write_profile_planned(
         .map(|bp| session.eng.prepare_profile_block(input, pp, bp))
         .collect::<Result<Vec<_>, _>>()?;
     session.eng.check_profile_dataset(pp, &prepared)?;
-    // P38 re-check: the scalar writers' checks and planning, before the first store.
+    // The scalar writers' checks and planning, before the first store.
     for p in &prepared {
         session.eng.preflight(p)?;
     }

@@ -1,7 +1,7 @@
-"""Gridded time tools over ``_native`` (packet P52). Argument checks live here; rules live in the engine.
+"""Gridded time tools over ``_native``. Argument checks live here; rules live in the engine.
 
-Both tools read a DSS file and write another. See ``packets/P52_time_tools.md`` for what was
-compared with HEC-Vortex 1.1.0 and 0.13.3, and ``dss_vortex::temporal`` for the rules and their sources.
+Both tools read a DSS file and write another. ``dss_vortex::temporal`` gives the rules and their
+sources (HEC-Vortex 1.1.0 and 0.13.3); ``tests/python/test_gridded_time_tools.py`` checks them.
 """
 
 from __future__ import annotations
@@ -163,7 +163,7 @@ def shift_times(
     """Move grid records in time, replacing Vortex's time shifter. Cells keep their bits, except for
     what writing a grid always does: unit conversion and the missing marker.
 
-    The result matches Vortex 1.1.0 and 0.13.3 on the cases in the P52 evidence report. Stamps have no
+    The result matches Vortex 1.1.0 and 0.13.3 on the compared cases. Stamps have no
     zone: a shift is plain arithmetic, also across a date on which some place changes its clocks.
 
     Parameters

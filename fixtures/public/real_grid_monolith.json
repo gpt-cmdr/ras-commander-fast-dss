@@ -1,7 +1,7 @@
 {
- "_about": "P34 reference values recorded with HEC Monolith 3.3.27 (hec-monolith-3.3.27.jar) on the HMS 4.13 JRE 17.0.11 by docs/project/packets/evidence/P34/scripts/GridP34.java ('ref' mode, HecDss.get -> GridContainer, the path ras-commander RasDss.read_grid uses) from disposable copies of fixtures/public/real_grid6.dss and real_grid7.dss. Float values are IEEE-754 float32 bit patterns (hex). data_sha256 is the SHA-256 of GridData.getData() as float32 little-endian. Monolith is not run in CI.",
+ "_about": "Reference values recorded with HEC Monolith 3.3.27 (hec-monolith-3.3.27.jar) on the HMS 4.13 JRE 17.0.11 through HecDss.get -> GridContainer, the path ras-commander RasDss.read_grid uses, from disposable copies of fixtures/public/real_grid6.dss and real_grid7.dss. Float values are IEEE-754 float32 bit patterns (hex). data_sha256 is the SHA-256 of GridData.getData() as float32 little-endian. Monolith is not run in CI.",
  "ras_commander_read_grid": {
-  "source": "ras-commander branch dss-native-backend, ras_commander/dss/RasDss.py RasDss.read_grid (Java path)",
+  "source": "ras-commander ras_commander/dss/RasDss.py RasDss.read_grid (Java path)",
   "keys": [
    "dss_file",
    "pathname",

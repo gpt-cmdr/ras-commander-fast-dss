@@ -1,8 +1,7 @@
 """P23: paired-data writer (DSS7 and DSS6) through the public Python API.
 
-Synthetic data only; every file is created in a temporary directory. HEC oracle checks
-(heclib zpdStore, hecdss, Monolith HecPairedData) are local-only
-(evidence/P23/REPORT.md).
+Synthetic data only; every file is created in a temporary directory. These tests do not
+run HEC software (heclib zpdStore, hecdss, Monolith HecPairedData).
 """
 
 import numpy as np
@@ -123,7 +122,7 @@ def test_refusals_leave_file_unchanged(tmp_path, version):
                          version=version)
     before = p.read_bytes()
     bad = [
-        dict(pathname="//R1/FIRST-QUARTILE/24HR///50%/"),  # 8 slashes (P17 Issue B2)
+        dict(pathname="//R1/FIRST-QUARTILE/24HR///50%/"),  # 8 slashes
         dict(pathname="/A/B/C/D/E/"),
         dict(pathname="/A/B/STAGE\x01FLOW///F/"),
         dict(labels=["one", "two"]),
@@ -152,7 +151,7 @@ def test_refusals_leave_file_unchanged(tmp_path, version):
 
 
 def test_b2_probability_pathnames_stay_distinct(tmp_path, version):
-    """P17 Issue B2: HMS's Atlas 14 import built an 8-slash pathname that heclib
+    """HMS's Atlas 14 import built an 8-slash pathname that heclib
     truncated, so every probability column of a quartile landed in one record."""
     p = _new(tmp_path, version)
     hours = np.arange(49, dtype=np.float64) * 0.5
@@ -202,7 +201,7 @@ def test_dss6_long_labels_and_upper_case(tmp_path):
 
 
 def test_elev_unit_spec_refused(tmp_path, version):
-    """P23 review M1: heclib reads a '|' in an elevation-side unit as a unit specification
+    """heclib reads a '|' in an elevation-side unit as a unit specification
     with a vertical datum; the writer applies no datum and refuses it."""
     p = _new(tmp_path, version)
     before = p.read_bytes()

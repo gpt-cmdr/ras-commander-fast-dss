@@ -1,21 +1,21 @@
-//! DSS7 writer, packet P20: create a file, add regular-interval time series (float RTS
+//! DSS7 writer: create a file, add regular-interval time series (float RTS
 //! 100, double RTD 105) and replace or merge values in existing blocks with HEC's
-//! default store semantics. Specification: `packets/P20_dss7_ts_writer.md`.
+//! default store semantics. Format and write order: `docs/format/dss7.md` (§6.4).
 //!
-//! Packet P21 adds irregular-interval time series (float ITS 110, double ITD 115;
+//! The writer also stores irregular-interval time series (float ITS 110, double ITD 115;
 //! [`write_its`]) with HEC's "replace" store semantics (storage flag 1, what hecdss
 //! uses): inside the new time window the new values replace what is stored, the rest of
 //! each block is kept, and blocks wholly inside the window that receive no values are
-//! deleted. Specification: `packets/P21_dss7_its_writer.md`.
+//! deleted.
 //!
 //! Every write:
 //!
-//! 1. validates the input (pathname rules of P20 §3.1; refusal, never truncation);
+//! 1. validates the input (pathname rules in `path.rs`; refusal, never truncation);
 //! 2. tests HEC's lock words on its own handle and applies an explicit
 //!    [`LockPolicy`] ([`crate::lock::ensure_unlocked_for_write`]);
 //! 3. holds the write lock while writing (`lockhold`);
 //! 4. writes block by block, each block as one transaction ordered "data first,
-//!    pointers last" (P20 §4, [`WriteStep`]).
+//!    pointers last" (`dss7.md` §6.4, [`WriteStep`]).
 //!
 //! Format rules cite `heclib/heclib_c/src/` of `hec-dss` tag `7-IU-15` in the
 //! submodules: `path` (validation), `block` (aggregate, compression, internal header),
@@ -33,15 +33,15 @@
 
 mod block;
 mod engine;
-// P24: grid records.
+// Grid records.
 mod grid;
 pub(crate) mod lockhold;
 pub(crate) mod overlay;
 mod path;
 pub mod pd;
-// P38: multi-word quality, notes and patterns.
+// Multi-word quality, notes and patterns.
 mod variants;
-// P39: profile and location records.
+// Profile and location records.
 pub mod location;
 pub mod profile;
 
@@ -66,11 +66,11 @@ use crate::dss7::{Dss7Error, TsError};
 use crate::lock::{LockError, LockPolicy, LockRefusal};
 
 /// Program name stored in `kinfoProgram` (16 bytes, NUL-padded) of every record this
-/// writer stores (P20 §2.3). HEC stores `"not specified"` (`Internal/zinit.c` line 1030).
+/// writer stores. HEC stores `"not specified"` (`Internal/zinit.c` line 1030).
 pub const PROGRAM_NAME: &str = "fast-dss";
 
 /// Version string stamped into new files: copied, with every other default, from an
-/// empty file created by hecdss 0.1.33 (heclib `7-JA`; P20 §2.2).
+/// empty file created by hecdss 0.1.33 (heclib `7-JA`).
 pub const NEW_FILE_VERSION: &[u8; 4] = b"7-JA";
 
 /// Errors from the writer.
@@ -89,7 +89,7 @@ pub enum WriteError {
     BadPathname(String),
     /// Invalid values, times, quality or strings (Python `ValueError`).
     BadInput(String),
-    /// A valid request outside P20's scope, or a file the writer does not modify
+    /// A valid request outside the writer's scope, or a file the writer does not modify
     /// (Python `DssUnsupportedRecordError` / `NotImplementedError`).
     Unsupported(String),
     /// `create_dss7` refuses to replace an existing file.
@@ -225,7 +225,7 @@ impl<'a> RtsInput<'a> {
     }
 }
 
-/// One irregular-interval series to store (P21).
+/// One irregular-interval series to store.
 #[derive(Debug, Clone)]
 pub struct ItsInput<'a> {
     /// `/A/B/C/D/E/F/` with E one of `IR-Day`, `IR-Month`, `IR-Year`, `IR-Decade`,
@@ -272,7 +272,7 @@ impl<'a> ItsInput<'a> {
     }
 }
 
-/// The ordered steps of one block transaction (P20 §4). A fault injected after a step
+/// The ordered steps of one block transaction (`dss7.md` §6.4). A fault injected after a step
 /// leaves the file as a process crash at that point would. Steps that do not apply to a
 /// write (Chain without a new block, Retire for a new record, Link without a new bin)
 /// write nothing.
@@ -318,6 +318,53 @@ impl WriteStep {
     ];
 }
 
+/// Killed-process test hook, not a supported API.
+///
+/// When installed, both write engines (DSS7 and DSS6) call it at every ordering boundary
+/// of a write that is not a planning pass: with `Some(step)` after each [`WriteStep`]
+/// (where [`FaultPoint`] stops) and with `None` at each flush point inside a step (for
+/// example between an entry body and its publication word). It is called in both sync
+/// modes, before any flush, after all preceding writes have returned. A test child
+/// process installs a hook that blocks at the n-th call, so the parent can kill it there
+/// with the file open and the write lock held. Install it at most once per process.
+#[doc(hidden)]
+pub type BarrierHook = fn(block: usize, step: Option<WriteStep>);
+
+static BARRIER_HOOK: std::sync::OnceLock<BarrierHook> = std::sync::OnceLock::new();
+
+/// Install the [`BarrierHook`] for this process (tests only). Returns `false` if one is
+/// already installed.
+#[doc(hidden)]
+pub fn set_barrier_hook(hook: BarrierHook) -> bool {
+    BARRIER_HOOK.set(hook).is_ok()
+}
+
+#[inline]
+pub(crate) fn barrier(block: usize, step: Option<WriteStep>) {
+    if let Some(h) = BARRIER_HOOK.get() {
+        h(block, step);
+    }
+}
+
+static WRITE_BARRIERS: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Also call the [`BarrierHook`] (with `None`) immediately
+/// before every separate file write of both engines, so a killed-process test can stop
+/// between any two writes, not only at flush points and step boundaries. Off by default,
+/// so the numbering of the coarse barriers is unchanged.
+#[doc(hidden)]
+pub fn set_write_barriers(on: bool) {
+    WRITE_BARRIERS.store(on, std::sync::atomic::Ordering::SeqCst);
+}
+
+/// Called before each separate `write` of a write session (both engines).
+#[inline]
+pub(crate) fn write_barrier(block: usize) {
+    if WRITE_BARRIERS.load(std::sync::atomic::Ordering::Relaxed) {
+        barrier(block, None);
+    }
+}
+
 /// Test hook: stop after `step` of the `block`-th block (0-based) of a write.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FaultPoint {
@@ -329,11 +376,34 @@ pub struct FaultPoint {
 #[derive(Debug, Clone)]
 pub struct WriteOptions {
     /// Lock policy; default [`LockPolicy::default`], the policy the maintainer decided on
-    /// 2026-10-28 (P19 REPORT): hold the lock while writing, refuse when HEC readers or
+    /// 2026-10-28: hold the lock while writing, refuse when HEC readers or
     /// writers hold the file, and write old-scheme files (readers undetectable) while
     /// holding the lock, reporting [`WriteReport::readers_undetected`].
     pub lock_policy: LockPolicy,
-    /// `fsync` before publishing and at the end of each block (default true).
+    /// Flush policy (default `true`, the durable default).
+    ///
+    /// `true`: the writer calls `sync_data` (`fsync`) after each write that a later write
+    /// of the same transaction depends on, at the existing flush points: the record area
+    /// together with the end-of-file flag (the [`WriteStep::Data`] step has no flush of
+    /// its own; its writes are flushed with the EOF flag), the header allocation and
+    /// marker, the bin-block chain word, a bin entry's body before the word that
+    /// publishes it and that word itself, the header counters, the link, the activation,
+    /// and the cleared marker. A step with nothing to write (for example Retire for a new
+    /// record, or Chain without a new bin block) flushes nothing. Reconciliation of an
+    /// interrupted write flushes its own repairs. The write ends with one `sync_all`.
+    /// This is a description of the transaction's flush points, not a flush per
+    /// [`WriteStep`].
+    ///
+    /// `false` (opt-in): no flush. Every write still reaches the operating
+    /// system in the same order through unbuffered `write` calls, and the in-progress
+    /// marker and reconciliation work as before, so a write interrupted by **process
+    /// death** leaves the same states as with `true` (the crash model of
+    /// `docs/format/dss7.md` and `dss6.md`). The killed-process matrix
+    /// (`tests/p64_kill.rs`) finds the same results in both modes, including the DSS7
+    /// window of finding F1 (`dss7.md` §6.4, "Interrupted Publish of a new bin"). What
+    /// `false` gives up: nothing is forced to storage, so after a power loss or
+    /// operating-system crash any part of the write (and of earlier unflushed writes) may
+    /// be missing, torn or out of order. No power-loss claim is made in either mode.
     pub sync: bool,
     /// Crash-simulation hook (tests only).
     pub fault: Option<FaultPoint>,
@@ -358,7 +428,7 @@ pub enum BlockOutcome {
     Replaced,
     /// The stored record already equals the new one; nothing was written.
     Unchanged,
-    /// Irregular writes only (P21): an existing block wholly inside the time window
+    /// Irregular writes only: an existing block wholly inside the time window
     /// received no values and was deleted, as heclib's storage flag 1 deletes it.
     Deleted,
 }
@@ -405,7 +475,149 @@ pub struct WriteReport {
     pub lock_method: &'static str,
 }
 
-/// Words of a new, empty DSS7 file (P20 §2.2): the hecdss 0.1.33 empty-file defaults
+/// Result of [`repair_dss7`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RepairReport {
+    /// Records copied to the new file and verified bit for bit.
+    pub records_copied: usize,
+    /// Of those, records the source's catalog did not list (reachable only through hash
+    /// lookups or the recovery catalog, for example behind a hole left by finding F1, `dss7.md` §6.4).
+    pub hidden_records_copied: usize,
+    /// Records found but not copied, with the reason (unreadable, implausible pathname).
+    pub not_copied: Vec<(Vec<u8>, String)>,
+    /// Alias entries (status 2) whose primary record was copied (under the primary's
+    /// pathname). An alias whose primary could not be copied is in `not_copied`.
+    pub aliases_skipped: usize,
+    /// Further live copies of a pathname already copied.
+    pub duplicates_skipped: usize,
+    /// Records copied from a copy other than the preferred one:
+    /// pathname, word address of the source info block actually copied, and why the
+    /// preferred copy (the hash lookup's, or the primary entry) was not used.
+    pub fallback_copies: Vec<(Vec<u8>, i64, String)>,
+    /// Records written under a pathname other than the catalog spelling that found them:
+    /// `(found as, written as, "alias" | "case variant")`. A record is
+    /// written under its own identity, the pathname its info block stores (an alias's
+    /// primary).
+    pub variants_copied: Vec<(Vec<u8>, Vec<u8>, String)>,
+    /// One entry for every source candidate found. That is each
+    /// distinct info block that a pathname's lookup or catalog entries reach, each alias
+    /// entry, and an entry without an address for a pathname refused as a whole. Each
+    /// entry has exactly one outcome. `not_copied` is derived from it, and
+    /// [`RepairReport::complete`] is true exactly when no entry is
+    /// [`CandidateOutcome::NotCopied`].
+    pub ledger: Vec<Candidate>,
+    /// Live records the source's ordinary catalog lists.
+    pub src_listed_records: usize,
+    /// The source carried the marker of an interrupted native write (not reconciled:
+    /// the source is only read; records are copied as a reader sees them).
+    pub src_interrupted_write: bool,
+}
+
+impl RepairReport {
+    /// Every readable record that the discovery procedure reaches
+    /// ([`crate::dss7::Dss7File::discover`]) was copied and verified, or equals one that
+    /// was, or is listed. Formally: no [`Candidate`] of [`RepairReport::ledger`] is
+    /// [`CandidateOutcome::NotCopied`]. Pointer targets that
+    /// discovery cannot classify are `NotCopied` too. Bytes that no pointer reaches are
+    /// out of scope, and so are bins of a bin block whose declared span does not fit the
+    /// file (that block itself is `NotCopied` as unclassified). A copy that is not complete
+    /// is still published: check this and [`RepairReport::not_copied`].
+    pub fn complete(&self) -> bool {
+        !self
+            .ledger
+            .iter()
+            .any(|c| matches!(c.outcome, CandidateOutcome::NotCopied(_)))
+    }
+}
+
+/// One source candidate of [`repair_dss7`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Candidate {
+    /// The pathname that found it: the catalog spelling of its pathname group, or the
+    /// alias entry's own pathname.
+    pub pathname: Vec<u8>,
+    /// Word address of its info block; `None` for a pathname refused as a whole
+    /// (implausible pathname, pre-7-HA time series, no copy found at all).
+    pub info_address: Option<i64>,
+    /// Found through an alias entry (status 2).
+    pub alias: bool,
+    pub outcome: CandidateOutcome,
+}
+
+impl Candidate {
+    pub(crate) fn new(
+        pathname: &[u8],
+        info_address: Option<i64>,
+        alias: bool,
+        outcome: CandidateOutcome,
+    ) -> Self {
+        Candidate {
+            pathname: pathname.to_vec(),
+            info_address,
+            alias,
+            outcome,
+        }
+    }
+}
+
+/// The one outcome of a [`Candidate`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CandidateOutcome {
+    /// Written to the new file and verified.
+    Copied,
+    /// Not written: its payload (all six areas, type, counts, dates) equals the copy
+    /// taken from the info block at `copied_info`.
+    EqualToCopied { copied_info: i64 },
+    /// Not readable; its pathname was copied from the candidate at `copied_info`.
+    UnreadableCoveredBy { copied_info: i64 },
+    /// Not copied, with the reason. Listed in [`RepairReport::not_copied`].
+    NotCopied(String),
+}
+
+thread_local! {
+    static COPY_OUT_FAULT: std::cell::Cell<Option<&'static str>> =
+        const { std::cell::Cell::new(None) };
+}
+
+/// Steps of [`repair_dss7`] at which [`set_copy_out_fault`] can inject an error (tests
+/// only). `hard_link` makes publication's hard link fail as on a
+/// filesystem without hard links; `hard_link_race` also creates `dest` first.
+#[doc(hidden)]
+pub const COPY_OUT_FAULT_STEPS: &[&str] = &[
+    "create",
+    "write_header",
+    "open",
+    "commit",
+    "finish",
+    "sync",
+    "verify",
+    "catalog",
+    "hard_link",
+    "hard_link_race",
+];
+
+/// Inject an error at `step` of [`repair_dss7`] calls on this thread (tests only).
+#[doc(hidden)]
+pub fn set_copy_out_fault(step: Option<&'static str>) {
+    COPY_OUT_FAULT.with(|c| c.set(step));
+}
+
+pub(crate) fn copy_out_fault(step: &'static str) -> Result<(), WriteError> {
+    if COPY_OUT_FAULT.with(|c| c.get()) == Some(step) {
+        return Err(WriteError::Io(io::Error::other(format!(
+            "injected fault at {step}"
+        ))));
+    }
+    Ok(())
+}
+
+pub(crate) fn copy_out_fault_is(steps: &[&'static str]) -> Option<&'static str> {
+    COPY_OUT_FAULT
+        .with(|c| c.get())
+        .filter(|s| steps.contains(s))
+}
+
+/// Words of a new, empty DSS7 file: the hecdss 0.1.33 empty-file defaults
 /// with `kcreateDate` = `klastWriteTime` = `now_ms`.
 pub fn new_file_words(now_ms: i64) -> Vec<i64> {
     engine::new_file_words(now_ms)
@@ -432,7 +644,71 @@ pub fn create_dss7(path: &Path) -> Result<(), WriteError> {
     Ok(())
 }
 
-/// Store a regular-interval series in the existing DSS7 file at `path` (P20 §3–§4).
+/// Copy the readable records that discovery reaches in the DSS7 file `src` into a new
+/// DSS7 file `dest`.
+///
+/// This is the safe path for a damaged file. In place, reconciliation of an interrupted
+/// write guarantees exact recovery only for a file that was consistent before the write
+/// (ordinary process death); extra, independent damage is refused when cheap bounded
+/// checks detect it, without a promise to detect every case (`dss7.md`, threat model;
+/// documented limitations R7 and R12).
+///
+/// `src` is opened read-only and never written. The records are found by one
+/// procedure, [`crate::dss7::Dss7File::discover`]. It starts from
+/// every bin of the bin-block chain and every hash-table slot, follows the overflow
+/// word of every bin reached (empty bins included), and is bounded. The records are
+/// then read with the normal reader. Pointer targets it cannot classify are listed as
+/// not copied; bytes that no pointer reaches are out of scope. A bin block whose
+/// declared span does not fit the file is reported as unclassified and its bins are not
+/// searched, unlike the catalog walk, which salvages whole bins from a partial block;
+/// such records can be readable through the catalog and still not be copied. For each pathname the
+/// lookup's record is tried first, then every other copy that discovery found; the
+/// first that reads in full is copied ([`RepairReport::fallback_copies`] names a copy
+/// other than the lookup's). An alias counts as covered only when its primary record is
+/// copied; otherwise the primary is copied through it or the alias is reported.
+///
+/// Each record's six data areas, record type, dates, value and logical counts are
+/// written, unchanged, with the normal writer's record transaction into a new file; the
+/// info block's write time, creation time, program name and version count are the new
+/// write's. The new file is then read back: every copied record must be bit-for-bit
+/// equal and decode as the copied source record does (raw comparison only for kinds
+/// without a decoder or records neither reader decodes), and the new file must catalog
+/// without anomalies, or nothing is published.
+///
+/// The new file is built under a temporary name next to `dest`
+/// (`.<name>.<pid>.<nanos>.partial`) and published at `dest` once every record selected
+/// for copying has been written and verified, never replacing anything: by a hard link, else by an atomic no-replace
+/// rename where one exists (Linux), else the call fails naming the kept, verified copy.
+/// `dest` must not exist ([`WriteError::AlreadyExists`]). Every other returned error
+/// removes the temporary file. A process killed before publication leaves `src`
+/// unchanged, no `dest`, and the temporary file, which can be deleted; one killed just
+/// after the hard link leaves the verified `dest` and the temporary name.
+///
+/// Each record is written and verified under its own identity, the pathname its info
+/// block stores (an alias's primary); [`RepairReport::variants_copied`] records an alias
+/// or case variant of the catalog spelling. Any other change of identity is refused: a
+/// primary whose info block names another record is not copied under that name, and a
+/// duplicate is skipped only when its payload is equal; otherwise the
+/// pathname is in [`RepairReport::not_copied`].
+///
+/// **A partial recovery is published**. `Ok` means the selected
+/// records were copied and verified and `dest` was published. It does **not** mean that
+/// everything found was copied: records that could not be copied, or that could not be
+/// kept under one pathname (a readable duplicate or identity conflict with a different
+/// payload), are listed in [`RepairReport::not_copied`]. In that case
+/// [`RepairReport::complete`] is `false` and `dest` is still published. Callers must
+/// check `complete()` and `not_copied`. Every source candidate's outcome is in
+/// [`RepairReport::ledger`].
+///
+/// Whether hidden records come back is reported, not guaranteed
+/// ([`RepairReport::hidden_records_copied`]). A complete copy says only that what the
+/// readers could find was copied and verified; it is not an integrity certificate for
+/// `src`.
+pub fn repair_dss7(src: &Path, dest: &Path) -> Result<RepairReport, WriteError> {
+    engine::copy_out(src, dest)
+}
+
+/// Store a regular-interval series in the existing DSS7 file at `path`.
 pub fn write_rts(
     path: &Path,
     input: &RtsInput,
@@ -466,7 +742,7 @@ pub fn value_times(pathname: &[u8], start: i64, n: usize) -> Result<Vec<i64>, Wr
     engine::value_times(pathname, start, n)
 }
 
-/// Store an irregular-interval series in the existing DSS7 file at `path` (P21 §3–§4).
+/// Store an irregular-interval series in the existing DSS7 file at `path`.
 pub fn write_its(
     path: &Path,
     input: &ItsInput,
@@ -496,7 +772,7 @@ pub fn validate_its_input(input: &ItsInput) -> Result<i64, WriteError> {
 }
 
 /// Store one paired-data record, PD (200) or PDD (205) as the arrays' width, in the
-/// existing DSS7 file at `path` (P23): a new record, or a full replacement of an existing
+/// existing DSS7 file at `path`: a new record, or a full replacement of an existing
 /// paired-data record (`Public/zpdStore.c:zpdStore()`, full-record branch). An existing
 /// record of another type is refused (heclib would delete it).
 pub fn write_pd(
@@ -524,7 +800,7 @@ pub fn validate_pd_input(input: &PdInput) -> Result<(), WriteError> {
     engine::plan_pd(input).map(|_| ())
 }
 
-/// P23 review M1: refuse a `|` in an elevation-side unit of an ELEV paired-data record
+/// Refuse a `|` in an elevation-side unit of an ELEV paired-data record
 /// (heclib parses it as a unit specification with a vertical datum). Returns whether the C
 /// part names an ELEV parameter (`pathnameIsElevPd()`). Shared with the DSS6 writer.
 pub(crate) fn pd_elev_units(input: &PdInput) -> Result<bool, WriteError> {
@@ -532,7 +808,7 @@ pub(crate) fn pd_elev_units(input: &PdInput) -> Result<bool, WriteError> {
 }
 
 // ---------------------------------------------------------------------------------
-// P24: grids (create, add, replace). Specification: packets/P24_grid_writer.md.
+// Grids (create, add, replace).
 // ---------------------------------------------------------------------------------
 
 pub use crate::grid_write::{
@@ -557,7 +833,7 @@ pub fn validate_grid_input(input: &GridInput) -> Result<GridPlan, WriteError> {
     Ok(crate::grid_write::plan_grid(input, 7)?)
 }
 
-/// Store one grid record in the existing DSS7 file at `path` (P24): a new record, or a
+/// Store one grid record in the existing DSS7 file at `path`: a new record, or a
 /// replacement of a grid record of the same type. Every check runs before the first
 /// write; a refused write leaves the file unchanged.
 pub fn write_grid(
@@ -605,7 +881,7 @@ fn write_grid_planned(
 }
 
 // ---------------------------------------------------------------------------------
-// P38: time-series variants. Specification: packets/P38_ts_writer_variants.md.
+// Time-series variants (notes, multi-word quality, patterns).
 // ---------------------------------------------------------------------------------
 
 /// [`write_rts`] with multi-word quality or notes.
@@ -652,7 +928,7 @@ pub fn validate_pattern_input(input: &PatternInput) -> Result<(), WriteError> {
 }
 
 // ---------------------------------------------------------------------------------
-// P39: profiles and locations. Specification: packets/P39_profile_location_writers.md.
+// Profiles and locations.
 // ---------------------------------------------------------------------------------
 
 /// Store a regular-interval profile, RTS-PROFILE (102) or RTD-PROFILE (107) as the arrays'

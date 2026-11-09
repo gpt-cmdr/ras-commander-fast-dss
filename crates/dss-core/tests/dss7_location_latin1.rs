@@ -1,6 +1,6 @@
-//! DSS7 location supplemental text stays Latin-1 (P28 review m4).
+//! DSS7 location supplemental text stays Latin-1.
 //!
-//! P28 decodes DSS6 user-header text as UTF-8 (docs/format/dss6.md §14.2); DSS7 location
+//! The engine decodes DSS6 user-header text as UTF-8 (docs/format/dss6.md §14.2); DSS7 location
 //! records keep the Latin-1 decode. The record here stores `C3 BD` in values2, which is
 //! valid UTF-8 for `ý` but must read as the two Latin-1 characters `Ã½`.
 //!

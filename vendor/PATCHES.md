@@ -15,6 +15,6 @@ Each row is one or more commits on `feat/p48-netcdf-source`, with tests in `crat
 | 9 | API | `apply_pipeline_checked`, `FilterRegistry::apply_checked`, and `decompress_checked` in N-bit and scale-offset, which call a stop check every 65,536 elements. Deflate and szip do not | `hdf5-reader/src/filters/`, `dataset.rs` | synthetic |
 | 10 | General | A scale-offset datatype size is 1, 2, 4 or 8 before anything is sized from it. Fractal heap blocks and objects are copied fallibly | `hdf5-reader/src/filters/scaleoffset.rs`, `fractal_heap.rs` | synthetic: `so_fill_*`, `bigblock_*` |
 
-**Allocations that stay infallible** are listed by name under Limits in the engine's private qualification evidence (P48). Items with parts are charged, so a budget that checks memory can refuse first. The defaults charge nothing and check nothing, so without such a storage those can still end the process.
+**Some allocations stay infallible.** Items with parts are charged, so a budget that checks memory can refuse first. The defaults charge nothing and check nothing, so without such a storage those can still end the process.
 
 **CLB policy, not in these crates:** the budget itself, the check that memory is left, decode and time limits, the stop flag, sizing the chunk cache, the walk's refusals, and the per-read plan. They are in `budget.rs` and `netcdf.rs`.

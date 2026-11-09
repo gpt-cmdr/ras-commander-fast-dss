@@ -1,4 +1,4 @@
-//! Packet P38: the time-series store variants the P20/P21 block code does not carry:
+//! The time-series store variants the regular and irregular block code does not carry:
 //! multi-word quality, integer and character notes, and pattern records.
 //!
 //! Ports (paths relative to `heclib/heclib_c/src/`, `hec-dss` tag `7-IU-15`):

@@ -7,6 +7,8 @@ permissions:
   contents: read
 
 jobs:
+  # Release wheels: Windows x86_64, manylinux x86_64/aarch64 and musllinux x86_64/aarch64.
+  # macOS is not built or tested; macOS users build from the sdist.
   wheels:
     name: Wheel ${{ matrix.platform }}
     strategy:
@@ -30,14 +32,11 @@ jobs:
             manylinux: musllinux_1_2
             platform: musllinux-x86_64
             container_smoke: python:3.13-alpine
-          - os: macos-15
-            target: aarch64-apple-darwin
-            manylinux: 'off'
-            platform: macos-arm64
-          - os: macos-15-intel
-            target: x86_64-apple-darwin
-            manylinux: 'off'
-            platform: macos-x86_64
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+            manylinux: musllinux_1_2
+            platform: musllinux-aarch64
+            container_smoke: python:3.13-alpine
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5

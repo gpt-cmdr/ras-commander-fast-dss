@@ -1,4 +1,4 @@
-//! P40 review regressions: limits are checked before allocation, on every spelling of the E
+//! Regressions: limits are checked before allocation, on every spelling of the E
 //! part and every route, and count expanded quality and notes. A counting allocator measures
 //! the largest single allocation of a refused read. Only public fixtures, patched in memory.
 #![cfg(not(target_arch = "wasm32"))]

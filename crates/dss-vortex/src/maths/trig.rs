@@ -295,7 +295,7 @@ pub fn cos(x: f64) -> f64 {
 
 /// The evaluation for `|x| < pi/4`, `1 + x^2 (x^2 p(x^2) - 1/2)`. The published FMA3 code routes
 /// this through `cos_piby4`; this order was identified by black-box comparison against the
-/// reference. See the P44a report.
+/// reference (`tests/maths_parity.rs`).
 #[inline(always)]
 fn cos_direct(x: f64) -> f64 {
     let x2 = x * x;
@@ -308,7 +308,7 @@ fn cos_direct(x: f64) -> f64 {
 }
 
 /// `tan_piby4_s_zero_fma3`, except for the last step: `fma(x, a, x)` in place of `x + x * a`, as
-/// identified by black-box comparison against the reference. See the P44a report.
+/// identified by black-box comparison against the reference (`tests/maths_parity.rs`).
 #[inline(always)]
 fn tan_piby4_zero(x0: f64) -> f64 {
     let gt = x0 > POINT_68;

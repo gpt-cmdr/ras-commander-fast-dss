@@ -1,4 +1,4 @@
-//! Test harness for `oracle/vortex/compare_raster.py`.
+//! Test harness: reads or writes a raster with this crate, for comparison with rasterio and Vortex.
 //! Usage: raster_dump read <input> <out-dir>
 //!        raster_dump write <input> <output.tif|.asc> [vortex] [classic] [plain]
 use dss_vortex::sink_raster::{write_asc, write_geotiff, AscOptions, TiffOptions};

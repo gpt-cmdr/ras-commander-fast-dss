@@ -1,9 +1,9 @@
-//! DSS7 grid records (packet P24): the areas `Public/zspatialGridStore.c:
+//! DSS7 grid records: the areas `Public/zspatialGridStore.c:
 //! zspatialGridStore()` (tag `7-IU-15`) hands to `zwrite()`, filled the way HEC Monolith
 //! 3.3.27 fills the struct (`GriddedData.storeGriddedContainer` ->
 //! `GridStructContainer(GridInfo)` -> `javaHeclib/src/Hec_zgridStore.c`). The record is
-//! then stored by the P20 engine (`engine::write_areas`), one transaction in the P20 §4
-//! order.
+//! then stored by the record engine (`engine::write_areas`), one transaction in the
+//! `dss7.md` §6.4 order.
 //!
 //! Layout (`dss7.md` §5.2, modern `-100` grids):
 //! - internal header, 24 ints (`INT_HEAD_grid_*`, `headers/zStructSpatialGrid.h` lines
@@ -102,7 +102,7 @@ pub(super) fn areas(input: &GridInput, plan: &GridPlan) -> Areas {
         // GridStructContainer(GridInfo) offsets 221-263 (HRAP) and 313-336 (Albers):
         // srsDefinitionType 0, offset 0, isInterval 0, isTimeStamped 0. Monolith leaves
         // the null value at the Java default 0.0; the writer stores HEC's no-data value
-        // (P24 spec §4, deviation 1).
+        // (a deliberate deviation).
         GridProjection::Hrap { .. } | GridProjection::Albers(_) => (0, 0, 0, 0, GRID_NODATA),
         GridProjection::Specified(s) => (
             s.srs_definition_type,
@@ -161,5 +161,6 @@ pub(super) fn areas(input: &GridInput, plan: &GridPlan) -> Areas {
         first: to_i32(plan.start),
         last: to_i32(plan.end),
         total_expanded: 0,
+        copy_out: false,
     }
 }

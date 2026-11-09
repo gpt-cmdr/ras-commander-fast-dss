@@ -1,4 +1,4 @@
-//! Paired-data reads on synthetic DSS6 and DSS7 files (packet P10): PDD, padded units,
+//! Paired-data reads on synthetic DSS6 and DSS7 files : PDD, padded units,
 //! time zone, labels, long DSS6 labels and inconsistent sizes. No external files.
 
 mod pd_support;
@@ -186,7 +186,7 @@ fn readers_do_not_need_write_access() {
     }
 }
 
-/// Public synthetic fixtures for the Python binding (P12): `standard_dss6()` and
+/// Public synthetic fixtures for the Python binding: `standard_dss6()` and
 /// `standard_dss7()` as `fixtures/public/synthetic_pd{6,7}.dss` (PDD, DSS6 long labels,
 /// DSS7 labels and time zone, plus one time-series record). To regenerate, set
 /// DSS_PY_FIXTURE_OUT to a scratch directory, run this test, and copy both files into

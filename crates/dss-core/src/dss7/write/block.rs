@@ -4,7 +4,7 @@
 //! Ports (paths relative to `heclib/heclib_c/src/`, `hec-dss` tag `7-IU-15`):
 //! - `Internal/ztsFirstLastValidValues.c:ztsFirstLastValidFloat/Double()`;
 //! - `Internal/ztsAggregate.c:ztsAggregate()` lines 145-741 (files from 7-HA on; the
-//!   deprecated `ztsAggregateDep` layout is not written, P20 §1);
+//!   deprecated `ztsAggregateDep` layout is not written);
 //! - `Internal/ztsRegRepeatCompress.c:ztsRegRepeatCompress()`;
 //! - `Internal/ztsInternalHeaderPack.c:ztsInternalHeaderPack()` with
 //!   `Utilities/stringHeaderUtility.c:appendStringToHeader()` and
@@ -156,7 +156,7 @@ pub fn aggregate(
 }
 
 /// `ztsAggregate()` (7-HA layout) without notes, with the irregular time array
-/// (`boolUseTimes`, P21): the `n` times lead values1 uncompressed ("We never compress
+/// (`boolUseTimes`): the `n` times lead values1 uncompressed ("We never compress
 /// time array", `ztsWriteBlock()` line 178; `ztsAggregate()` lines 377-382, 491-495 and
 /// 598-603), and the first even-padding follows times and values together (lines 397,
 /// 501 and 630). Times never take part in the compression decision.

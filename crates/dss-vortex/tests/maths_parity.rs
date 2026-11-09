@@ -161,7 +161,7 @@ fn fma_hard_cases(seed: u64, mut check: impl FnMut(f64, f64, f64)) {
     }
 }
 
-/// The P44a review's CONUS LCC domain: bases `tan(pi/4 + lat/2)`, exponents `-sin(lat)`.
+/// A CONUS LCC domain: bases `tan(pi/4 + lat/2)`, exponents `-sin(lat)`.
 fn digest_conus_lcc(seed: u64) -> u64 {
     let mut rng = Rng(seed);
     let mut h = 0xcbf2_9ce4_8422_2325;
@@ -449,7 +449,7 @@ fn pow_near_tie_family_is_held() {
 }
 
 #[test]
-fn the_traced_sine_from_the_p41_review() {
+fn traced_sine_input_matches_reference_bits() {
     let x = f64::from_bits(0x3fe5_80a0_fb4b_6529);
     assert_eq!(maths::sin(x).to_bits(), 0x3fe3_eba3_d0b4_7a0f);
 }

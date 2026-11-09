@@ -136,7 +136,7 @@ def test_location_dss7_full_and_partial(f7):
         assert loc.x == -97.25 and loc.vertical_datum_code == 2
         assert loc.time_zone == "America/Chicago"
         assert dict(loc.supplemental_items)["Operator"] == "Synth"
-        # D37: a datum in the text never fills the typed field.
+        # A datum in the text never fills the typed field.
         assert loc.vertical_datum_code == 2 and loc.vertical_datum_named
         assert loc.supplemental_vertical_datum == "NAVD88"
         # The handle-level call reopens and sees the update; other fields stay.

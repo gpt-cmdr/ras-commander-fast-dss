@@ -1,4 +1,4 @@
-//! DSS6 time-series dataset read (packet P08b): stitch the blocks of one series and
+//! DSS6 time-series dataset read: stitch the blocks of one series and
 //! trim to a time window, as HEC's `zrrtsx6`/`zritsx6` family does.
 //!
 //! A dataset is a pathname with any D part: the D part is ignored and replaced by the
@@ -29,11 +29,11 @@
 //! Monolith `HecDss.get(path, true)`: every block from the earliest to the latest D
 //! part in the catalog, with leading and trailing missing values removed (regular data;
 //! `heclib_c/src/Dss6/ztsRetrieveReg6.c` header comment, `retrieveFlag = -1`: "Remove
-//! missing values at the beginning and end of data set (not inside)"; P01 addendum).
+//! missing values at the beginning and end of data set (not inside)").
 
 use super::interval::{self, BlockSpan, EPart, DAY_MINUTES};
 use super::pathname::split_parts;
-use super::ts::{all_hec_no_data, NoDataPolicy, NO_DATA_STATUS}; // P29
+use super::ts::{all_hec_no_data, NoDataPolicy, NO_DATA_STATUS};
 use super::ts::{lossy, Dss6TsRecord, TsError, TsReadOptions};
 use super::walk::CatalogOptions;
 use super::{Dss6File, ReadAt};
@@ -126,10 +126,10 @@ pub struct DatasetReport {
     /// Blocks that differ in units, data type, offset or record type from the first one,
     /// or that do not follow the block convention.
     pub warnings: Vec<String>,
-    /// Time-origin facts when the dataset is a pattern record (P25).
+    /// Time-origin facts when the dataset is a pattern record.
     pub pattern_origin: Option<crate::timeseries::PatternOrigin>,
-    /// User-header words of the block whose header HEC returns for the dataset (P26,
-    /// dss6.md §14.4): regular data, the last block found (`zrrtsi.f` lines 345-349 read
+    /// User-header words of the block whose header HEC returns for the dataset
+    /// (dss6.md §14.4): regular data, the last block found (`zrrtsi.f` lines 345-349 read
     /// `IUHEAD` for every block found); irregular data, the last block looked up, which
     /// leaves the header empty when that block is absent (`zreadx6.f` line 72).
     pub user_header: Vec<i32>,
@@ -142,7 +142,7 @@ pub struct DatasetReport {
     pub user_header_conflicts: usize,
 }
 
-/// P26: the reported user header and the count of blocks that disagree with it.
+/// The reported user header and the count of blocks that disagree with it.
 fn report_user_header<'a>(
     report: &mut DatasetReport,
     blocks: impl Iterator<Item = &'a Dss6TsRecord>,
@@ -299,7 +299,7 @@ fn too_large(values: u64) -> TsError {
     }
 }
 
-/// P29 (`NoDataPolicy::Refuse`): HEC's window rule. `zrrtsi.f:ZRRTSI6` checks the
+/// HEC's window rule. `zrrtsi.f:ZRRTSI6` checks the
 /// values of the whole request after every block is read (lines 618-651, hec-dss fork
 /// tag `7-IU-15`), absent-block fills (-902) and all-missing blocks alike. An
 /// all-missing block inside a window that holds data is read as found: it counts in
@@ -354,7 +354,7 @@ impl<S: ReadAt> Dss6File<S> {
         pathname: &[u8],
         opts: &DatasetOptions,
     ) -> Result<Dss6Dataset, TsError> {
-        // P29 review n1: a dataset refusal names the pathname as requested (the reads
+        // A dataset refusal names the pathname as requested (the reads
         // below use the upper-cased form).
         self.read_ts_dataset_upper(index, pathname, opts)
             .map_err(|e| match e {
@@ -505,7 +505,7 @@ impl<S: ReadAt> Dss6File<S> {
             }
             let base = interval::position_base(intl, ymd);
             let jul = interval::iymdjl(ymd.0, ymd.1, ymd.2);
-            // P29: blocks are never refused one by one; HEC's rule is for the window.
+            // Blocks are never refused one by one; HEC's rule is for the window.
             let rec = self.lookup_block(path, jul, &block_read)?;
             blocks.push((ymd, base, rec));
             if ymd >= last_ymd {
@@ -524,9 +524,10 @@ impl<S: ReadAt> Dss6File<S> {
         // offset are reported in `warnings`.
         let last_offset = found().next_back().map_or(0, |r| r.time_offset_minutes);
         // zrrtsi.f re-reads the internal header for every block it reads, so the units,
-        // data type and time zone HEC returns are the last block's (P09a, golden g54).
+        // data type and time zone HEC returns are the last block's (`dss6.md` §14.4;
+        // `tests/dss6_b1_multiblock.rs` and `fixtures/public/b1_multiblock6.dss`).
         let header = found().next_back().unwrap_or(first);
-        // P26: zrrtsi.f lines 345-349 read the user header of every block found.
+        // zrrtsi.f lines 345-349 read the user header of every block found.
         report_user_header(&mut report, found(), found().next_back());
         let (units, data_type, time_zone) = (
             header.units.clone(),
@@ -638,7 +639,7 @@ impl<S: ReadAt> Dss6File<S> {
             series.record_type = 105;
         }
         if opts.read.no_data == NoDataPolicy::Refuse {
-            // P29: zrrtsi.f lines 653-658: no block of the window read -> ISTAT 5
+            // zrrtsi.f lines 653-658: no block of the window read -> ISTAT 5
             // ("no pathname(s) found"; a block found only in the padding is not read).
             if report.blocks_found == 0 {
                 return Err(TsError::NotFound {
@@ -690,7 +691,8 @@ impl<S: ReadAt> Dss6File<S> {
             });
         };
         // zrrtsi.f re-reads the internal header for every block it reads, so the units,
-        // data type and time zone HEC returns are the last block's (P09a, golden g54).
+        // data type and time zone HEC returns are the last block's (`dss6.md` §14.4;
+        // `tests/dss6_b1_multiblock.rs` and `fixtures/public/b1_multiblock6.dss`).
         let (units, data_type, time_zone) = recs
             .last()
             .map(|r| {
@@ -702,7 +704,7 @@ impl<S: ReadAt> Dss6File<S> {
             })
             .unwrap_or_default();
         report.blocks_found = recs.len();
-        // P26: the last block read supplies the user header, as for the other headers.
+        // The last block read supplies the user header, as for the other headers.
         report_user_header(&mut report, recs.iter(), recs.last());
         report.time_offset_minutes = Some(first.time_offset_minutes);
         let wide = recs.iter().any(|r| matches!(r.values, TsValues::F64(_)));
@@ -787,7 +789,7 @@ impl<S: ReadAt> Dss6File<S> {
             time_zone,
         };
         if opts.read.no_data == NoDataPolicy::Refuse {
-            // P29: the same window rule (no HEC path reads catalog blocks).
+            // The same window rule (no HEC path reads catalog blocks).
             check_no_data(path, &series)?;
         }
         if opts.trim_missing {
@@ -871,7 +873,8 @@ impl<S: ReadAt> Dss6File<S> {
             });
         };
         // zrrtsi.f re-reads the internal header for every block it reads, so the units,
-        // data type and time zone HEC returns are the last block's (P09a, golden g54).
+        // data type and time zone HEC returns are the last block's (`dss6.md` §14.4;
+        // `tests/dss6_b1_multiblock.rs` and `fixtures/public/b1_multiblock6.dss`).
         let (units, data_type, time_zone) = recs
             .last()
             .map(|r| {
@@ -883,7 +886,7 @@ impl<S: ReadAt> Dss6File<S> {
             })
             .unwrap_or_default();
         report.blocks_found = recs.len();
-        // P26: zritsi6.f reads every block in the window with zreadx6, which sets NUHEAD
+        // zritsi6.f reads every block in the window with zreadx6, which sets NUHEAD
         // to 0 for an absent block (zreadx6.f line 72), so the last block looked up
         // supplies the user header; whole-dataset reads end at a stored block.
         let reported = if last_slot_found { recs.last() } else { None };
@@ -938,7 +941,7 @@ impl<S: ReadAt> Dss6File<S> {
 /// (`heclib_c/src/Internal/ztsTrim.c` lines 83-170, hec-dss fork tag `7-IU-15`): a value
 /// is missing when `zisMissingFloat` / `zisMissingDouble` say so, i.e. -901, -902 or
 /// -FLT_MAX ([`is_hec_missing`]). A stored NaN is a value and is kept, also at either
-/// end (P30; maintainer decision 2026-10-29, "Match HEC behavior"). HEC trims regular
+/// end (maintainer decision 2026-10-29, "Match HEC behavior"). HEC trims regular
 /// data only (`Public/ztsRetrieve.c` lines 618-626); irregular datasets are not trimmed.
 /// Returns the number removed.
 pub fn trim_missing(ts: &mut TimeSeries) -> usize {

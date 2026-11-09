@@ -1,4 +1,4 @@
-//! The probe `evidence/P44/scripts/thread_limit.py` runs in a 64 MiB Job Object. On its own it
+//! Meant to run inside a 64 MiB Windows Job Object (memory limit). On its own it
 //! does nothing unless `WARP_THREAD_PROBE` is set, and then any panic fails it.
 
 use dss_vortex::crs::{CrsDef, Envelope};

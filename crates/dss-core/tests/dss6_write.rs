@@ -2,7 +2,7 @@
 //!
 //! - The native writer replays `fixtures/public/p22_hec_ts6_ops.tsv` from an empty native
 //!   file and every record equals `p22_hec_ts6.dss`, written by HEC Monolith 3.3.27 from
-//!   the same script (dss6.md §9.3 lists the differences that remain).
+//!   the same ops file (dss6.md §9.3 lists the differences that remain).
 //! - Crash test: every step of the block transaction ([`DSS6_STEP_ORDER`]) is interrupted
 //!   in six scenarios (new bin, existing bin, overflow bin, new bin block, regular
 //!   rewrite, irregular rewrite); each interrupted file reads, keeps every other record,
@@ -49,7 +49,7 @@ fn mins(y: i64, m: i64, d: i64, hh: i64, mm: i64) -> i64 {
 }
 
 // ---------------------------------------------------------------------------------
-// The ops script (format of evidence/P22/scripts/P22Monolith.java).
+// The ops file format (the store lines `examples/dss6_write.rs` documents).
 // ---------------------------------------------------------------------------------
 
 enum Vals {
@@ -839,8 +839,8 @@ fn fuzz_input_validation() {
     }
 }
 
-/// Review M1: a write refused in a later block leaves the file byte-identical. The
-/// reviewer's case: a February block stored as double with quality, then float values
+/// A write refused in a later block leaves the file byte-identical. The
+/// case: a February block stored as double with quality, then float values
 /// without quality written from 31 January (HEC refuses that block, zsrtsi6 status 511).
 #[test]
 fn refused_multi_block_write_changes_nothing() {
@@ -875,7 +875,7 @@ fn refused_multi_block_write_changes_nothing() {
     // (irregular_deviations_and_refusals checks the byte identity of the same case.)
 }
 
-/// Review m4: the structural check and the writer never panic on damaged bins.
+/// The structural check and the writer never panic on damaged bins.
 #[test]
 fn check_and_writer_survive_corrupt_bins() {
     let d = tmp("m4");
@@ -900,7 +900,7 @@ fn check_and_writer_survive_corrupt_bins() {
         s ^= s << 17;
         s
     };
-    // The reviewer case first: status 1 and pathname length 392 in the first free
+    // The known case first: status 1 and pathname length 392 in the first free
     // entry slot of the first bin (word 19, after one 18-word entry).
     let mut cases: Vec<Vec<(usize, i32)>> =
         vec![vec![(kafbin - 1 + 18, 1), (kafbin - 1 + 19, 392)]];
@@ -942,7 +942,7 @@ fn check_and_writer_survive_corrupt_bins() {
     }
 }
 
-/// Review m5 and m6: a tag scheme is refused; a write stamps the last-written time.
+/// A tag scheme is refused; a write stamps the last-written time.
 #[test]
 fn tag_scheme_refused_and_last_write_stamped() {
     let d = tmp("m56");
@@ -1019,7 +1019,7 @@ fn lock_held_during_write_and_released() {
 }
 
 /// Linux: fcntl locks belong to the process, so a child process writes and this
-/// process probes (as P20's lock_seen_from_another_process).
+/// process probes (as `dss7_write.rs`'s lock_seen_from_another_process).
 #[test]
 #[cfg(target_os = "linux")]
 fn lock_seen_from_another_process6() {

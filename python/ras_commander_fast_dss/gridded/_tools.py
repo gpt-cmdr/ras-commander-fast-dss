@@ -1,4 +1,4 @@
-"""Grid tools over ``_native`` (packet P53): calculator, sanitizer, normalizer and clipper.
+"""Grid tools over ``_native``: calculator, sanitizer, normalizer and clipper.
 
 Argument checks live here; rules live in the engine (``dss_vortex::grid_tools``). Each tool reads a
 DSS, GeoTIFF, ASCII grid or GRIB2 file and writes DSS grids, with no Java. A run plans every record
@@ -11,8 +11,9 @@ writing keeps the finished records, and sets ``phase``, ``input``, ``variable``,
 record, but that record may have been published whole before the failure, so an exception does not
 prove it absent. Read the file, or run again, which replaces it.
 
-Results reproduce HEC-Vortex 1.1.0 and 0.13.3 on the cases in the P53 evidence report, except for
-the observed Vortex behaviours listed there, which this library does not implement.
+Results reproduce HEC-Vortex 1.1.0 and 0.13.3 on the committed comparison cases
+(``fixtures/public/vortex_p53``, checked by ``tests/python/test_grid_tools.py``), except for
+observed Vortex behaviours that this library does not implement.
 """
 
 from __future__ import annotations

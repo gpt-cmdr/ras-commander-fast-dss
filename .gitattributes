@@ -21,6 +21,5 @@ fixtures/public/grib/expected.json -text
 fixtures/public/netcdf_p46b/** -text
 crates/dss-vortex/tests/crs_tm_golden.json -text
 crates/dss-vortex/tests/crs_tm_golden.bin binary
-oracle/vortex/crs_tm_expected_residuals.json -text
 fixtures/public/vortex_p53b/** -text
 fixtures/public/zarr/** -text

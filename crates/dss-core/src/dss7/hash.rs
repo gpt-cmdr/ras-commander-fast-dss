@@ -6,8 +6,8 @@
 //! `char`. Any value below 32 becomes `'?'`, which on signed-`char` platforms includes
 //! every byte >= 0x80; everything else goes through `toupper()`. We implement that
 //! signed-`char` behaviour: bytes < 32 and >= 0x80 hash as `'?'`, ASCII letters are
-//! upper-cased. The P02 census found no DSS7 pathname with a byte >= 0x80, so this branch
-//! is not corpus-verified.
+//! upper-cased. No DSS7 pathname with a byte >= 0x80 was found in the files tested, so this
+//! branch is not corpus-verified.
 
 /// Pathnames longer than this are truncated before hashing and lookup
 /// (`Internal/zcheckInternal.c:zcheckInternal()`).
@@ -24,6 +24,20 @@ fn hash_byte(b: u8) -> u8 {
     }
 }
 
+/// The normalized path plus the 8 zero bytes `zhash()` appends (the table hash may read
+/// up to 3 of them), written into a caller buffer so a catalog walk does not allocate
+/// per entry.
+fn normalized_into<'a>(pathname: &[u8], buf: &'a mut [u8; MAX_HASHED_PATH + 8]) -> &'a [u8] {
+    let n = pathname.len().min(MAX_HASHED_PATH);
+    for (d, &b) in buf.iter_mut().zip(&pathname[..n]) {
+        *d = hash_byte(b);
+    }
+    buf[n..n + 8].fill(0);
+    &buf[..n + 8]
+}
+
+/// Earlier allocating form, kept as the reference for the differential tests.
+#[cfg(test)]
 fn normalized(pathname: &[u8]) -> Vec<u8> {
     let n = pathname.len().min(MAX_HASHED_PATH);
     let mut p: Vec<u8> = pathname[..n].iter().map(|&b| hash_byte(b)).collect();
@@ -34,11 +48,24 @@ fn normalized(pathname: &[u8]) -> Vec<u8> {
 
 /// Pathname ("bin") hash: Java `String.hashCode` widened to 64 bits; 0 becomes 1.
 pub fn pathname_hash(pathname: &[u8]) -> i64 {
-    let p = normalized(pathname);
     let n = pathname.len().min(MAX_HASHED_PATH);
+    let p = &pathname[..n];
+    // `h = 31 * h + c` per byte, taken four bytes at a time:
+    // `h = 31^4 * h + (31^3 c0 + 31^2 c1 + 31 c2 + c3)`. Wrapping arithmetic is exact
+    // modulo 2^64, so this equals the byte-at-a-time loop (normalized bytes are
+    // below 128, so the inner sum cannot overflow). No allocation.
+    const P2: i64 = 31 * 31;
+    const P3: i64 = 31 * 31 * 31;
+    const P4: i64 = 31 * 31 * 31 * 31;
+    let c = |b: u8| i64::from(hash_byte(b));
     let mut h: i64 = 0;
-    for &c in &p[..n] {
-        h = h.wrapping_mul(31).wrapping_add(i64::from(c));
+    let mut quads = p.chunks_exact(4);
+    for q in &mut quads {
+        let v = c(q[0]) * P3 + c(q[1]) * P2 + c(q[2]) * 31 + c(q[3]);
+        h = h.wrapping_mul(P4).wrapping_add(v);
+    }
+    for &b in quads.remainder() {
+        h = h.wrapping_mul(31).wrapping_add(c(b));
     }
     if h == 0 {
         1
@@ -67,7 +94,8 @@ fn ibit(max_hash: i64) -> i32 {
 /// normalized bytes are < 0x80, so `it` is never negative).
 pub fn table_hash(pathname: &[u8], max_hash: i64) -> i64 {
     let max_hash = max_hash.max(1);
-    let p = normalized(pathname);
+    let mut buf = [0u8; MAX_HASHED_PATH + 8];
+    let p = normalized_into(pathname, &mut buf);
     let n = pathname.len().min(MAX_HASHED_PATH) as i64;
     let ibit = i64::from(ibit(max_hash)).max(1);
     let mut nt = ((n * 8 - 1) / ibit) + 1;
@@ -103,6 +131,60 @@ pub fn table_hash(pathname: &[u8], max_hash: i64) -> i64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Earlier `pathname_hash`, the reference for [`hashes_match_reference`].
+    fn pathname_hash_reference(pathname: &[u8]) -> i64 {
+        let p = normalized(pathname);
+        let n = pathname.len().min(MAX_HASHED_PATH);
+        let mut h: i64 = 0;
+        for &c in &p[..n] {
+            h = h.wrapping_mul(31).wrapping_add(i64::from(c));
+        }
+        if h == 0 {
+            1
+        } else {
+            h
+        }
+    }
+
+    #[test]
+    fn hashes_match_reference() {
+        // Random bytes over the whole range (control, ASCII, >= 0x80), lengths across the
+        // 392-byte truncation, and table sizes including odd and power-of-two ones. The
+        // table hash changed only in where its normalized bytes live, so the buffer is
+        // compared with the allocating normalization directly.
+        let mut x: u64 = 0x9E37_79B9_7F4A_7C15;
+        let mut rnd = || {
+            x ^= x << 13;
+            x ^= x >> 7;
+            x ^= x << 17;
+            x
+        };
+        let sizes = [1i64, 2, 3, 100, 4096, 8192, 16348, 64000, 1 << 20];
+        for case in 0..20_000 {
+            let len = match case % 4 {
+                0 => (rnd() % 8) as usize,
+                1 => (rnd() % 120) as usize,
+                2 => 385 + (rnd() % 16) as usize,
+                _ => (rnd() % 500) as usize,
+            };
+            let p: Vec<u8> = (0..len)
+                .map(|_| match rnd() % 4 {
+                    0 => (rnd() % 256) as u8,
+                    _ => b"/ABCabc019-_. "[(rnd() % 14) as usize],
+                })
+                .collect();
+            assert_eq!(pathname_hash(&p), pathname_hash_reference(&p), "{p:?}");
+            let mut buf = [0u8; MAX_HASHED_PATH + 8];
+            assert_eq!(normalized_into(&p, &mut buf), normalized(&p).as_slice());
+            let mh = sizes[case % sizes.len()];
+            let t = table_hash(&p, mh);
+            assert!((0..mh).contains(&t));
+        }
+        // A pathname whose hash is 0 before the 0 -> 1 rule.
+        assert_eq!(pathname_hash(b""), 1);
+        assert_eq!(pathname_hash_reference(b""), 1);
+    }
 
     #[test]
     fn ibit_matches_frexp() {

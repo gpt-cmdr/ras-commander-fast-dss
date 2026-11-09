@@ -1,7 +1,7 @@
-//! Test harness: writes what this crate reads from a NetCDF or HDF5 file, for `compare_nc.py`, in
-//! the layout `nc_driver.py` writes for Vortex.
+//! Test harness: writes what this crate reads from a NetCDF or HDF5 file, for comparison with
+//! HEC-Vortex, one file per item. `tests/support/nc_job.py` runs it under a memory limit.
 //! Usage: nc_dump <input> <out-dir> [--max-steps N | --steps a,b,c] [--stored]
-//! `--stored` also writes each step's stored bytes, for `nc_decode_check.py`.
+//! `--stored` also writes each step's stored bytes, so the decode can be checked separately.
 use dss_vortex::source::netcdf::NetcdfFile;
 use dss_vortex::DataType;
 use std::fmt::Write as _;

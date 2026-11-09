@@ -210,7 +210,7 @@ fn assert_refused(label: &str, stream: Vec<u8>, width: u32, height: u32, expect:
     );
 }
 
-/// The recheck's reproduction: 821 bytes, the fixture with larger dimensions and no more payload.
+/// An 821-byte stream: the fixture with larger declared dimensions and no extra payload.
 fn resized(size: u32) -> Vec<u8> {
     let mut stream = code_stream();
     for at in [SIZ + 2 + 4, SIZ + 2 + 8, SIZ + 2 + 20, SIZ + 2 + 24] {

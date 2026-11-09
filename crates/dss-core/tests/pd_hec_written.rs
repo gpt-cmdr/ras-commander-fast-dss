@@ -2,7 +2,7 @@
 //! `zpdStore`; `p23_hec_pd6.dss`, Monolith 3.3.27 `zspdi6`/`zpdStore6`) read natively, and
 //! the native writer replaying the same stores (`p23_hec_pd{7,6}_spec.tsv`) from an empty
 //! native file: every record's areas word-identical to HEC's, every info field equal except
-//! the differences the P23 REPORT explains (equal rewrites skipped, type change by
+//! the documented differences (equal rewrites skipped, type change by
 //! relocation instead of delete-and-add, HEC's stale `KILNDA` after an in-place rewrite).
 
 use std::collections::BTreeMap;
@@ -194,7 +194,7 @@ fn dss7_fixture_reads_and_native_replay_matches() {
             (ni.number_data, ni.logical_number, ni.allocated_size)
         );
         let p = String::from_utf8_lossy(&e.pathname).to_ascii_uppercase();
-        // REPORT §3: HEC deletes and re-adds on a PD -> PDD change (version 1, no
+        // HEC deletes and re-adds on a PD -> PDD change (version 1, no
         // expansion); the writer relocates (version 2, one expansion). HEC rewrites an
         // equal record (version 2); the writer skips it.
         if p.contains("/FREQ/") {
@@ -223,7 +223,7 @@ fn dss7_fixture_reads_and_native_replay_matches() {
         }
     }
     assert_eq!(identical, live.len() - 2);
-    // P23 review m3: the file-header area statistics after the same stores equal heclib's
+    // The file-header area statistics after the same stores equal heclib's
     // (`zwriteInternal()` lines 265-320, `zwriteNew()`, `zwriteExisting()`):
     // kmaxInternalHeader..kmaxValues3Size (58-63), knumberInternalHeader..knumberDataArea2
     // (64-69), kmaxRecordSize (70), kmaxPdSize (75), kmaxPddSize (76, never set by heclib).

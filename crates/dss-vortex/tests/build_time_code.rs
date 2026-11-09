@@ -1,4 +1,4 @@
-//! D40: no C compilation hides in build-time code.
+//! No C compilation hides in build-time code.
 //!
 //! `build_graph.rs` checks crate names. This test reads the code that runs during a build:
 //! every build script, every proc macro, and everything those reach, in the graphs of

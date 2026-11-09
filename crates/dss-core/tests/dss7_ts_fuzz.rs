@@ -1,4 +1,4 @@
-//! Fuzz the DSS7 time-series reader (packet P08a): corrupted info blocks, internal
+//! Fuzz the DSS7 time-series reader : corrupted info blocks, internal
 //! headers, compression headers and data words, and truncated files must give errors,
 //! never panics. `DSS7_TS_FUZZ_ITERS` raises the iteration count (default 1,500 per
 //! fixture).

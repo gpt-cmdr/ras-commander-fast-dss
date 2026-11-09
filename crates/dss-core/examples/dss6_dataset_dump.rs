@@ -1,4 +1,4 @@
-//! Run DSS6 dataset reads from a request list (packet P08b test harness).
+//! Run DSS6 dataset reads from a request list (test harness).
 //!
 //! ```text
 //! cargo run --release -p dss-core --example dss6_dataset_dump -- <file.dss> <requests.tsv> <out-dir>

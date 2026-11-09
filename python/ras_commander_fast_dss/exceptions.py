@@ -1,4 +1,4 @@
-"""Typed exceptions raised by ras_commander_fast_dss (decision D32).
+"""Typed exceptions raised by ras_commander_fast_dss.
 
 Every class derives from :class:`DssError`, which derives from :class:`RuntimeError`, so
 existing ``except RuntimeError`` and ``except Exception`` handlers written for the Java
@@ -19,14 +19,13 @@ Exception                      Extra base class              Raised when
                                                              the kind the call reads (a
                                                              time series, paired data or a
                                                              grid), or uses an encoding
-                                                             the reader does not decode
-                                                             (D29).
+                                                             the reader does not decode.
 ``DssPathnameNotFoundError``   ``ValueError``                No record / no data for the
                                                              pathname. ``RasDss`` raised
                                                              ``ValueError("No data found
                                                              ...")`` for this.
-``DssNoDataError``             ``DssPathnameNotFoundError``  Only with ``no_data="refuse"``
-                                                             (P29): a DSS6 regular record or
+``DssNoDataError``             ``DssPathnameNotFoundError``  Only with ``no_data="refuse"``:
+                                                             a DSS6 regular record or
                                                              window exists but holds no
                                                              value other than -901/-902
                                                              (HEC status 4, Monolith -2).
@@ -60,7 +59,7 @@ class DssFormatError(DssError):
 
 
 class DssUnsupportedRecordError(DssError):
-    """The record exists but its type is not decoded by this API (decision D29)."""
+    """The record exists but its type is not decoded by this API."""
 
 
 class DssPathnameNotFoundError(DssError, ValueError):
@@ -68,9 +67,9 @@ class DssPathnameNotFoundError(DssError, ValueError):
 
 
 class DssLockedError(DssError):
-    """Reserved for writers: the file is locked by HEC software (decision D10).
+    """Reserved for writers: the file is locked by HEC software.
 
-    Never raised by reads. Attributes (P19a; all optional, so ``DssLockedError("msg")``
+    Never raised by reads. Attributes (all optional, so ``DssLockedError("msg")``
     keeps working):
 
     - ``reasons``: tuple of lock reasons from :func:`ras_commander_fast_dss.lock_status`
@@ -103,13 +102,13 @@ class DssLockedError(DssError):
 
 class DssLocationConflictError(DssError):
     """DSS6 blocks of one series store different location coordinates, so no single
-    associated location exists for the dataset (P15). Read a block by its full pathname."""
+    associated location exists for the dataset. Read a block by its full pathname."""
 
 
 __all__ += ["DssLocationConflictError"]
 
 
-# -- P16 (DSS_TASK DT6): catalog-index recovery route --------------------------------
+# -- P16: catalog-index recovery route --------------------------------
 
 
 class DssRecordUnavailableError(DssFormatError):

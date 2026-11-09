@@ -2,8 +2,8 @@
 //! file byte-identical, every other record unchanged, a crash at every step with recovery,
 //! replay of the heclib-written fixture word for word, and an input fuzz. Synthetic data.
 //!
-//! HEC oracle checks on natively written files are local:
-//! `evidence/P39/REPORT.md`.
+//! Natively written files were also checked with HEC software; those checks need HEC
+//! software and do not run in this test suite.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -635,7 +635,7 @@ fn dss6_location_on_every_block_and_kept_by_rewrites() {
         assert_eq!(g.vertical_datum_code, 2);
         assert_eq!(g.supplemental.as_deref(), Some(&b"Key:Value;"[..]));
     }
-    // A time-series rewrite keeps coordinates and text (P39 deviation from zsrtsi6.f).
+    // A time-series rewrite keeps coordinates and text (a deliberate deviation from zsrtsi6.f).
     let nv: Vec<f32> = (0..4).map(|i| 100.0 + i as f32).collect();
     write_rts6(
         &p,
@@ -756,7 +756,7 @@ fn fixture(name: &str) -> PathBuf {
 /// `p39_hec_pl7.dss` holds `p39_hec_pl7_spec.tsv` stored by heclib 7-JA. The same spec
 /// through the native writers gives the same records word for word; only a location
 /// record's first and last dates differ (heclib leaves those of the previous time-series
-/// write on the handle, P23 §3 item 3), and they are not part of the snapshot.
+/// write on the handle), and they are not part of the snapshot.
 #[test]
 fn replay_matches_heclib_fixture() {
     let d = tmp("replay");
@@ -893,9 +893,9 @@ fn fuzz_inputs_never_panic() {
     assert!(!snapshot7(&p).is_empty());
 }
 
-// -- P39 review findings ----------------------------------------------------------------
+// -- Refusals and edge cases ------------------------------------------------------------
 
-/// Review finding 1: one row of 65,536 doubles in a 1Second block is 86,400 x 65,536 x 8
+/// One row of 65,536 doubles in a 1Second block is 86,400 x 65,536 x 8
 /// bytes (45 GB) of missing-value buffer. Validation refuses it before any allocation.
 #[test]
 fn expanded_block_is_bounded_before_allocation() {
@@ -922,7 +922,7 @@ fn expanded_block_is_bounded_before_allocation() {
     assert!(validate_profile_input(&long).is_ok());
 }
 
-/// Review finding 3: the writer's depth limit is the reader's.
+/// The writer's depth limit is the reader's.
 #[test]
 fn depth_limit_is_the_readers() {
     use dss_core::dss7::ts::MAX_PROFILE_DEPTHS;
@@ -994,7 +994,7 @@ fn corrupt_user_header_length(p: &Path, block: &[u8]) {
     std::fs::write(p, b).unwrap();
 }
 
-/// Review finding 2: a retained user header is checked during preparation, so a refusal on
+/// A retained user header is checked during preparation, so a refusal on
 /// a later block leaves the earlier blocks, and the whole file, as they were.
 #[test]
 fn later_block_user_header_refusal_leaves_file_identical() {

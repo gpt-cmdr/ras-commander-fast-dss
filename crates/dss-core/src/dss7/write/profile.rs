@@ -1,5 +1,4 @@
-//! Regular-interval profile writer input (packet P39). Specification:
-//! `packets/P39_profile_location_writers.md`.
+//! Regular-interval profile writer input.
 //!
 //! A profile is a time x depth matrix: one row of `depths.len()` values per time, stored
 //! row by row (`Public/ztsStore.c` lines 154-176: `floatProfileValues[profileDepthsNumber]

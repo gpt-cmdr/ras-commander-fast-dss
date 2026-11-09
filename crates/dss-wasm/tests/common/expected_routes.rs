@@ -18,7 +18,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 0,
             errors: 14,
             values: 12777,
-            hash: 0x792188e4868d7b41,
+            hash: 0xd9d0a0406ae99d13,
         },
     ),
     (
@@ -32,7 +32,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 0,
             errors: 14,
             values: 12777,
-            hash: 0x52a45bea49f9219e,
+            hash: 0x17498ac707c313ac,
         },
     ),
     (
@@ -46,7 +46,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 0,
             errors: 3,
             values: 3333,
-            hash: 0x124c00ff89076007,
+            hash: 0x0adb8de2e23b99c1,
         },
     ),
     (
@@ -60,7 +60,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 0,
             errors: 3,
             values: 3333,
-            hash: 0x7ec3e252f065c032,
+            hash: 0x4e80539dc1fbab58,
         },
     ),
     (
@@ -74,7 +74,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 9,
             errors: 15,
             values: 3720,
-            hash: 0xa12f0b7b08147d98,
+            hash: 0x853b9f7b36573638,
         },
     ),
     (
@@ -88,7 +88,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 9,
             errors: 15,
             values: 3720,
-            hash: 0x02ad843b33db39a3,
+            hash: 0x8b7639c7e26fd7e9,
         },
     ),
     (
@@ -102,7 +102,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 1,
             errors: 1,
             values: 0,
-            hash: 0x611486fb8e47443a,
+            hash: 0xa45f733c342905fe,
         },
     ),
     (
@@ -116,7 +116,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 1,
             errors: 1,
             values: 0,
-            hash: 0x95201fe51ea1f81b,
+            hash: 0x1b43b00aefe39405,
         },
     ),
     (
@@ -158,7 +158,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 0,
             errors: 11,
             values: 9,
-            hash: 0xaf20dadc48315280,
+            hash: 0xf46a6835ebe0b862,
         },
     ),
     (
@@ -172,7 +172,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 0,
             errors: 13,
             values: 12,
-            hash: 0x492d5066b27528d1,
+            hash: 0x8974c7f08d5c0b1d,
         },
     ),
     (
@@ -214,7 +214,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 1,
             errors: 3,
             values: 5,
-            hash: 0x0f94bdb928c5f746,
+            hash: 0xcb8c9e572773d6aa,
         },
     ),
     (
@@ -228,7 +228,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 1,
             errors: 3,
             values: 5,
-            hash: 0x8d770b920613a523,
+            hash: 0x313e2fea0c1c7dbd,
         },
     ),
     (
@@ -242,7 +242,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 0,
             errors: 5,
             values: 288,
-            hash: 0x4976b62871273ecf,
+            hash: 0x2902813c88927ba3,
         },
     ),
     (
@@ -256,7 +256,7 @@ pub const EXPECTED: &[(&str, bool, RouteDigest)] = &[
             associated: 0,
             errors: 5,
             values: 288,
-            hash: 0x4976b62871273ecf,
+            hash: 0x2902813c88927ba3,
         },
     ),
 ];

@@ -10,9 +10,10 @@
         parts={"A": "SHG", "B": "MRMS_QPE", "F": "PASS2"},
     )
 
-The result reproduces HEC-Vortex 1.1.0's records on the cases in the P46 evidence report, except
-for the observed Vortex behaviours listed in :func:`import_gridded`, which this library refuses by
-default. See ``evidence/P46/REPORT.md``.
+The result reproduces HEC-Vortex 1.1.0's records on the committed comparison cases
+(``fixtures/public/vortex_p46``, checked by ``tests/python/test_gridded.py``), except for the
+observed Vortex behaviours listed in :func:`import_gridded`, which this library refuses by
+default.
 """
 
 from ._import import ImportResult, StopHandle, import_arrays, import_gridded, list_variables, netcdf_limits

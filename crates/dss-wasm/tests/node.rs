@@ -315,7 +315,7 @@ fn errors_are_typed_js_errors() {
     assert_eq!(kind_of(&e), ("DssError".into(), "dss".into()));
 }
 
-/// P35 review: `maxCells` and `maxBlocks` never wrap; bad values are `invalid_argument`.
+/// Regression: `maxCells` and `maxBlocks` never wrap; bad values are `invalid_argument`.
 #[wasm_bindgen_test]
 fn count_arguments_are_validated() {
     let (_, bytes) = FIXTURES

@@ -1,4 +1,4 @@
-//! Bindings for a local Zarr v2 store (`dss_vortex::source::zarr`, packet P49). The public API is
+//! Bindings for a local Zarr v2 store (`dss_vortex::source::zarr`). The public API is
 //! `python/ras_commander_fast_dss/gridded/_zarr.py`; this module moves data and maps errors.
 
 use super::vortex::{finish, options, request_of, Callback};

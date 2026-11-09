@@ -1,9 +1,7 @@
 //! Grid to point: Vortex's masks and statistics on committed public fixtures, hostile zone files,
 //! refusals that leave files alone, crash recovery, and the optional area-weighted mean.
 //!
-//! `fixtures/public/vortex_p51/expected.json` was recorded from Vortex 1.1.0 by
-//! `oracle/vortex/make_p51_fixture.py`. The full matrix against both Vortex versions is
-//! `oracle/vortex/run_zonal.py`, in the P51 report.
+//! `fixtures/public/vortex_p51/expected.json` was recorded from Vortex 1.1.0.
 
 use dss_core::dss7::write::{
     create_dss7, write_rts, FaultPoint, RtsInput, RtsValues, WriteError, WriteOptions, WriteStep,

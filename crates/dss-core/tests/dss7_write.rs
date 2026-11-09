@@ -1,10 +1,11 @@
 //! P20 writer tests: create → add → replace → read round trips, word-level byte identity
 //! of unrelated records (gate G4), a crash test that stops the write after every step of
-//! the transaction (P20 §4), and a fuzz pass on input validation. Synthetic data only;
+//! the transaction (`docs/format/dss7.md` §6.4), and a fuzz pass on input validation. Synthetic data only;
 //! every write goes to a new file or a temporary copy of a public fixture.
 //!
-//! HEC oracle checks of the same writer (hecdss, Monolith, heclib `zcheckFile`, HEC-written
-//! word comparisons) are local-only: `evidence/P20/REPORT.md`.
+//! The same writer was also checked with HEC software (hecdss and Monolith read the files,
+//! heclib `zcheckFile` passes, HEC-written records compare word for word); those checks
+//! need HEC software and do not run in this test suite.
 
 mod dss7_common;
 
@@ -517,7 +518,8 @@ fn crash_case(base: &Path, dir: &Path, c: &Case) {
             &diff_v
         ));
         if let Some(dir) = &out {
-            // Local oracle: interrupted, rerun and different-pathname files.
+            // Optional copies for checking with HEC software: interrupted, rerun and
+            // different-pathname files.
             std::fs::create_dir_all(dir).unwrap();
             let stem = format!("{}_{i}_{step:?}", c.name);
             let crashed = Path::new(dir).join(format!("{stem}.dss"));
@@ -526,7 +528,8 @@ fn crash_case(base: &Path, dir: &Path, c: &Case) {
             std::fs::copy(&f, Path::new(dir).join(format!("{stem}_rerun.dss"))).unwrap();
             std::fs::copy(&fb, Path::new(dir).join(format!("{stem}_diff.dss"))).unwrap();
             // HEC C writer input for the same interrupted file: a fresh table hash and a
-            // pathname in the crashed record's chain (evidence/P20/scripts/p20hec.c).
+            // pathname in the crashed record's chain, in the `STORE` spec format that
+            // `examples/dss7_write.rs` documents, for HEC's C library to write next.
             let spec = format!(
                 "STORE float /C/HECFRESH/FLOW//1Day/S/ 01Jan2021 2400 cfs INST-VAL 2 0 0\n\
                  3f800000 40000000\n\
@@ -816,7 +819,7 @@ fn fuzz_input_validation() {
 }
 
 /// Old lock scheme (read-array pointer 0, synthetic 7-JA file): the default policy
-/// (maintainer 2026-10-28, P19) writes while holding word 100 and reports
+/// writes while holding word 100 and reports
 /// `readers_undetected`; a strict policy refuses.
 #[test]
 fn old_lock_scheme_default_writes_strict_refuses() {

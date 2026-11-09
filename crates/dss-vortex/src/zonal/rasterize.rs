@@ -11,7 +11,7 @@
 //!
 //! **Chunking.** GDAL splits a raster into swaths when one exceeds its block cache (5% of RAM by
 //! default), and then subtracts a swath's offset from pixel coordinates. That can only move a
-//! coordinate by its last bits, and no grid in the evidence reaches it: 2^26 cells is 64 MiB.
+//! coordinate by its last bits, and no grid checked reaches it: 2^26 cells is 64 MiB.
 
 use super::geometry::{is_clockwise, Part, Pt};
 use super::{refused, ZoneLimits};

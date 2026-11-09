@@ -1,11 +1,11 @@
-"""P32: DSS7 variants with no corpus data, in files written by HEC's C library.
+"""P32: DSS7 variants absent from HEC's sample files, in files written by HEC's C library.
 
 Fixtures (``fixtures/public``): ``synthetic_notes_quality7.dss``,
 ``synthetic_irregular_variants7.dss`` and ``synthetic_catalog_ops7.dss``, written by
-``evidence/P32/scripts/P32Write7.c`` (heclib built from hec-dss
+HEC's C library through its public API (heclib built from hec-dss
 ``f14554d``, file version ``7-JA``). They are not regenerated: the SHA-256 is the
-fixture's identity. HEC's C library agrees with the engine on 106/106 requests
-(REPORT §4). The Python dicts carry values, times and the first quality word; integer
+fixture's identity. HEC's C library agreed with the engine on 106/106 requests.
+The Python dicts carry values, times and the first quality word; integer
 and character notes and extra quality words are checked in
 ``crates/dss-core/tests/hec_written7.rs``.
 """

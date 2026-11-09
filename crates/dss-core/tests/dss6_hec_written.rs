@@ -1,7 +1,7 @@
 //! P33: DSS6 variants written by HEC software, checked against values HEC read back.
 //!
-//! Fixtures (written by HEC Monolith 3.3.27, javaHeclib `7-IU`, with
-//! `evidence/P33/scripts/P33Monolith.java`; not regenerated here):
+//! Fixtures (written by HEC Monolith 3.3.27, javaHeclib `7-IU`, through its Java API;
+//! not regenerated here):
 //! - `synthetic_hec_compress6.dss`: regular float blocks stored through `Heclib.zsrtsx` with
 //!   compression scheme `JCOMP` 1-5 (`zsrtsx.f` -> `zsrtsi6.f` lines 588-598, 821-888),
 //!   including the 3-significant-digit schemes 4 and 5 that no corpus file holds;
@@ -9,7 +9,7 @@
 //!   far-date irregular data, an irregular pattern (type 111) and pseudo-regular paths.
 //!
 //! Reference values: `synthetic_hec6_reference.tsv`, recorded from Monolith 3.3.27 on
-//! disposable copies (`make_reference.py`): `RAW` lines are the REAL*4 bits heclib's
+//! disposable copies: `RAW` lines are the REAL*4 bits heclib's
 //! `zrrtsx` returns after `DUREAL`, `SERIES` lines what `HecTimeSeries.read` returns
 //! (-901/-902 reported as -FLT_MAX). All names and values are synthetic.
 

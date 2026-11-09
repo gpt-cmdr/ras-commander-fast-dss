@@ -1,7 +1,6 @@
-//! A stated accumulation on GRIB2 input (packet P46c), with no oracle. Inputs are the formula-made
+//! A stated accumulation on GRIB2 input, with no oracle. Inputs are the formula-made
 //! MRMS message in `fixtures/public/vortex_p46`, with its parameter and time patched, so every duration
 //! and calendar edge is reached. Expected stamps are literals, never computed by the code under test.
-//! `oracle/vortex/run_window.py` runs real samples against Vortex and HEC's readers.
 
 #![allow(clippy::result_large_err)] // `ImportError`: see `import.rs`.
 use dss_core::dss6::Dss6File;
@@ -60,7 +59,7 @@ fn message(parameter: (u8, u8, u8), time: Time, seconds: u8) -> Vec<u8> {
     let mut b = fs::read(fixtures().join(FIXTURE)).unwrap();
     b[6] = parameter.0;
     if parameter.0 != 209 {
-        // NCEP: its tables hold the WMO parameters, as `make_p46_fixture.py` states them.
+        // NCEP: its tables hold the WMO parameters (GRIB2 Code Table 4.2).
         b[16 + 5..16 + 7].copy_from_slice(&7u16.to_be_bytes());
     }
     let Time(year, month, day, hour, minute) = time;
@@ -818,7 +817,7 @@ const ONE_HOUR_NAMES: [&str; 3] = [
     "MRMS_GaugeCorr_QPE_01H_00.00_20240615-060000.grib2",
 ];
 
-/// Maintainer decision, 2026-11-04.
+/// Design rule: a renamed file is refused and both durations are named.
 #[test]
 fn the_default_route_refuses_a_renamed_file_and_names_both_durations() {
     let dir = fresh("default_renamed");
@@ -924,8 +923,7 @@ fn window_rule_vortex_still_gives_vortexs_one_hour_stamps() {
     );
 }
 
-// Review of 8a545c6, finding 1. MRMS's table gives these years and a ratio; the real files are in
-// `oracle/vortex/run_window.py refusals`.
+// MRMS's table gives these years and a ratio; real MRMS files were checked against it.
 const ARI24: (u8, u8, u8) = (209, 12, 19);
 const ARI01: (u8, u8, u8) = (209, 12, 15);
 const FFG01: (u8, u8, u8) = (209, 12, 26);
@@ -1008,7 +1006,7 @@ fn a_units_label_must_be_a_depth_under_a_stated_accumulation() {
     }
 }
 
-// Review, finding 1: the ordinary route reached the same products.
+// Regression: the ordinary route reached the same products.
 #[test]
 fn the_default_route_refuses_a_product_that_is_not_a_depth_and_vortex_keeps_it() {
     let dir = fresh("default_not_depth");
@@ -1031,7 +1029,7 @@ fn the_default_route_refuses_a_product_that_is_not_a_depth_and_vortex_keeps_it()
     assert_eq!(records[0].record.units, "year");
 }
 
-// Review, finding 2.
+// Regression: a label in a file name.
 #[test]
 fn a_label_in_a_file_name_is_not_a_statement_and_a_stem_is() {
     let dir = fresh("labels_in_names");

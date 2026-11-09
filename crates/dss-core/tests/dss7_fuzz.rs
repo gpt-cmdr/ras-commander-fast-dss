@@ -1,4 +1,4 @@
-//! P06 acceptance check 7: truncated, bit-flipped and word-corrupted DSS7 files give
+//! Truncated, bit-flipped and word-corrupted DSS7 files give
 //! errors or anomalies, never panics, and every loop terminates.
 //!
 //! Deterministic sweeps (xorshift seeds) over a synthetic file, plus the public fixtures

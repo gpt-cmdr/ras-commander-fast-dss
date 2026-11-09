@@ -303,8 +303,8 @@ pub fn get_word(buf: &[u8], word: usize) -> i64 {
     i64::from_le_bytes(buf[word * 8..word * 8 + 8].try_into().unwrap())
 }
 
-/// Optional public fixtures: `fixtures/public/<name>` in the repo, else the P02 golden
-/// copy under `DSS_GOLDEN_DIR` when that variable is set.
+/// Optional public fixtures: `fixtures/public/<name>` in the repo, else the copy
+/// under `DSS_GOLDEN_DIR` when that variable is set.
 pub fn public_fixture(golden_id: &str, name: &str) -> Option<PathBuf> {
     let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../fixtures/public")
@@ -318,11 +318,11 @@ pub fn public_fixture(golden_id: &str, name: &str) -> Option<PathBuf> {
 }
 
 pub fn sample7() -> Option<PathBuf> {
-    public_fixture("g01_v7_sample7", "sample7.dss")
+    public_fixture("v7_sample7", "sample7.dss")
 }
 
 pub fn bald_eagle() -> Option<PathBuf> {
-    public_fixture("g02_v7_BaldEagleDamBrk", "BaldEagleDamBrk.dss")
+    public_fixture("v7_BaldEagleDamBrk", "BaldEagleDamBrk.dss")
 }
 
 /// Deterministic xorshift64* generator for fuzz sweeps.

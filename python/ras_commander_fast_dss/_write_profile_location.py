@@ -1,4 +1,4 @@
-"""Profile and location writers (packet P39).
+"""Profile and location writers.
 
 ``write_profile`` stores a regular-interval profile, DSS7 only: a time x depth matrix,
 never flattened (``float32`` makes RTS-PROFILE 102, ``float64`` RTD-PROFILE 107). DSS6 has
@@ -6,10 +6,10 @@ no profiles (heclib ``ztsStore.c``: "Profiles are not implemented in version 6")
 
 ``write_location`` stores location data. On DSS7 that is the location record
 ``/A/B/Location Info////`` (type 20). DSS6 has no location records: coordinates and codes
-live in the time-series headers and the supplemental text in the user header (P15, P27),
+live in the time-series headers and the supplemental text in the user header,
 so the call updates every block of an existing time-series dataset.
 
-Specification: ``packets/P39_profile_location_writers.md``.
+Format notes: ``docs/format/dss7.md`` §11 and ``docs/format/dss6.md`` §13.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ import numpy as np
 
 from . import _native
 from ._time import TimeLike, to_hec_seconds
-from ._write import HEC_UNDEFINED_FLOAT, _precision, _refuse_tz
+from ._write import HEC_UNDEFINED_FLOAT, _precision, _refuse_tz, _sync_flag
 from ._write_pd import _cast, _numeric, _text
 from .exceptions import DssUnsupportedRecordError
 
@@ -75,6 +75,7 @@ def write_profile(
     value_type: str = "auto",
     raw: bool = False,
     allow_undetectable_readers: bool = True,
+    sync: bool = True,
 ) -> Dict[str, Any]:
     """Store a regular-interval profile in an existing DSS7 file.
 
@@ -104,6 +105,15 @@ def write_profile(
     raw:
         By default ``NaN`` values are stored as HEC's missing flag (-FLT_MAX), and ``NaN``
         or infinite depths are refused. ``raw=True`` stores every bit as given.
+    sync:
+        Flush policy, as for :func:`ras_commander_fast_dss.write_timeseries`: ``True``
+        (default, unchanged) flushes at the transaction's existing flush points (the
+        data is flushed together with the end-of-file flag) and ends with one
+        ``sync_all``; ``False`` (opt-in) does not flush. ``False`` keeps the
+        ordering of completed writes and of the recovery marker when the writing process
+        dies, so the next write reconciles an interrupted one as with ``True``. No
+        power-loss claim is made for either mode. For a damaged DSS7 file use
+        :func:`ras_commander_fast_dss.repair`.
 
     Returns
     -------
@@ -166,6 +176,7 @@ def write_profile(
         time_zone,
         _precision(precision),
         bool(allow_undetectable_readers),
+        sync=_sync_flag(sync),
     )
     _warn_undetected(report, dss_file)
     return dict(report)
@@ -197,6 +208,7 @@ def write_location(
     supplemental: Optional[TextLike] = None,
     keep_existing: bool = True,
     allow_undetectable_readers: bool = True,
+    sync: bool = True,
 ) -> Dict[str, Any]:
     """Store location data for ``pathname``, in the file's DSS version.
 
@@ -216,11 +228,20 @@ def write_location(
         DSS7 only (at most 71 bytes). DSS6 has no such location field: refused.
     supplemental:
         Text without NUL bytes. DSS7: the record's text. DSS6: the user header, at most
-        2,000 bytes. Text is informational: a datum named in it is never applied (D37).
+        2,000 bytes. Text is informational: a datum named in it is never applied.
     keep_existing:
         ``True`` (default): a field left ``None`` keeps what is stored, so a partial update
         loses nothing. ``False``: every field left ``None`` is cleared, as heclib stores a
         whole struct.
+    sync:
+        Flush policy, as for :func:`ras_commander_fast_dss.write_timeseries`: ``True``
+        (default, unchanged) flushes at the transaction's existing flush points (the
+        data is flushed together with the end-of-file flag) and ends with one
+        ``sync_all``; ``False`` (opt-in) does not flush. ``False`` keeps the
+        ordering of completed writes and of the recovery marker when the writing process
+        dies, so the next write reconciles an interrupted one as with ``True``. No
+        power-loss claim is made for either mode. For a damaged DSS7 file use
+        :func:`ras_commander_fast_dss.repair`.
 
     Returns
     -------
@@ -255,6 +276,7 @@ def write_location(
         bool(keep_existing),
         _native.file_signature(os.fspath(dss_file))["version"],
         bool(allow_undetectable_readers),
+        sync=_sync_flag(sync),
     )
     _warn_undetected(report, dss_file)
     return dict(report)

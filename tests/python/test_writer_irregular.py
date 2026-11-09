@@ -1,8 +1,8 @@
 """P21: DSS7 irregular time-series writer, synthetic data only.
 
-Every file is created in ``tmp_path``. Round trips read back through the native reader;
-the HEC oracle comparisons (hecdss, Monolith, heclib C ``zcheckFile`` and word-level
-comparisons with the heclib C writer) are local-only, see evidence/P21/REPORT.md.
+Every file is created in ``tmp_path``. Round trips read back through the native reader.
+These tests do not run HEC software (hecdss, Monolith, heclib C ``zcheckFile``, the
+heclib C writer).
 """
 
 from __future__ import annotations
@@ -167,7 +167,7 @@ def test_dssfile_method_reopens(new_file):
         assert "/P21/O/FLOW/01Mar2021/IR-Day/SYN/" in set(f.pathnames())
 
 
-# -- HEC-written public fixture (heclib C 7-JA via evidence/P21/scripts/p21hec.c) ---------
+# -- HEC-written public fixture (heclib C 7-JA, written by a small C program) ------------
 
 FIXTURE = "p21_hec_its7.dss"
 FIXTURE_SHA256 = "57829b397ce42bb3fea976cb01a76214c3647c362bab2f9ebccd9bce30c7660b"
@@ -263,7 +263,7 @@ def test_native_irregular_write_equals_hec_write(tmp_path):
     assert [i for i, (x, y) in enumerate(zip(a, b)) if x != y] == []
 
 
-# -- P21 review follow-ups ------------------------------------------------------------
+# -- edge cases -----------------------------------------------------------------------
 
 
 def test_refused_multi_block_write_leaves_file_unchanged(tmp_path):

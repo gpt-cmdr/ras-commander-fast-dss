@@ -182,7 +182,7 @@ impl InfoBlock {
 /// Reason an info block failed verification.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InfoProblem {
-    /// Info flag word is 0 (unwritten info block; P02 anomaly 2).
+    /// Info flag word is 0 (unwritten info block).
     Zeroed,
     BadFlag(i64),
     /// Info hash differs from the bin hash: the space was reused (`zreadInfo()`).

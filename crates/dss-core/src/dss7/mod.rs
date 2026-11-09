@@ -1,7 +1,7 @@
-//! DSS7 reader: header, catalog and point lookup (packet P06); time-series reads
-//! (packet P08a, [`ts`]).
+//! DSS7 reader: header, catalog and point lookup; time-series reads
+//! ([`ts`]).
 //!
-//! Format rules: `docs/format/dss7.md` (P04). Each submodule cites the `heclib` function
+//! Format rules: `docs/format/dss7.md`. Each submodule cites the `heclib` function
 //! its layout comes from.
 //!
 //! The reader is strictly read-only: it opens files with [`std::fs::File::open`], takes
@@ -28,14 +28,17 @@ pub mod header;
 pub mod info;
 pub mod interval;
 pub mod pd;
-// Location records (P15).
+// Location records.
 pub mod location;
 pub mod ts;
 mod walk;
-// P20: regular time-series writer (create, add, replace). Not built for wasm32.
+// Per-catalog dataset date-range index.
+mod range_index;
+// Regular time-series writer (create, add, replace). Not built for wasm32.
 #[cfg(not(target_arch = "wasm32"))]
 pub mod write;
 
+use std::collections::HashSet;
 use std::fmt;
 use std::io::{Cursor, Read, Seek, SeekFrom};
 use std::path::Path;
@@ -45,6 +48,7 @@ pub use header::Dss7Header;
 pub use info::{InfoBlock, InfoProblem};
 pub use location::{Dss7Location, LocationError};
 pub use pd::{Dss7Pd, Dss7PdMeta, PdError};
+pub use range_index::IndexedDss7Catalog;
 pub use ts::{Dss7Profile, Dss7Ts, TsError, TsInternalHeader, TsMeta, TsReadOptions, TsWindow};
 pub use walk::{
     CatalogOptions, ChainState, Dss7Catalog, Dss7EntryMeta, InfoCheck, InfoSummary, WalkStats,
@@ -371,7 +375,7 @@ impl<R: Read + Seek> Dss7File<R> {
                 InfoProblem::BadFlag(info.flag)
             }));
         }
-        // P32: an alias's info block belongs to the primary; read its own pathname.
+        // An alias's info block belongs to the primary; read its own pathname.
         let info = if st == status::ALIAS {
             self.primary_info(info)
         } else {
@@ -461,7 +465,7 @@ impl<R: Read + Seek> Dss7File<R> {
                                 problem,
                             });
                         }
-                        // P32: an alias's info block belongs to the primary.
+                        // An alias's info block belongs to the primary.
                         let info = if st == status::ALIAS {
                             self.primary_info(info)
                         } else {
@@ -471,7 +475,7 @@ impl<R: Read + Seek> Dss7File<R> {
                         // the space was reused; the record is not found. For an alias the
                         // info block belongs to the primary, whose hash differs from the
                         // alias hash; zreadInfo() as written would reject every alias read.
-                        // We skip the hash check for aliases ([UNVERIFIED]: the P02 corpus has
+                        // We skip the hash check for aliases ([UNVERIFIED]: the test corpus has
                         // no aliases).
                         if st != status::ALIAS && info.hash != bin_hash {
                             return Ok(None);
@@ -497,7 +501,7 @@ impl<R: Read + Seek> Dss7File<R> {
         Ok(None)
     }
 
-    /// P32: re-read an alias's primary info block with the primary's own pathname length,
+    /// Re-read an alias's primary info block with the primary's own pathname length,
     /// so `InfoBlock::pathname` is the primary pathname. The first read used the alias
     /// pathname length, which leaves the primary pathname empty or cut when the lengths
     /// differ. `Public/zaliasGetPrimary.c:zaliasGetPrimary()` (hec-dss `7-IU-15`, lines
@@ -559,5 +563,232 @@ pub fn record_status(raw: i64) -> crate::RecordStatus {
         status::DELETED | status::ALIAS_DELETED | status::REMOVED => S::Deleted,
         status::RENAMED => S::Renamed,
         _ => S::Other,
+    }
+}
+
+/// One bin entry found by [`Dss7File::discover`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FoundEntry {
+    /// Pathname bytes as stored in the bin.
+    pub pathname: Vec<u8>,
+    /// Bin status (0/1 live, 2 alias, others deleted, renamed or moved).
+    pub status: i64,
+    /// Record type from the bin entry.
+    pub record_type: i32,
+    /// The entry's hash word (`zcheckInternal()` compares it with the info block's).
+    pub stored_hash: i64,
+    /// Word address of the entry.
+    pub bin_entry_address: i64,
+    /// The entry's info address (an alias's: the start of its alias chain).
+    pub info_address: i64,
+}
+
+/// What [`Dss7File::discover`] found.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Discovery {
+    /// Every parsed entry of every bin reached, each bin once, in traversal order.
+    pub entries: Vec<FoundEntry>,
+    /// Pointer targets the procedure reached but cannot classify: `(word address, what)`.
+    pub unclassified: Vec<(i64, String)>,
+    /// Bins visited.
+    pub bins_visited: u64,
+}
+
+impl<R: Read + Seek> Dss7File<R> {
+    /// The discovery procedure of copy-out (`write::repair_dss7`), in one
+    /// place. Everything a reader can reach through a pointer of the file's pathname
+    /// structures, and nothing else:
+    ///
+    /// 1. **Roots:** every bin of every block of the bin-block chain (header
+    ///    `kaddFirstBin`, each block's chain word after its `kbinsPerBlock` bins; the
+    ///    catalog walk of `zcatalogInternal()`), and every non-zero hash-table slot
+    ///    (`kaddHashTableStart`, `kmaxHash` slots; where `lookup()` starts).
+    /// 2. **Bins:** each bin reached is parsed exactly as [`Dss7File::lookup`] parses it
+    ///    (`zcheckInternal()` lines 312-420): entries until a zero hash word or an entry
+    ///    whose lengths do not fit. Every entry is reported, whatever its status.
+    /// 3. **Overflow:** from **every** bin reached, the overflow word (word
+    ///    `kbinSize - 1`) is followed when non-zero, also from a bin whose first word is
+    ///    zero (an empty bin): `lookup()` follows it too (`zcheckInternal()` line 426).
+    ///    The recovery catalog did not, which hid records behind an empty bin.
+    /// 4. **Bounds:** each bin is visited once (a visited set), at most
+    ///    `kfileSize / kbinSize + 1` bins. A bin block whose declared span
+    ///    (`kbinsPerBlock` bins and the chain word) does not fit the data area stops the
+    ///    chain walk and is reported as unclassified; none of its bins is searched, unlike
+    ///    the catalog walk, which salvages the whole bins of a partial block. A link
+    ///    outside the data area, an entry that
+    ///    does not parse after a non-zero hash word, and reaching the visit bound are
+    ///    returned in [`Discovery::unclassified`], never dropped.
+    /// 5. **Order:** breadth-first; every bin of the bin-block chain first, in the catalog
+    ///    walk's physical order, then the hash slots in order, then overflow targets.
+    ///    Entries therefore come out in catalog order.
+    ///
+    /// Each entry's info block (and, for an alias, its alias chain) is read later by
+    /// [`Dss7File::record_from_entry`]. Bytes that no pointer reaches (for example an
+    /// info block that no entry names, or entries after an entry with a zero hash word,
+    /// where `lookup()` stops) are out of scope.
+    pub fn discover(&mut self) -> Result<Discovery, Dss7Error> {
+        let h = self.header.clone();
+        let bs = h.bin_size;
+        let mut out = Discovery::default();
+        if bs < BIN_ENTRY_WORDS + 2 {
+            out.unclassified
+                .push((0, format!("bin size {bs} is too small to hold an entry")));
+            return Ok(out);
+        }
+        let max_bins = (h.file_size_words / bs).saturating_add(1) as usize;
+        let mut work: Vec<i64> = Vec::new();
+        // Roots: the bin-block chain.
+        let bpb = h.bins_per_block.max(0);
+        let mut block = h.first_bin_address;
+        let mut blocks = 0usize;
+        let mut seen_blocks: HashSet<i64> = HashSet::new();
+        while block != 0 {
+            blocks += 1;
+            if blocks > max_bins || !seen_blocks.insert(block) {
+                out.unclassified
+                    .push((block, "the bin-block chain loops or is too long".into()));
+                break;
+            }
+            if !self.in_data_area(block, bs * bpb + 1) {
+                out.unclassified
+                    .push((block, "a bin block lies outside the data area".into()));
+                break;
+            }
+            for i in 0..bpb {
+                work.push(block + i * bs);
+            }
+            block = word(&self.read_words(block + bs * bpb, 1)?, 0);
+        }
+        // Roots: every hash-table slot.
+        if h.max_hash > 0 && self.in_data_area(h.hash_table_address, h.max_hash) {
+            let slots = self.read_words(h.hash_table_address, h.max_hash)?;
+            for i in 0..h.max_hash as usize {
+                let a = word(&slots, i);
+                if a != 0 {
+                    work.push(a);
+                }
+            }
+        } else {
+            out.unclassified.push((
+                h.hash_table_address,
+                "the hash table lies outside the file".into(),
+            ));
+        }
+        // Breadth-first, roots in order: every bin of the bin-block chain first, in the
+        // physical order of the catalog walk, then the hash slots, then overflow targets.
+        // Entries come out in catalog order, so ties between copies of a pathname that no
+        // lookup reaches are broken as the catalog lists them.
+        let mut work: std::collections::VecDeque<i64> = work.into_iter().collect();
+        let mut visited: HashSet<i64> = HashSet::new();
+        while let Some(a) = work.pop_front() {
+            if visited.contains(&a) {
+                continue;
+            }
+            if visited.len() >= max_bins {
+                out.unclassified.push((
+                    a,
+                    format!("traversal stopped at its bound of {max_bins} bins"),
+                ));
+                break;
+            }
+            visited.insert(a);
+            if !self.in_data_area(a, bs) {
+                out.unclassified
+                    .push((a, "a link names a bin outside the data area".into()));
+                continue;
+            }
+            out.bins_visited += 1;
+            let bytes = self.read_words(a, bs)?;
+            let b = |i: usize| word(&bytes, i);
+            let bsu = bs as usize;
+            let mut ic = 0usize;
+            while ic + (BIN_ENTRY_WORDS as usize) < bsu {
+                let eh = b(ic + bin::HASH);
+                if eh == 0 {
+                    break;
+                }
+                let (chars, pwords) = info::split_i4(b(ic + bin::PATH_LEN));
+                if chars <= 0
+                    || chars as usize > MAX_PATHNAME_BYTES
+                    || pwords as i64 != (chars as i64 + 7) / 8
+                    || ic + BIN_ENTRY_WORDS as usize + pwords as usize > bsu - 1
+                {
+                    out.unclassified.push((
+                        a + ic as i64,
+                        "a bin entry with a non-zero hash word does not parse".into(),
+                    ));
+                    break;
+                }
+                let po = (ic + bin::PATH) * 8;
+                let (rtype, _) = info::split_i4(b(ic + bin::TYPE_AND_CAT_SORT));
+                out.entries.push(FoundEntry {
+                    pathname: bytes[po..po + chars as usize].to_vec(),
+                    status: b(ic + bin::STATUS),
+                    record_type: rtype,
+                    stored_hash: eh,
+                    bin_entry_address: a + ic as i64,
+                    info_address: b(ic + bin::INFO_ADD),
+                });
+                ic += BIN_ENTRY_WORDS as usize + pwords as usize;
+                if ic >= bsu - 2 {
+                    break;
+                }
+            }
+            let next = b(bsu - 1);
+            if next != 0 && !visited.contains(&next) {
+                work.push_back(next);
+            }
+        }
+        Ok(out)
+    }
+
+    /// The record of an entry found by [`Dss7File::discover`]: its info block read and
+    /// checked as [`Dss7File::lookup`] and [`Dss7File::record_at`] do (flag, the hash
+    /// rule for non-aliases, an alias's chain resolved to its primary).
+    pub fn record_from_entry(&mut self, e: &FoundEntry) -> Result<RecordRef, Dss7Error> {
+        let st = e.status;
+        if !((status::VALID..=status::PRIMARY).contains(&st) || st == status::ALIAS) {
+            return Err(Dss7Error::NotLiveEntry {
+                index: 0,
+                status: Some(st),
+            });
+        }
+        let mut info_addr = e.info_address;
+        if st == status::ALIAS {
+            info_addr = self.resolve_alias(info_addr)?;
+        }
+        let bad = |problem| Dss7Error::BadInfoBlock {
+            info_address: info_addr,
+            problem,
+        };
+        let info = self
+            .read_info(info_addr, e.pathname.len())
+            .map_err(|err| match err {
+                Dss7Error::ReadOutOfBounds { .. } => bad(InfoProblem::OutOfBounds),
+                other => other,
+            })?;
+        if info.flag != info::INFO_FLAG {
+            return Err(bad(if info.flag == 0 {
+                InfoProblem::Zeroed
+            } else {
+                InfoProblem::BadFlag(info.flag)
+            }));
+        }
+        let info = if st == status::ALIAS {
+            self.primary_info(info)
+        } else {
+            info
+        };
+        if st != status::ALIAS && info.hash != e.stored_hash {
+            return Err(bad(InfoProblem::HashMismatch));
+        }
+        Ok(RecordRef {
+            pathname: e.pathname.clone(),
+            status: st,
+            record_type: e.record_type,
+            bin_entry_address: e.bin_entry_address,
+            info_address: info_addr,
+            info,
+        })
     }
 }

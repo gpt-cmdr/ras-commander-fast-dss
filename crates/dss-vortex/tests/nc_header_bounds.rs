@@ -226,7 +226,7 @@ fn what_the_reader_uses_stays_within_the_estimate() {
     );
 
     // Under a ceiling like a process limit's, nothing asks for more than the reader can soften: this
-    // completes with a typed error, and an abort would fail the test binary. The review's file, with
+    // completes with a typed error, and an abort would fail the test binary. A crafted file, with
     // its count low enough to pass the metadata limit, is what asked for 120 MB.
     CEILING.store(16 * MIB, Ordering::SeqCst);
     let error = NetcdfFile::from_bytes(

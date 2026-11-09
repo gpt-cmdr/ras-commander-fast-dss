@@ -4,7 +4,7 @@
 //! byte-identical): `convert/GridToPointConverter`, `geo/ZonalStatisticsCalculator`, `geo/Grid`,
 //! `geo/GridCell`, `io/DssDataWriter` and its `VortexPoints`, `io/DssDataReader.dssToDto`,
 //! `util/DssUtil.getEPart`. GDAL 3.2.1 for the mask (see [`rasterize`]). No Java or GDAL runs here;
-//! they are test oracles (`oracle/vortex/run_zonal.py`).
+//! they are used only as test oracles.
 //!
 //! A run reads every frame and computes every statistic before it touches the output, so anything
 //! refused leaves the file as it was. Each record then goes through the P20, P21 or P22 writer, which
@@ -18,7 +18,7 @@
 //!
 //! **A rerun updates a window, and does not replace a series.** A record's blocks are merged with what
 //! the pathname already holds: values at stamps this run does not reach stay. [`PointRecord::outcome`]
-//! says what happened. See the P51 report for the same rerun on both Vortex versions.
+//! says what happened. Both Vortex versions behave the same way on a rerun (observed).
 //!
 //! **An output that is also an input is refused,** by the file itself rather than its name, so a hard
 //! link is caught ([`crate::file_identity`]). [`GridToPointRequest::allow_in_place`] permits the grids'
@@ -361,7 +361,7 @@ fn transformed(
 }
 
 /// Each zone's cells: `createZoneMasks`. Masks are identical to GDAL 3.2.1's `RasterizeLayer` with its
-/// defaults in the evidence report's cases, or fall back to the middle of the extent.
+/// defaults in the cases compared, or fall back to the middle of the extent.
 pub fn zone_masks(
     zones: &ZoneSet,
     grid: &GridPlacement,
@@ -492,7 +492,7 @@ fn java_compare(a: &f64, b: &f64) -> std::cmp::Ordering {
 }
 
 /// The sum Java's `DoubleStream.sum` returns (Vortex sums zone values with it on JDK 21, the runtime
-/// both Vortex versions ship). Clean-room implementation (packet P59): Kahan's compensated
+/// both Vortex versions ship). Clean-room implementation: Kahan's compensated
 /// summation (W. Kahan, "Further remarks on reducing truncation errors", CACM 8(1), 1965) over the
 /// values in order, whose result is the running sum minus the final compensation, and, when that is
 /// NaN while the plain left-to-right sum is infinite, the plain sum. The `DoubleStream.sum` Javadoc
@@ -500,7 +500,7 @@ fn java_compare(a: &f64, b: &f64) -> std::cmp::Ordering {
 /// 17.0.20.1+1 and 21.0.9+10, where it equals Java bit for bit on 200,000 random finite arrays
 /// (plain, Kahan returning the running sum, and Neumaier's 1974 variant do not). With NaN inputs the
 /// result is NaN on both sides, but which NaN's sign and payload survives is not matched. No JDK
-/// source was consulted (`evidence/P59/REPORT.md`).
+/// source was consulted.
 fn java_sum(values: &[f64]) -> f64 {
     // Kahan (1965): carry the rounding loss into the next addend. Do not reassociate
     // these operations: the rounded intermediates define the compensation.
@@ -515,7 +515,7 @@ fn java_sum(values: &[f64]) -> f64 {
         accumulated = advanced;
     }
     // Final correction and infinity recovery were selected by public-API JDK
-    // experiments, not by implementation inspection (P59b report).
+    // experiments, not by implementation inspection.
     let corrected = accumulated - rounding_loss;
     match (corrected.is_nan(), ordinary.is_infinite()) {
         (true, true) => ordinary,
@@ -1142,8 +1142,8 @@ fn data_type(variable: Option<Variable>, period: i64) -> &'static str {
                 "PER-AVER"
             }
         }
-        // `DssDataType.INVAL`, whose text is what HEC's reader then returns. Matched as observed, and
-        // named in the P51 report as a question for the maintainer.
+        // `DssDataType.INVAL`, whose text is what HEC's reader then returns. Matched as observed; whether
+        // to keep matching it is an open question.
         _ => "INVALID",
     }
 }
@@ -1953,9 +1953,9 @@ mod tests {
         assert_eq!(java_sum(&values), 1e16 + 4.0);
     }
 
-    /// Black-box equivalence with the JDK (P59): the 200,000 seeded arrays of
-    /// `evidence/P59/scripts/P59JavaSum.java`, whose `DoubleStream.sum` hashes
-    /// Java 17.0.20.1+1 and 21.0.9+10 both print. Every NaN hashes alike.
+    /// Black-box equivalence with the JDK: 200,000 seeded arrays, generated as Java's public API
+    /// generates them; Java 17.0.20.1+1 and 21.0.9+10 both give the asserted
+    /// `DoubleStream.sum` hash. Every NaN hashes alike.
     #[test]
     fn java_sum_equals_java_black_box() {
         struct Rng(u64);

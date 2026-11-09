@@ -1,9 +1,9 @@
-//! Paired-data writer harness for oracle comparisons (packet P23).
+//! Paired-data writer harness for comparisons with HEC software.
 //!
 //! ```text
 //! pd_write create <new.dss> <6|7>
 //! pd_write store <file.dss> <spec.tsv> <6|7> [--fault <step>] [--no-sync]
-//!     One paired-data store per spec line (evidence/P23/scripts/pd_spec.py), tab-separated:
+//!     One paired-data store per spec line, tab-separated:
 //!       kind path ui ti ud td labels xp yp axis tz ncurve ords vals
 //!     kind float|double; "~" = empty string (no time zone for tz); labels "~" or
 //!     '|'-joined; ords/vals csv of hex bits (8 digits float, 16 double). A fault applies to

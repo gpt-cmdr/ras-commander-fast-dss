@@ -1,4 +1,4 @@
-//! Maintainer decision, "Platform parity": under `src/warp/`, transcendental maths goes through
+//! Design rule, "Platform parity": under `src/warp/`, transcendental maths goes through
 //! the one interface in `crs/maths.rs`. The warp itself needs none: its only maths is
 //! exact (`floor`, `ceil`, `trunc`, `abs`, `sqrt`, comparisons), identical on every platform.
 

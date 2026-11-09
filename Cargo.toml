@@ -4,7 +4,7 @@ members = ["crates/dss-core", "crates/dss-py", "crates/dss-vortex", "crates/dss-
 default-members = ["crates/dss-core"]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 rust-version = "1.80"
 license = "MIT"
@@ -18,7 +18,7 @@ publish = false
 dss-core = { path = "crates/dss-core" }
 dss-vortex = { path = "crates/dss-vortex" }
 
-# The P41 warp fixture test covers 43.5 million cells; unoptimised it would take far too long.
+# The warp fixture test covers 43.5 million cells; unoptimised it would take far too long.
 [profile.dev.package.dss-vortex]
 opt-level = 3
 

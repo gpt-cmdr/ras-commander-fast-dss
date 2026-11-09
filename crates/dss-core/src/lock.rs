@@ -1,11 +1,11 @@
-//! Detection of HEC lock words (P19a; DSS_TASK DT7; decision D10).
+//! Detection of HEC lock words (`docs/format/dss7.md` §6, `dss6.md` §9).
 //!
 //! Before any native write, a writer must find out whether HEC software (heclib C or
 //! Fortran, as used by HEC-RAS, HEC-HMS, HEC-DSSVue, Monolith, hecdss, pydsstools) holds
 //! the file. This module only **detects**: [`lock_status`] reports which HEC lock words
 //! another handle holds, and [`ensure_unlocked_for_write`] turns a [`LockReport`] into a
 //! refusal under an explicit [`LockPolicy`]. No writer calls it yet. Reads never call
-//! it and never take or test locks (SPEC §2, D10).
+//! it and never take or test locks.
 //!
 //! # Lock words (`docs/format/dss7.md` §6, `docs/format/dss6.md` §4.4 / §9.1)
 //!
@@ -53,7 +53,7 @@
 //!
 //! - **Windows:** `_locking` takes **mandatory**, exclusive `LockFile` region locks, so
 //!   a read of a locked range from any other handle fails with `ERROR_LOCK_VIOLATION`
-//!   (33) (P17 observed this, `evidence/P17/REPORT.md` §B.4). This module tests each
+//!   (33) (observed on Windows with HEC software holding the file). This module tests each
 //!   word with a positioned, unbuffered read of exactly that word on its own read-only
 //!   handle. It never takes a lock, so it cannot make an HEC process's own no-wait
 //!   lock attempt fail (`zlockPassive.c` lines 187-194 skip any word that is busy;
@@ -721,14 +721,14 @@ pub fn lock_status(path: &Path) -> Result<LockReport, LockError> {
 // Write guard (pure; no writer calls it yet)
 // ---------------------------------------------------------------------------------
 
-/// Writer policy. Each field maps to a review question of
-/// `packets/P19_lock_detection.md`.
+/// Writer policy. Each field is one decision about writing to a file that HEC software
+/// may hold (`dss7.md` §6.2).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LockPolicy {
     /// Question 1, **decided by the maintainer 2026-10-28**: hold HEC's primary lock word
     /// (and one free DSS7 write-array word) on the writer's own handle for the whole
     /// write transaction (spec Policy 3). Default `true`. [`ensure_unlocked_for_write`]
-    /// does not read it; the writer packets implement it.
+    /// does not read it; the writers implement it.
     pub hold_primary_lock_during_write: bool,
     /// Question 2, **decided by the maintainer 2026-10-28: refuse**. The guard refuses
     /// when the only holders are read-array words / read slots, i.e. an HEC process has
@@ -741,7 +741,7 @@ pub struct LockPolicy {
     /// native call. It only releases Monolith's file-cache reference, and the native file
     /// (with its read word) is closed by a background timer about 6 s later. Or it is
     /// closed by `HecDss.close()`, `HecDSSFileAccess.close(path, true)` or
-    /// `closeAllFiles()` (P19 evidence, deviation 7). The file stays held indefinitely if
+    /// `closeAllFiles()` (observed with Monolith). The file stays held indefinitely if
     /// that timer is disabled or another object in the JVM still uses the file. So a
     /// running HEC-HMS or HEC-DSSVue session can block writes for a while after "closing"
     /// a file, and the user may have to close that program. The writer cannot tell an
@@ -986,7 +986,7 @@ mod tests {
         assert!(bad(dss7_layout(&h, 810)));
     }
 
-    /// Review m1: corrupt DSS7 headers must give BadLockLayout, never panic or wrap.
+    /// Corrupt DSS7 headers must give BadLockLayout, never panic or wrap.
     #[test]
     fn corrupt_dss7_headers_do_not_overflow() {
         for (k, v) in [
@@ -1011,7 +1011,7 @@ mod tests {
         }
     }
 
-    /// Review m2: a DSS6 file too short to hold the read slots is BadLockLayout.
+    /// A DSS6 file too short to hold the read slots is BadLockLayout.
     #[test]
     fn dss6_lock_record_past_eof() {
         // Public fixture header (6-YN, KHASH 8, KTABLE 1): KLOCKB = 512.

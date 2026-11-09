@@ -1,4 +1,4 @@
-//! Packet P24: grid writer (DSS7 `write_grid`, DSS6 `write_grid6`).
+//! Grid writer (DSS7 `write_grid`, DSS6 `write_grid6`).
 //!
 //! - Round trips for HRAP, Albers (SHG and other parameters) and specified grids,
 //!   time-stamped and time-invariant, ZLIB / uncompressed / PRECIP_2_BYTE, with the
@@ -6,7 +6,7 @@
 //!   rewrites (`replaced`) leaving every other record word-identical.
 //! - HEC-written fixture (`fixtures/public/p24_hec_grid{6,7}.dss`, HEC Monolith 3.3.27):
 //!   the engine reads it as Monolith does, and a native replay of its operations gives
-//!   the same records (deflate streams compared inflated; see the P24 report).
+//!   the same records (deflate streams compared inflated).
 //! - Refusals leave the file byte-identical; a crash after every step of the
 //!   transaction leaves the other records intact and the next write repairs the file;
 //!   the HEC lock is honoured; a fuzz pass gives only typed errors.
@@ -148,7 +148,7 @@ fn bits(v: &[f32]) -> Vec<u32> {
 
 /// Cells as a reader returns them for what was written: DSS7 keeps every bit; DSS6
 /// ZLIB HRAP/Albers grids come back with GRID_UNDEFINED for -FLT_MAX (Java heclib's
-/// legacy normalization, P11).
+/// legacy normalization).
 fn expected_cells(v: u8, input: &GridInput) -> Vec<f32> {
     if v == 7 {
         return input.data.to_vec();
@@ -321,7 +321,7 @@ fn round_trips_both_versions() {
 #[test]
 fn albers_parameters_and_wkt() {
     // A non-SHG Albers grid: DSS7 stores the WKT Monolith builds (Java Float.toString),
-    // and the reader recovers the parameters from it as Monolith does (P13/P34).
+    // and the reader recovers the parameters from it as Monolith does.
     let d = tmp("albers");
     let cells: Vec<f32> = (0..20).map(|i| i as f32 * 0.25).collect();
     let a = AlbersParameters {
@@ -956,7 +956,7 @@ fn crash_after_every_step_then_recover() {
 // ---------------------------------------------------------------------------------
 
 /// Windows: a whole-file lock held by another handle (as the writer itself holds one,
-/// P20 §2) is seen by the guard: the write is refused and the file is unchanged.
+/// `docs/format/dss7.md` §6.2) is seen by the guard: the write is refused and the file is unchanged.
 #[test]
 #[cfg(windows)]
 #[allow(clippy::incompatible_msrv)]
@@ -1093,7 +1093,7 @@ fn fuzz_input_validation() {
 }
 
 // ---------------------------------------------------------------------------------
-// HEC-written fixture (HEC Monolith 3.3.27, synthetic values; P24 REPORT section 2)
+// HEC-written fixture (HEC Monolith 3.3.27, synthetic values)
 // ---------------------------------------------------------------------------------
 
 fn fixture(name: &str) -> PathBuf {
@@ -1373,7 +1373,7 @@ fn hec_fixture_replay_and_read() {
     let _ = std::fs::remove_dir_all(&d);
 }
 
-/// Review m2/m3/m1: DSS6 times beyond its 32-bit minutes, Albers units that would break
+/// DSS6 times beyond its 32-bit minutes, Albers units that would break
 /// the WKT, and a non-finite null value are refused before anything is written.
 #[test]
 fn range_and_text_refusals() {

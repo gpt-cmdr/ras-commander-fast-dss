@@ -1,4 +1,4 @@
-//! A store must not be a way to read outside its folder (review of `8fc6610a`, finding 1).
+//! A store must not be a way to read outside its folder.
 //!
 //! A junction or symbolic link anywhere below the store's root is refused: an array's folder, an
 //! axis's folder, a parent of a `/`-separated chunk, a chunk, a metadata file. Junctions need no

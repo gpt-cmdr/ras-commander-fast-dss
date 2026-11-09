@@ -1,11 +1,10 @@
-//! DSS6 writer harness for oracle comparisons (packet P22).
+//! DSS6 writer harness for comparisons with HEC Monolith.
 //!
 //! ```text
 //! dss6_write create <new.dss>
 //!     Create an empty DSS6 file (refuses an existing path).
 //! dss6_write ops <file.dss> <ops.tsv> [--fault <block>:<step>] [--no-sync] [--merge]
-//!     Run the store lines of ops.tsv, the format of the Monolith helper
-//!     (evidence/P22/scripts/P22Monolith.java), tab-separated:
+//!     Run the store lines of ops.tsv, tab-separated:
 //!       rts  path date(ddMMMyyyy) time(hhmm) units type values quality
 //!       rtd  path date time units type values quality
 //!       its  path jbase times(min) units type values quality inflag

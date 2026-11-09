@@ -32,7 +32,7 @@ use crate::dss6::interval::{
     regular_block, time_offset, KVERNO_6I,
 };
 
-/// Most values one write takes (as P20's bound on dataset reads).
+/// Most values one write takes (the same bound as dataset reads).
 pub(super) const MAX_VALUES: usize = 50_000_000;
 const MISSING_F32: f32 = -901.0;
 const MISSING_F64: f64 = -901.0;
@@ -472,7 +472,7 @@ pub(super) fn store(
     plan: &Plan,
 ) -> Result<Vec<BlockReport>, WriteError> {
     // HEC readers of files before 6-I put 15- and 30-minute data in daily blocks
-    // (dss6.md §7.2, P08b §3 item 1). Those files are older than 6-M, which the engine
+    // (dss6.md §7.2). Those files are older than 6-M, which the engine
     // refuses ([`Engine::new`]), so the writer never meets them.
     debug_assert!(eng.kverno() >= KVERNO_6I);
     // Build and validate every block before the first store, so a refused write leaves

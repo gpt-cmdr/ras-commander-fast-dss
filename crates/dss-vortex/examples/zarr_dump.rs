@@ -1,5 +1,5 @@
-//! Test harness: writes what this crate reads from a Zarr v2 store, for `oracle/vortex/compare_zarr.py`
-//! and the memory-limited probes of `oracle/vortex/zarr_job.py`.
+//! Test harness: writes what this crate reads from a Zarr v2 store, for comparison with xarray
+//! and zarr-python, and for the memory-limited probes of `tests/support/zarr_job.py`.
 //!
 //! Usage: zarr_dump <store> <out-dir> [--variable NAME] [--steps A:B] [--max-steps N]
 //!                  [--bbox W,S,E,N | --window R0:R1,C0:C1] [--stored]

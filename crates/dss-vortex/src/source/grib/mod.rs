@@ -8,7 +8,7 @@
 //! - [`crate::products`]: names, units, missing values and time windows.
 //!
 //! The value formula is NetCDF-Java's. The `grib` crate computes `(R + X * 2^E) * 10^-D`, which
-//! rounds differently from `/ 10^D`, so it is not used (P45 decision: removed from the graph).
+//! rounds differently from `/ 10^D`, so it is not used (removed from the dependency graph).
 
 pub mod gds;
 mod georef_maths;
@@ -56,7 +56,7 @@ impl Default for Limits {
             max_cells: 1 << 28,
             max_records: 1 << 20,
             max_input_bytes: 1 << 34,
-            // About 63 million cells. See the P45 report for the products it clears.
+            // About 63 million cells, which clears every product the importer was checked on.
             max_jpeg2000_bytes: 1 << 30,
         }
     }
@@ -103,7 +103,7 @@ impl Grib2File {
             return Err(VortexError::Refused {
                 what: "GRIB1".to_string(),
                 reason: format!(
-                    "{} message(s) are not edition 2; the GRIB1 reader is a later packet",
+                    "{} message(s) are not edition 2; GRIB1 is not read yet",
                     found.other_editions
                 ),
             });

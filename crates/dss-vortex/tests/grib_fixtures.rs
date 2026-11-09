@@ -1,5 +1,5 @@
 //! Synthetic GRIB2 fixtures against Vortex 1.1.0's own decoded input, recorded in
-//! `fixtures/public/grib/expected.json` and `*.f32` by `oracle/vortex/make_grib_fixtures.py`.
+//! `fixtures/public/grib/expected.json` and `*.f32`.
 //! Bits are compared, so this is also the cross-platform determinism check for the decode layer.
 
 use dss_vortex::source::grib::{Grib2File, Limits};

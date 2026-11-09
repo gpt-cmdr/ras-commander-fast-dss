@@ -6,7 +6,7 @@ leading and trailing values for which ``zisMissingFloat`` / ``zisMissingDouble``
 value. Regular data only (``Public/ztsRetrieve.c`` lines 618-626).
 
 Fixtures: ``synthetic_no_data6.dss`` (P29: F = -901 with one -FLT_MAX, Z = -901 with one
-NaN) and ``synthetic_nan_trim6.dss`` (P30), both generated and byte-checked by the Rust
+NaN) and ``synthetic_nan_trim6.dss``, both generated and byte-checked by the Rust
 tests (``dss6_no_data.rs``, ``dss6_nan_trim.rs``).
 """
 

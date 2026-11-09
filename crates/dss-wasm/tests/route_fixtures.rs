@@ -392,7 +392,7 @@ fn compare_v6(path: &Path, bytes: &[u8], recover: bool, t: &mut Tally) {
                     panic!("{path:?} {p}: DSS6 returned a profile");
                 }
             }
-            // Associated location: the block's own header and user header (P27).
+            // Associated location: the block's own header and user header.
             let n = f.read_ts_record(&e.pathname).ok().and_then(|ts| {
                 Location::from_dss6_ts(&ts.pathname, ts.coordinates, ts.coordinate_descriptors)
                     .map(|l| l.with_dss6_user_header(&ts.user_header))
@@ -441,7 +441,7 @@ fn every_public_fixture_equals_dss_core() {
 }
 
 /// A DSS6 pathname naming no block reads the dataset, and the last block by D-part date
-/// supplies the result (`_file.py::read_associated_location`, P15, P27).
+/// supplies the result (`_file.py::read_associated_location`).
 #[test]
 fn dss6_associated_location_falls_back_to_the_dataset() {
     let bytes = fixture_bytes("synthetic_location_uh6.dss");
@@ -936,8 +936,7 @@ fn recorded_route_digests_hold_on_host() {
     assert!(bad.is_empty(), "{}", bad.join("\n"));
 }
 
-/// The crate's own code stays free of file, thread and shared-state use (spec D11). The
-/// built module's import list is checked separately in `evidence/P40/REPORT.md`.
+/// The crate's own code stays free of file, thread and shared-state use.
 #[test]
 fn source_uses_no_filesystem_or_threads() {
     let src = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src");

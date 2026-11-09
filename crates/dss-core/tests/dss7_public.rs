@@ -1,10 +1,10 @@
-//! P06 checks on the public DSS7 fixtures (HEC `sample7.dss`, RasExamples
-//! `BaldEagleDamBrk.dss`): golden offsets (check 2), hash self-check (3), point lookup (5),
-//! read-only guarantee (6) and catalog metadata against oracle values (8).
+//! Checks on the public DSS7 fixtures (HEC `sample7.dss`, RasExamples
+//! `BaldEagleDamBrk.dss`): reference offsets, hash self-check, point lookup,
+//! read-only guarantee and catalog metadata against values HEC software returns.
 //!
-//! Fixtures are looked up in `fixtures/public/` and then in `DSS_GOLDEN_DIR` (the P02
-//! golden copies); each test skips when its fixture is absent. Expected values come from
-//! the P02 oracle dumps (`monolith/catalog.json`, `hecdss/records/*.json`).
+//! Fixtures are looked up in `fixtures/public/` and then in `DSS_GOLDEN_DIR` (optional
+//! copies); each test skips when its fixture is absent. Expected values come from
+//! HEC Monolith and `hecdss` reads of the same files.
 
 mod dss7_common;
 
@@ -100,7 +100,7 @@ fn bald_eagle_catalog_and_lookup() {
     };
     let mut f = Dss7File::open(&p).unwrap();
     let cat = f.catalog().unwrap();
-    // P04 golden offsets: 102 records in 4 bin blocks, first info block at word 15773.
+    // Offsets: 102 records in 4 bin blocks, first info block at word 15773.
     assert_eq!(cat.stats.live, 102);
     assert_eq!(cat.stats.blocks, 4);
     assert_eq!(cat.catalog.entries[0].info_address, 15773 * 8);

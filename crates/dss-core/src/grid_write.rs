@@ -1,7 +1,6 @@
-//! Grid writer, version-neutral part (packet P24): input, validation, statistics and
+//! Grid writer, version-neutral part: input, validation, statistics and
 //! compression shared by the DSS7 (`dss7::write::write_grid`) and DSS6
-//! (`dss6::write::write_grid6`) grid writers. Specification:
-//! `packets/P24_grid_writer.md`.
+//! (`dss6::write::write_grid6`) grid writers.
 //!
 //! Sources (tag `7-IU-15` of `hec-dss`, paths relative to `heclib/`, and HEC Monolith
 //! 3.3.27 classes read with `javap -p -c`):
@@ -223,7 +222,7 @@ pub struct GridInput<'a> {
     pub projection: GridProjection,
     /// Time-stamped (410/420/430) when true. When false (empty D and E, no times) the
     /// record type is what HEC writes and Monolith reads back: DSS7 specified grids 431,
-    /// every other case 410/420/430 (see [`plan_grid`], P60).
+    /// every other case 410/420/430 (see [`plan_grid`]).
     pub time_stamped: bool,
     pub data: &'a [f32],
     pub nx: usize,
@@ -631,10 +630,10 @@ pub fn plan_grid(input: &GridInput, version: u8) -> Result<GridPlan, GridWriteEr
     }
     let base = input.projection.base_record_type();
     let stats = grid_statistics(input.data, nx, ny, input.projection.statistics_null());
-    // P60: HEC's DSS6 grid store writes only 410/420/430. Monolith
+    // HEC's DSS6 grid store writes only 410/420/430. Monolith
     // `GriddedData.storeGriddedData` passes `GridInfo.getGridType()` to `Heclib.zwritx`
     // (offsets 637-742 and 995-1003) and returns -1 for any other type, so a 4x1 type
-    // never reaches a DSS6 file (P60 probe: 411/421/431 refused, status -1). A DSS6
+    // never reaches a DSS6 file (observed: 411/421/431 refused, status -1). A DSS6
     // time-invariant grid is therefore the time-stamped type with empty D and E and
     // undefined times (Monolith's own `/ELEVATION///` grid in `p24_hec_grid6.dss` is 420);
     // specified grids keep `isTimeStamped` 0 in the header.
@@ -643,7 +642,7 @@ pub fn plan_grid(input: &GridInput, version: u8) -> Result<GridPlan, GridWriteEr
     // `GridInfo.setGridType` asks, else 410/420/430). But Monolith cannot read 411 or 421
     // back, its own included: `GridStructContainer.returnGridInfo` (offsets 0-72) builds a
     // GridInfo only for 420, 410, 431 and 430, and the read ends in a NullPointerException
-    // (P60 probe). So DSS7 HRAP and Albers time-invariant grids are written as 410/420,
+    // (observed). So DSS7 HRAP and Albers time-invariant grids are written as 410/420,
     // equal to Monolith's default record (their header `isTimeStamped` is 0 either way,
     // `GridStructContainer(GridInfo)` offsets 221-336); DSS7 specified grids keep 431.
     let specified = matches!(input.projection, GridProjection::Specified(_));

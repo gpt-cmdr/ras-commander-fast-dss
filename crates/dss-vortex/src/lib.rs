@@ -1,8 +1,8 @@
 //! Tier V: pure-Rust gridded import for HEC-DSS, replacing HEC-Vortex.
 //!
 //! This crate holds the frame model every source and tool shares. Third-party decoders
-//! live here and not in `dss-core`, and `dss-wasm` must not depend on it (D11). Decoders
-//! are pinned exactly, with no C in the build graph (D40); `tests/build_graph.rs` enforces
+//! live here and not in `dss-core`, and `dss-wasm` must not depend on it. Decoders
+//! are pinned exactly, with no C in the build graph; `tests/build_graph.rs` enforces
 //! that.
 #![forbid(unsafe_code)]
 

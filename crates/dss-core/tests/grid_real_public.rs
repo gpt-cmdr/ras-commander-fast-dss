@@ -1,7 +1,7 @@
 //! P34: real HEC-written grids against values recorded from HEC Monolith 3.3.27.
 //!
-//! `fixtures/public/real_grid{6,7}.dss` were written by Monolith
-//! (`evidence/P34/scripts/GridP34.java`): five public USACE grids
+//! `fixtures/public/real_grid{6,7}.dss` were written by Monolith through its Java API:
+//! five public USACE grids
 //! copied unchanged (SHG Albers PER-CUM precipitation from the HEC-RAS 7.0 example
 //! `BaldEagleCrkMulti2D`, HRAP PER-CUM precipitation from the HEC-HMS 4.13 sample
 //! `tenk/hrap.dss`) plus two synthetic INST-VAL grids on a specified UTM zone 17N WKT
@@ -478,7 +478,7 @@ fn values_metadata_and_crs_match_monolith() {
         assert_eq!(nodata as i64, rec.at("n_nodata").i(), "{ctx}");
         let nan = g.data.iter().filter(|v| v.is_nan()).count();
         assert_eq!(nan as i64, rec.at("n_nan").i(), "{ctx}");
-        // Missing cells agree with Monolith's GridData.getNumberMissing (P34 F1).
+        // Missing cells agree with Monolith's GridData.getNumberMissing.
         let missing = g.data.iter().filter(|&&v| g.is_missing(v)).count();
         assert_eq!(missing as i64, rec.at("number_missing").i(), "{ctx}");
     }
@@ -522,14 +522,14 @@ fn legacy_albers_parameters_match_monolith() {
     albers_matches("real_grid6.dss");
 }
 
-/// P34 F2: -100 Albers parameters come from the stored WKT, as Monolith's
+/// -100 Albers parameters come from the stored WKT, as Monolith's
 /// `GridStructContainer.returnGridInfo` -> `setAlbersSpatialReferenceInfo`.
 #[test]
 fn modern_albers_parameters_match_monolith() {
     albers_matches("real_grid7.dss");
 }
 
-/// P34 F1: Monolith writes -100 HRAP/Albers grids with null value 0.0
+/// Monolith writes -100 HRAP/Albers grids with null value 0.0
 /// (`GridStructContainer` carries `_nullValue` only for `SpecifiedGridInfo`); those
 /// 0.0 cells are data, as in Monolith's `GridData.getNumberMissing`.
 #[test]

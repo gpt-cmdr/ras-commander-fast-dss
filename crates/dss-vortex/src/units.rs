@@ -3,10 +3,10 @@
 //! Sources, Vortex 1.1.0: `VortexVariable.fromName`, `util/UnitUtil.parse`,
 //! `util/DssUtil.UNITS_TO_STRING` and `getGridInfo`, `convert/DataConverter.convert`,
 //! `geo/RasterUtils.convert`, `io/DssDataWriter.write` and `getCPart`. Rules were checked against
-//! Vortex's own output by `oracle/vortex/writer_cases.py`.
+//! Vortex 1.1.0's own output.
 //!
 //! `UnitUtil.parse` ends in `SimpleUnitFormat`, a general parser, for strings outside its table.
-//! This module does not port that parser. It holds the strings the oracle was asked about, in
+//! This module does not port that parser. It holds the strings Vortex was checked on, in
 //! [`SIMPLE_FORMAT_UNITS`], and anything else is a typed refusal unless the caller states the units.
 //!
 //! Observed behaviour we did not implement:
@@ -393,15 +393,14 @@ impl Unit {
     }
 }
 
-/// `SimpleUnitFormat` results for strings outside `UnitUtil.parse`'s table, read from Vortex 1.1.0
-/// by `oracle/vortex/writer_cases.py` (case-sensitive, as that parser is). Strings Vortex parses to
+/// `SimpleUnitFormat` results for strings outside `UnitUtil.parse`'s table, observed in Vortex
+/// 1.1.0 (case-sensitive, as that parser is). Strings Vortex parses to
 /// nothing come out as `ONE`, so `UNDEF`. Parses whose DSS string is not ASCII are left out, so they
 /// are refused: the writer stores ASCII.
 const SIMPLE_FORMAT_UNITS: &[(&str, Unit)] = &[
     ("", Unit::One),
-    // Packet P46b: unit strings of real NetCDF products (ERA-40, IMERG, GPCP), each stored as UNDEF
-    // with no conversion by Vortex 1.1.0 (`oracle/vortex/nc_refused_on_vortex.py`, then compared in
-    // `run_import.py --netcdf`).
+    // Unit strings of real NetCDF products (ERA-40, IMERG, GPCP), each stored as UNDEF with no
+    // conversion by Vortex 1.1.0 (observed).
     ("(0 - 1)", Unit::One),
     ("count", Unit::One),
     ("kg m**-2", Unit::One),
@@ -585,7 +584,7 @@ impl Conversion {
 
 /// `DataConverter.getPrecipRateConversionFactor`, then the branches of `convert` in order.
 /// `1/(1000 in)` has a branch in the source, but no string reaches it: `1/1000 in` parses to
-/// `in/1000`, so neither converts, as `writer_cases.py` shows.
+/// `in/1000`, so neither converts (observed in Vortex 1.1.0).
 fn conversion_for(variable: Option<Variable>, unit: Unit, time: &FrameTime) -> Conversion {
     let precipitation = variable == Some(Variable::Precipitation);
     let interval_seconds = match time {

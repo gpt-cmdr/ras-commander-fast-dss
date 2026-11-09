@@ -72,29 +72,35 @@ __all__ = [
 #: may gate on. A frozenset of str; names are only added, never repurposed.
 #:
 #: ``grid_srs_monolith_parity``: grid ``srs_definition`` follows HEC Monolith's
-#: ``AlbersInfo.getSpatialReferenceSystem`` rule for Albers grids (packet P13), so
+#: ``AlbersInfo.getSpatialReferenceSystem`` rule for Albers grids, so
 #: native grid metadata can replace the Java path.
 #:
 #: ``write_ts_quality_words``, ``write_ts_notes``, ``write_ts_patterns``,
 #: ``write_ts_pseudo_regular``: ``write_timeseries`` stores multi-word quality, integer and
 #: character notes (DSS7), pattern records and pseudo-regular ``~`` E parts (both versions),
-#: and DSS7 reads return ``quality_words``, ``inotes`` and ``cnotes`` (packet P38).
+#: and DSS7 reads return ``quality_words``, ``inotes`` and ``cnotes``.
 #:
-#: ``write_profile``: :func:`write_profile` stores DSS7 regular profiles (packet P39).
+#: ``write_profile``: :func:`write_profile` stores DSS7 regular profiles.
 #: ``write_location``: :func:`write_location` stores DSS7 location records and DSS6
-#: time-series location data (packet P39).
+#: time-series location data.
 #: ``grid_to_point``: :func:`ras_commander_fast_dss.gridded.grid_to_point` writes zonal statistics of
-#: grids as time series, in the engine's process, with no Java or GDAL (P51).
+#: grids as time series, in the engine's process, with no Java or GDAL.
 #:
 #: ``gridded_import``: :mod:`ras_commander_fast_dss.gridded` imports GRIB2 files and arrays to DSS
-#: grids without Java (packet P46). ``gridded_time_tools``: its ``shift_times`` and ``resample_times``
-#: replace Vortex's time shifter and time-step resampler (packet P52).
+#: grids without Java. ``gridded_time_tools``: its ``shift_times`` and ``resample_times``
+#: replace Vortex's time shifter and time-step resampler.
 #: ``grid_tools``: :mod:`ras_commander_fast_dss.gridded` calculator, sanitizer, normalizer and clipper
-#: without Java (packet P53).
+#: without Java.
 #: ``gridded_accumulation_window``: ``import_gridded(window_rule="accumulation:<duration>")`` states a
-#: GRIB2 record's accumulation, for MRMS 15M to 72H QPE (packet P46c).
+#: GRIB2 record's accumulation, for MRMS 15M to 72H QPE.
 #: ``gridded_netcdf``: ``import_gridded`` and ``list_variables`` read NetCDF classic, NetCDF-4 and HDF5
-#: files, with the reader's limits and ``gridded.StopHandle`` (packet P46b).
+#: files, with the reader's limits and ``gridded.StopHandle``.
+#: ``write_sync_policy``: the TS, paired-data, grid, profile and location writers take
+#: ``sync=``. Default ``True``, unchanged: ``fsync`` at the transaction's
+#: existing flush points (the data together with the end-of-file flag) and one terminal
+#: ``sync_all``. ``False`` (opt-in): no flushes; keeps the ordering of completed writes and
+#: of the recovery marker under process death. No power-loss claim for either mode;
+#: ``repair`` is the path for a damaged DSS7 file.
 FEATURES = frozenset(
     {
         "grid_srs_monolith_parity",
@@ -113,6 +119,9 @@ FEATURES = frozenset(
         # P49: ``gridded.import_zarr``, ``read_zarr`` and ``zarr_variables`` read a local Zarr v2
         # store, and ``import_gridded`` takes a store's folder.
         "gridded_zarr",
+        # P65: ``repair(src, dest)`` copies every readable DSS7 record into a new file.
+        "repair_copy_out",
+        "write_sync_policy",
     }
 )
 
@@ -145,10 +154,10 @@ def read_timeseries(
     no_data: str = "return",
     **kwargs,
 ) -> pd.DataFrame:
-    """Read one time series (see :meth:`DssFile.read_timeseries`; ``no_data`` P29)."""
+    """Read one time series (see :meth:`DssFile.read_timeseries`, including ``no_data``)."""
     from ._file import _refuse_no_data
 
-    _refuse_no_data(no_data)  # P29 review n5: validate before opening the file
+    _refuse_no_data(no_data)  # validate before opening the file
     with open(dss_file, recover=recover) as f:
         return f.read_timeseries(
             pathname, start, end, trim_missing=trim_missing, raw=raw, no_data=no_data, **kwargs
@@ -236,7 +245,7 @@ def read_paired_data_compat(dss_file: Union[str, Path], pathname: str) -> Option
     }
 
 
-# -- locations (P15; decision D37) ------------------------------------------------------
+# -- locations ------------------------------------------------------
 
 from ._records import Location, find_supplemental_keyword, parse_supplemental  # noqa: E402
 from .exceptions import DssLocationConflictError  # noqa: E402
@@ -266,7 +275,7 @@ __all__ += [
 ]
 
 
-# -- profiles (P14) ---------------------------------------------------------------------
+# -- profiles ---------------------------------------------------------------------
 
 
 def read_profile(
@@ -287,21 +296,21 @@ def read_profile(
 __all__ += ["read_profile", "Profile"]
 
 
-# P16 (DSS_TASK DT6): typed outcome of the catalog-index recovery route.
+# P16: typed outcome of the catalog-index recovery route.
 from .exceptions import DssRecordUnavailableError  # noqa: E402
 
 __all__.append("DssRecordUnavailableError")
 
 
 # ---------------------------------------------------------------------------------
-# P19a (DSS_TASK DT7, decision D10): read-only HEC lock detection.
+# P19a: read-only HEC lock detection.
 # ---------------------------------------------------------------------------------
 
 
 def lock_status(dss_file: Union[str, Path]) -> dict:
     """Report whether HEC software holds lock words on a DSS6/DSS7 file.
 
-    A diagnostic for future writers (decision D10). It opens its own read-only handle,
+    A diagnostic for future writers. It opens its own read-only handle,
     takes no locks and writes nothing; reads never call it and never raise
     :class:`DssLockedError`.
 
@@ -342,9 +351,9 @@ from .exceptions import NO_DATA_STATUS, DssNoDataError  # noqa: E402
 __all__ += ["DssNoDataError", "NO_DATA_STATUS"]
 
 # P20: DSS7 regular time-series writer.
-from ._write import HEC_UNDEFINED_FLOAT, create, write_timeseries  # noqa: E402
+from ._write import HEC_UNDEFINED_FLOAT, create, repair, write_timeseries  # noqa: E402
 
-__all__ += ["create", "write_timeseries", "HEC_UNDEFINED_FLOAT"]
+__all__ += ["create", "repair", "write_timeseries", "HEC_UNDEFINED_FLOAT"]
 
 # P22: DSS6 time-series writer (version=6 of create / write_timeseries).
 from ._write import HEC_MISSING_DSS6  # noqa: E402

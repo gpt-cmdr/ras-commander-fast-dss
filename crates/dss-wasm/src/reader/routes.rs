@@ -33,7 +33,7 @@ const CORE_MAX_ELEMENT: u64 = 64;
 const INTERNAL_HEADER_INTS: i64 = 200;
 
 // ---------------------------------------------------------------------------------
-// Profiles (P14)
+// Profiles
 // ---------------------------------------------------------------------------------
 
 /// A decoded DSS7 regular profile, with `values` row-major (`times.len()` rows of
@@ -520,8 +520,8 @@ impl DssBuffer {
             };
             let r = if window.is_none() {
                 let slot = if recover { recover_catalog } else { catalog };
-                let cat = v7_catalog(file, slot, recover)?;
-                file.read_ts_profile_with_catalog(cat, &p, &opts)
+                let cat = v7_indexed(file, slot, recover)?;
+                file.read_ts_profile_with_indexed_catalog(cat, &p, &opts)
             } else {
                 file.read_ts_profile(&p, &opts)
             };
@@ -625,7 +625,7 @@ fn block_rows(pathname: &[u8]) -> i64 {
 }
 
 // ---------------------------------------------------------------------------------
-// Locations (P15, P27)
+// Locations
 // ---------------------------------------------------------------------------------
 
 /// A decoded location: a DSS7 type-20 record, or DSS6 time-series header coordinates.
@@ -733,7 +733,7 @@ impl DssBuffer {
     ///
     /// DSS7: the record `/A/B/Location Info////` (`zlocationPath()`); the data record need
     /// not exist. DSS6: the coordinates in the time-series record's header, with the
-    /// supplemental text from its user header (P27). A DSS6 pathname that names no stored
+    /// supplemental text from its user header. A DSS6 pathname that names no stored
     /// block reads every block of the dataset: blocks that store different coordinates
     /// raise `LocationConflict`; otherwise the result comes from the block HEC reports for
     /// the whole dataset, the last by D-part date (dss6.md section 14.4).
@@ -821,7 +821,7 @@ impl DssBuffer {
         Err(last.unwrap_or_else(|| not_found(pathname)))
     }
 
-    /// The dataset fallback of `_file.py::read_associated_location` (P15, P27).
+    /// The dataset fallback of `_file.py::read_associated_location`.
     fn associated6_dataset(
         &mut self,
         pathname: &str,
@@ -893,7 +893,7 @@ impl DssBuffer {
 }
 
 // ---------------------------------------------------------------------------------
-// Catalog-index route (P16)
+// Catalog-index route
 // ---------------------------------------------------------------------------------
 
 /// Where a catalog entry sits and whether an ordinary pathname read reaches it (the
@@ -923,7 +923,7 @@ pub struct EntryProvenance {
 }
 
 impl EntryProvenance {
-    /// The typed outcome (`_file.py::_entry_outcome`, P16). Precedence: `not_live`,
+    /// The typed outcome (`_file.py::_entry_outcome`). Precedence: `not_live`,
     /// `unavailable`, `unsupported_record_type`, `recovered`, `unreachable_by_pathname`,
     /// `ordinary`.
     pub fn outcome(&self) -> &'static str {
@@ -966,7 +966,7 @@ impl EntryProvenance {
             ErrorKind::Unsupported,
             format!(
                 "catalog entry {} ({}) has record type {}, which the time-series record reader \
-                 does not decode (decision D29)",
+                 does not decode",
                 self.index, self.pathname, self.record_type
             ),
         )
@@ -1283,7 +1283,7 @@ impl DssBuffer {
                     return Err(p.unavailable());
                 };
                 // Password-protected records fall through to the decoder, which raises
-                // the documented `Dss` error (D32 table).
+                // the documented `Dss` error.
                 if !p.ts_supported {
                     return Err(p.unsupported());
                 }

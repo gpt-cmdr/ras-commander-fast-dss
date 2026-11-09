@@ -1,10 +1,10 @@
-"""Regular profile reads through ras_commander_fast_dss (P14), on committed public fixtures.
+"""Regular profile reads through ras_commander_fast_dss, on committed public fixtures.
 
 ``synthetic_profile7.dss`` is written by HEC Monolith 3.3.27
-(``evidence/P14/scripts/ProfileMonolith.java``); the expected
-values are that program's inputs. Monolith always stores profiles as doubles (107), so
+through its Java API; the expected
+values are the values that were written. Monolith always stores profiles as doubles (107), so
 the float (102) case uses ``synthetic_profile_f32_7.dss`` from
-``crates/dss-core/tests/dss7_profile.rs`` (no HEC software, no oracle).
+``crates/dss-core/tests/dss7_profile.rs`` (no HEC software).
 """
 
 import hashlib
@@ -220,7 +220,7 @@ def test_module_level_and_exports():
     assert pr.dss_file.endswith(PROFILE7)
 
 
-# -- review follow-ups (P14 M1/m1-m3, pattern nit) -----------------------------------
+# -- edge cases -----------------------------------------------------------------------
 
 QUAL = "/PUBLIC/LAKE/DEPTH-TEMP//1HOUR/SYNTH-QUAL/"
 QUAL_REC = "/PUBLIC/LAKE/DEPTH-TEMP/01Jun2020/1Hour/SYNTH-QUAL/"

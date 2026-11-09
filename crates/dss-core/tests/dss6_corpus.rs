@@ -1,4 +1,4 @@
-//! DSS6 catalog run over real corpus files (packet P07 corpus check).
+//! DSS6 catalog run over real corpus files (opt-in; the files are not part of this repository).
 //!
 //! Set `DSS6_CORPUS_TSV` to a file of `task_id<TAB>path` lines and `DSS6_CORPUS_OUT` to
 //! an output JSON-lines path. Without them the test is a no-op. Run in release:

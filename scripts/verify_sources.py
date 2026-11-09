@@ -4,9 +4,9 @@
     python scripts/verify_sources.py --write   # rewrite the manifest after an intentional change
 
 Text files are hashed with CRLF read as LF, so a Windows checkout verifies too. Files with a
-NUL byte are hashed as stored. MIGRATION.json is the immutable receipt of the 0.1.0 extraction
-from the private development repository; this script checks that it is well formed and that the
-versions in Cargo.toml and pyproject.toml agree.
+NUL byte are hashed as stored. MIGRATION.json is the receipt of the latest extraction from the
+private development repository (its source commit and per-file hashes); this script checks that
+it is well formed and that the versions in Cargo.toml and pyproject.toml agree.
 """
 from pathlib import Path
 import argparse

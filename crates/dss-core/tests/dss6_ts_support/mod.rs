@@ -1,6 +1,6 @@
-//! Synthetic DSS6 time-series files for P08b tests.
+//! Synthetic DSS6 time-series files for the DSS6 time-series tests.
 //!
-//! Starts from P07's catalog builder (`dss6_support::build`), then appends each record's
+//! Starts from the catalog builder (`dss6_support::build`), then appends each record's
 //! internal header, compression header and data at end of file and points the info block
 //! at them, following the layout HEC's `znwrit6` writes (dss6.md §5.1: info | internal
 //! header | compression header | user header | data). Pad bytes are garbage.

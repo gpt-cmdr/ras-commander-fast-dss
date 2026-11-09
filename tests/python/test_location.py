@@ -1,10 +1,10 @@
-"""Location records (type 20) and associated-location metadata (P15, decision D37).
+"""Location records (type 20) and associated-location metadata.
 
 Expected values come from HEC oracles reading the same public fixtures:
 ``synthetic_location7.dss`` was written by hecdss 0.1.33 and read back with hecdss
 (``hec_dss_locationRetrieve``) and Monolith 3.3.27 (``HecTimeSeries.read``);
 ``sample6.dss`` (HEC DSSVue sample, DSS6) matches Monolith on all 149 time-series
-records with stored coordinates. See ``evidence/P15/REPORT.md``.
+records with stored coordinates.
 """
 
 import pytest
@@ -171,7 +171,7 @@ def test_parse_supplemental():
     assert parse_supplemental("a:1;note;a:2; b : c ;") == [("a", "1"), ("a", "2"), (" b ", " c ")]
 
 
-# -- review follow-ups (P15 second commit) --------------------------------------------
+# -- edge cases -----------------------------------------------------------------------
 
 PY6 = "synthetic_python6.dss"
 PY7 = "synthetic_python7.dss"

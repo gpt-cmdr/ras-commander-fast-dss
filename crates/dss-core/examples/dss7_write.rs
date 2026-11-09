@@ -1,15 +1,14 @@
-//! DSS7 writer harness for oracle comparisons (packet P20).
+//! DSS7 writer harness for comparisons with HEC's C library and HEC Monolith.
 //!
 //! ```text
 //! dss7_write create <new.dss>
 //!     Create an empty DSS7 file (refuses an existing path).
 //! dss7_write store <file.dss> <spec.txt> [--fault <block>:<step>] [--no-sync]
-//!     Store every STORE line of the spec. Same spec format as the HEC C helper
-//!     (evidence/P20/scripts/p20hec.c):
+//!     Store every STORE line of the spec:
 //!       STORE <float|double> <pathname> <ddMmmyyyy> <hhmm|hhmmss> <units|~> <type|~> <n> 0 <q:0|1>
 //!       <n hex value bit patterns>
 //!       [<n decimal quality ints> when q = 1]
-//!     P21 adds irregular series (evidence/P21/scripts/p21hec.c):
+//!     Irregular series:
 //!       IRREG <float|double> <pathname> <units|~> <type|~> <n> <granularity|0> <flag> <q:0|1>
 //!       <n decimal times, whole seconds since 1899-12-31 00:00>
 //!       <n hex value bit patterns>

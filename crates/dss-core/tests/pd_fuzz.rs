@@ -1,4 +1,4 @@
-//! Paired-data fuzzing (packet P10 acceptance 5): corrupt PD info blocks, internal
+//! Paired-data fuzzing : corrupt PD info blocks, internal
 //! headers, labels and data, and truncate files; every read must return `Ok` or a typed
 //! error, never panic. Bases: the synthetic files of `pd_support` and the public
 //! fixtures. Iterations: 1,500 per base in debug builds, 20,000 in release builds or with

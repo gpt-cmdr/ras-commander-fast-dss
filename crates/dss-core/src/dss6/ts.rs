@@ -1,4 +1,4 @@
-//! DSS6 time-series record read (packet P08b): one block into [`TimeSeries`].
+//! DSS6 time-series record read: one block into [`TimeSeries`].
 //!
 //! Format rules (dss6.md §5, §7, §8) and the `heclib_f` routines they come from:
 //! - Regular TS (100/105): `zrrtsi.f:ZRRTSI6` (no-time-window path, lines 189-206 and
@@ -45,7 +45,7 @@ pub enum TsError {
     /// No live record with this pathname.
     NotFound { pathname: Vec<u8> },
     /// The record is not a time series this reader decodes (paired data, grids, text,
-    /// or an unknown code). Lists in catalogs only (OPEN_QUESTIONS D29).
+    /// or an unknown code). Lists in catalogs only.
     UnsupportedRecordType { record_type: i32 },
     /// Compression scheme not decoded (4/5 sig-digits with `allow_sig_digits = false`).
     UnsupportedCompression { scheme: i32 },
@@ -61,7 +61,7 @@ pub enum TsError {
     /// A dataset read would produce more than `limit` values or blocks (an oversized
     /// window, or block dates far apart in a damaged file).
     TooLarge { count: u64, limit: u64 },
-    /// P29, only with [`NoDataPolicy::Refuse`]: HEC DSS6 "no data". The record (or every
+    /// Only with [`NoDataPolicy::Refuse`]: HEC DSS6 "no data". The record (or every
     /// block of the dataset window) exists, but no value read is other than -901/-902,
     /// so HEC's `zrrtsi.f:ZRRTSI6` sets `ISTAT = 4` (line 651; see [`NO_DATA_STATUS`]).
     /// `pathname` is the record, or for a dataset read the requested dataset pathname.
@@ -136,12 +136,12 @@ pub(crate) fn lossy(b: &[u8]) -> String {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TsReadOptions {
     /// Decode compression schemes 4/5 (3-significant-digit packing, `dusd3r.f`/`sd32r.f`).
-    /// Default `true` since P33: they are absent from the corpus, but every value of the
+    /// Default `true`: they are absent from the corpus, but every value of the
     /// HEC-written scheme 4/5 fixture `synthetic_hec_compress6.dss` (Monolith 3.3.27,
     /// `Heclib.zsrtsx` with `JCOMP` 4/5) is bit-equal to heclib's `zrrtsx` decode.
-    /// `false` refuses them with [`TsError::UnsupportedCompression`], as before P33.
+    /// `false` refuses them with [`TsError::UnsupportedCompression`].
     pub allow_sig_digits: bool,
-    /// P29: what a regular read does when HEC would report "no data" (dss6.md §7.4).
+    /// What a regular read does when HEC would report "no data" (dss6.md §7.4).
     /// Default [`NoDataPolicy::Return`]: the values are returned.
     pub no_data: NoDataPolicy,
 }
@@ -150,7 +150,7 @@ pub struct TsReadOptions {
 /// (`heclib_f/src/zrrtsi.f:ZRRTSI6` line 56, hec-dss fork tag `7-IU-15`).
 pub const NO_DATA_STATUS: i32 = 4;
 
-/// P29: whether a DSS6 regular read refuses data HEC reports as "no data" (dss6.md §7.4).
+/// Whether a DSS6 regular read refuses data HEC reports as "no data" (dss6.md §7.4).
 ///
 /// HEC DSS6 (`zrrtsi.f:ZRRTSI6`, hec-dss fork tag `7-IU-15`) reads every block of the
 /// request, then (lines 618-649) sets `LFOUND` only for a value that is neither -901 nor
@@ -166,7 +166,7 @@ pub const NO_DATA_STATUS: i32 = 4;
 /// rule.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum NoDataPolicy {
-    /// Return the values (the engine's behavior before P29).
+    /// Return the values (the default).
     #[default]
     Return,
     /// Raise [`TsError::NoData`] as HEC DSS6 reports "no data".
@@ -189,7 +189,7 @@ impl TsReadOptions {
     }
 }
 
-/// P29: no value is other than -901 or -902 (`zrrtsi.f` lines 618-651: `EQ.-901.0`,
+/// No value is other than -901 or -902 (`zrrtsi.f` lines 618-651: `EQ.-901.0`,
 /// `EQ.-902.0`; any other value, -FLT_MAX and NaN included, sets `LFOUND`). True for
 /// an empty array, as HEC's loop over zero values leaves `LFOUND` false.
 pub fn all_hec_no_data(values: &TsValues) -> bool {
@@ -318,9 +318,9 @@ fn header_text(words: &[i32], w: usize, n: usize) -> String {
 /// Units: [`header_text`], then characters at or below U+0020 trimmed at both ends (Java
 /// `String.trim()`), as Monolith's
 /// `HecTimeSeries.read` does after `ztsRetrieve` (`tsc.units = tsc.units.trim()`,
-/// Monolith 3.3.27 offsets 341-349). P60 E1: a pydsstools-written units word `CFS`, NUL,
-/// 0x1e, 0x02 reads `CFS`, as in Monolith and pydsstools (it read `CFS` plus the three
-/// trailing bytes before P60).
+/// Monolith 3.3.27 offsets 341-349). A pydsstools-written units word `CFS`, NUL,
+/// 0x1e, 0x02 reads `CFS`, as in Monolith and pydsstools (earlier versions read `CFS`
+/// plus the three trailing bytes).
 fn units_text(words: &[i32], w: usize) -> String {
     // Java `String.trim()` removes every character at or below U+0020, not only blanks.
     header_text(words, w, 8)
@@ -466,7 +466,7 @@ impl<S: ReadAt> Dss6File<S> {
         let regular = matches!(rt, 100 | 101 | 105);
         if regular {
             let rec = self.decode_regular(info, d, e, pattern, opts)?;
-            // P29: HEC's "no data" rule for one block (`NoDataPolicy`).
+            // HEC's "no data" rule for one block (`NoDataPolicy`).
             if opts.no_data == NoDataPolicy::Refuse
                 && !pattern
                 && matches!(rt, 100 | 105)
@@ -826,7 +826,7 @@ pub fn regular_times(interval_min: i64, base: i64, n: usize, offset: i64) -> Vec
 }
 
 impl Dss6TsRecord {
-    /// Time-origin facts of a pattern record (P25); `None` for other records.
+    /// Time-origin facts of a pattern record; `None` for other records.
     ///
     /// The stored offset is internal header word 0 in minutes, reported × 60 and never
     /// applied. It is unreliable: `zsrtpa6.f` writes the uninitialized local `IOFSET`,
@@ -874,7 +874,7 @@ mod p60_header_text_tests {
             .collect()
     }
 
-    /// P60 E1, checked against Monolith 3.3.27 on patched copies of a pydsstools file:
+    /// Checked against Monolith 3.3.27 on patched copies of a pydsstools file:
     /// units cut at the first NUL and trimmed (HecTimeSeries.read `units.trim()`); the
     /// data type keeps heclib's C string (`stringFortToC`, then `strlen`).
     #[test]
@@ -898,7 +898,7 @@ mod p60_header_text_tests {
     }
 
     /// Monolith applies Java `String.trim()` to units, which also removes tabs and other
-    /// control characters (P60 review; Monolith 3.3.27 returns `CFS` for both cases).
+    /// control characters (Monolith 3.3.27 returns `CFS` for both cases).
     #[test]
     fn units_trim_matches_java_trim() {
         assert_eq!(units_text(&words(b"	CFS	   "), 0), "CFS");

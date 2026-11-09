@@ -1,11 +1,11 @@
-"""Grid writer for DSS7 and DSS6 files (packet P24).
+"""Grid writer for DSS7 and DSS6 files.
 
 ``write_grid`` stores one grid record: HRAP (410/411), Albers / SHG (420/421) or a
 specified spatial reference (430/431). The record layout is the one HEC Monolith 3.3.27
 writes through ``GriddedData.storeGriddedData`` (DSS7: heclib ``zspatialGridStore``;
 DSS6: the Java ``GridInfoFlat`` header and ``zwritx``), with the statistics and range
-table Monolith's ``GridData.updateStatistics`` computes. Specification:
-``packets/P24_grid_writer.md``.
+table Monolith's ``GridData.updateStatistics`` computes. Format notes:
+``docs/format/dss7.md`` and ``docs/format/dss6.md``.
 
 Before every write the HEC lock words are tested; the write is refused with
 :class:`~ras_commander_fast_dss.exceptions.DssLockedError` when any HEC process has the file open.
@@ -23,6 +23,7 @@ import numpy as np
 
 from . import _native
 from ._time import TimeLike, to_hec_seconds
+from ._write import _sync_flag
 
 __all__ = ["write_grid", "GRID_NODATA", "SHG_WKT"]
 
@@ -143,6 +144,7 @@ def write_grid(
     raw: bool = False,
     version: int = 7,
     allow_undetectable_readers: bool = True,
+    sync: bool = True,
 ) -> Dict[str, Any]:
     """Store one grid record in an existing DSS7 or DSS6 file.
 
@@ -212,6 +214,15 @@ def write_grid(
         whether the data are period data (default: PER-AVER/PER-CUM).
     data_source:
         HRAP grids: the data source (at most 12 characters on DSS6).
+    sync:
+        Flush policy, as for :func:`ras_commander_fast_dss.write_timeseries`: ``True``
+        (default, unchanged) flushes at the transaction's existing flush points (the
+        data is flushed together with the end-of-file flag) and ends with one
+        ``sync_all``; ``False`` (opt-in) does not flush. ``False`` keeps the
+        ordering of completed writes and of the recovery marker when the writing process
+        dies, so the next write reconciles an interrupted one as with ``True``. No
+        power-loss claim is made for either mode. For a damaged DSS7 file use
+        :func:`ras_commander_fast_dss.repair`.
 
     Returns
     -------
@@ -226,7 +237,7 @@ def write_grid(
     A record of another type at the pathname is refused (the writer does not change a
     record's type). Every check runs before the file is opened for writing; a refused
     write leaves the file unchanged. The write is one transaction ordered "data first,
-    pointers last" (P20 / P22 crash safety); not power-loss safe. On DSS7 the null value
+    pointers last" (crash safety); not power-loss safe. On DSS7 the null value
     stored for HRAP and Albers grids is -FLT_MAX (Monolith stores 0.0 there, a value its
     readers ignore).
     """
@@ -318,7 +329,8 @@ def write_grid(
         scale_factor=None if scale_factor is None else _f32(scale_factor, "scale_factor"),
         base=None if base is None else _f32(base, "base"),
         data_source=data_source, albers=albers_t, version=int(version),
-        allow_undetectable_readers=bool(allow_undetectable_readers), **kw,
+        allow_undetectable_readers=bool(allow_undetectable_readers), sync=_sync_flag(sync),
+        **kw,
     )
     if report.get("readers_undetected"):
         warnings.warn(

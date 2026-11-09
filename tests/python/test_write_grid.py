@@ -2,8 +2,8 @@
 
 Synthetic data only; every file is created in ``tmp_path`` or is a copy of a public
 fixture. The HEC-written fixture ``p24_hec_grid{6,7}.dss`` (HEC Monolith 3.3.27) is read
-natively and compared with the Monolith reference dump committed next to it; the other
-oracle comparisons are local-only (evidence/P24/REPORT.md).
+natively and compared with what Monolith read from it, committed as
+``p24_hec_grid{6,7}_monolith.tsv``. These tests do not run HEC software.
 """
 
 from __future__ import annotations
@@ -217,7 +217,7 @@ def test_refusals(tmp_path, v):
 
 
 def test_distinct_pathnames_stay_distinct(tmp_path):
-    """HEC's HMS Atlas 14 path (P17 B2) truncated 8-slash pathnames silently; the writer
+    """HEC's HMS Atlas 14 path truncated 8-slash pathnames silently; the writer
     refuses them, so pathnames that differ only after a seventh slash never collide."""
     p = new(tmp_path, 7)
     a = cells()
@@ -256,7 +256,7 @@ def test_dssfile_write_grid_uses_file_version(tmp_path):
 
 
 # ---------------------------------------------------------------------------------
-# Consumer shapes (P17 CONSUMER_INVENTORY: RasDss and HMS grid writers)
+# Consumer shapes (RasDss and HMS grid writers)
 # ---------------------------------------------------------------------------------
 
 
@@ -332,7 +332,7 @@ def test_hec_fixture_matches_monolith(tmp_path, v):
             g = f.read_grid(path, missing="raw")
             if m is None:
                 # Monolith 3.3.27 cannot read its own DSS6 specified grid with a 9-character
-                # time zone (SpecifiedGridInfoFlat.unflatten; P24 REPORT section 3); the engine can.
+                # time zone (SpecifiedGridInfoFlat.unflatten); the engine can.
                 assert v == 6 and "/SWE/" in path and g.metadata["time_zone_id"] == "GMT-05:00"
                 continue
             n += 1
@@ -344,7 +344,7 @@ def test_hec_fixture_matches_monolith(tmp_path, v):
             smin, smax, smean = m["stats"].split(";")
             if v == 6 and " EMPTY/" in path:
                 # All-missing DSS6 grid: Monolith reports -inf for the stored -2e38/2e38/
-                # -FLT_MAX statistics; the engine keeps the stored bits (P11).
+                # -FLT_MAX statistics; the engine keeps the stored bits.
                 assert (smin, smax, smean) == ("ff800000",) * 3
             else:
                 assert (_bits(g.min_value), _bits(g.max_value), _bits(g.mean_value)) == (smin, smax, smean)
@@ -357,7 +357,7 @@ def test_hec_fixture_matches_monolith(tmp_path, v):
 
 
 # ---------------------------------------------------------------------------------
-# Review follow-up (P24_VERIFY m1, m5, n4)
+# Float metadata, refusals and rounding
 # ---------------------------------------------------------------------------------
 
 
@@ -447,7 +447,7 @@ def test_specified_wkt_series(tmp_path, v, comp):
 
 
 def test_hms_equal_start_and_end_is_refused(tmp_path):
-    """HmsDssGrid writes PER-CUM grids with equal start and end (P17 requirement 7); the
+    """HmsDssGrid writes PER-CUM grids with equal start and end; the
     writer refuses them, and the consumer must pass the period end instead."""
     p = new(tmp_path, 7)
     t0 = dt.datetime(2018, 9, 1, 1)

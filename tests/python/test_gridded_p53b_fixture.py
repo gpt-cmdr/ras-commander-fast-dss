@@ -67,7 +67,7 @@ def test_a_cell_size_in_metres_on_a_us_survey_foot_target_follows_align(tmp_path
     assert r["cell_size_requested_metres"] == 6096.0
     assert abs(r["cell_size_stored_metres"] - 6096.000285750571) < 1e-9
     assert r["cell_size_difference_metres"] == r["cell_size_stored_metres"] - 6096.0
-    # 2 km, the re-check's probe: written, 49.6 micrometres short of the request.
+    # 2 km: written, 49.6 micrometres short of the request.
     two = tmp_path / "two.dss"
     result = run(c, two, cell_size=2000)
     r = result.records[0]

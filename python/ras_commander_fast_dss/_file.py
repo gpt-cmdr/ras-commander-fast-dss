@@ -133,10 +133,10 @@ def _index(index: int) -> int:
 
 
 #: HEC seconds of 01JAN3000 00:00, the pseudo-date of the first value of a regular
-#: pattern record (Monolith's convention; DSS7 reader, P08a).
+#: pattern record (Monolith's convention; DSS7 reader).
 _PATTERN_EPOCH = 34_712_755_200
 
-#: Pattern time-origin keys of the native dict (P25). ``pattern_time_convention`` is
+#: Pattern time-origin keys of the native dict. ``pattern_time_convention`` is
 #: ``"first-value-at-3000-01-01T00:00"``; ``pattern_stored_offset_seconds`` is the raw
 #: stored offset (not applied; DSS6 header word 0 x 60 is unreliable);
 #: ``pattern_stored_offset_source`` names where it came from;
@@ -303,16 +303,27 @@ class DssFile:
         Catalog anomalies (orphan bins, hash mismatches, ...) are in
         ``df.attrs["anomalies"]`` as ``(kind, byte_address, detail)`` tuples.
         """
-        raw = self._native.catalog(recover)
+        # P62: the native side exports only the rows asked for (live and alias unless
+        # all_entries), so deleted entries are never decoded, copied or framed. The
+        # native catalog itself, its anomalies and the full-catalog indices are unchanged.
+        raw = self._native.catalog(recover, live_only=not all_entries)
+        if not all_entries and not raw["pathname"] and raw["entries"]:
+            # Every entry was filtered out. The frame used to be built from all rows and
+            # then emptied, so its column dtypes were those inferred from the full lists;
+            # build it the same way from one placeholder row.
+            raw = dict(raw, pathname=[""], record_type=np.zeros(1, np.int32), status=["deleted"],
+                       duplicate=[False], recovered=[False], last_write_ms=np.full(1, -1, np.int64))
         status = raw["status"]
         last = np.asarray(raw["last_write_ms"], dtype=np.int64)
         last_write = np.where(last >= 0, last, np.iinfo(np.int64).min).astype("datetime64[ms]")
         rtype = np.asarray(raw["record_type"], dtype=np.int32)
+        codes = rtype.tolist()
+        type_names = {c: record_type_name(c) for c in set(codes)}
         df = pd.DataFrame(
             {
                 "pathname": raw["pathname"],
                 "record_type": rtype,
-                "record_type_name": [record_type_name(t) for t in rtype],
+                "record_type_name": [type_names[c] for c in codes],
                 "status": status,
                 "duplicate": np.asarray(raw["duplicate"], dtype=bool),
                 "recovered": np.asarray(raw["recovered"], dtype=bool),
@@ -323,14 +334,17 @@ class DssFile:
             df["raw_status"] = np.asarray(raw["raw_status"], dtype=np.int64)
             df["stored_pathname"] = raw["stored_pathname"]
         else:
+            # Already live/alias rows; the mask is kept so the frame (index, dtypes) is
+            # produced exactly as before, and it drops the placeholder row above.
             df = df[df["status"].isin(_LIVE_STATUSES).to_numpy()].reset_index(drop=True)
         df.attrs["anomalies"] = list(raw["anomalies"])
         df.attrs["dss_version"] = self.version
         return df
 
     def pathnames(self) -> list:
-        """Live pathnames in catalog order (what ``RasDss.get_catalog`` lists)."""
-        return self.catalog()["pathname"].tolist()
+        """Live pathnames in catalog order (what ``RasDss.get_catalog`` lists), equal to
+        ``catalog()["pathname"].tolist()``. Built natively without a DataFrame."""
+        return list(self._native.pathnames(None))
 
     # -- time series ------------------------------------------------------------------
 
@@ -340,7 +354,7 @@ class DssFile:
         missing markers kept), ``quality`` (int32 or None), ``units``, ``data_type``,
         ``time_zone``, ``record_type``, ``regular``, ``interval_seconds``,
         ``irregular_block``, ``time_offset_seconds``, ``pattern`` and block counts.
-        Pattern records also fill the four ``pattern_*`` time-origin keys (P25; ``None``
+        Pattern records also fill the four ``pattern_*`` time-origin keys (``None``
         otherwise): ``pattern_time_convention``, ``pattern_stored_offset_seconds``,
         ``pattern_stored_offset_source`` and ``pattern_heclib_first_seconds``.
 
@@ -357,11 +371,11 @@ class DssFile:
           then decoded as standard UTF-8 when valid, else as Java modified UTF-8 when
           valid (surrogate pairs, ``C0 80``; what Monolith's JNI layer writes), else as
           UTF-8 with each malformed sequence replaced by one U+FFFD, as Java's decoder
-          does (P28, P31; ``""`` when none). Monolith reads the bytes with JNI
+          does (``""`` when none). Monolith reads the bytes with JNI
           ``NewStringUTF``, which differs for invalid text (docs/format/dss6.md §14.2);
         - ``user_header_encoding``: the decoding used for ``user_header_text``:
           ``"utf-8"``, ``"modified-utf-8"`` or ``"utf-8-replaced"``; ``None`` when the
-          text is empty (P28, P31);
+          text is empty;
         - ``user_header_items``: ``{keyword: value}`` parsed as Monolith parses it
           (:func:`ras_commander_fast_dss.parse_user_header_items`): split at ``;``, segments with
           exactly one ``:``, trailing blanks removed, last repeat wins; an empty keyword
@@ -378,10 +392,10 @@ class DssFile:
 
         The header is informational. It is not validated, may be stale or wrong, and a
         datum it names (``VerticalDatum: NAVD88``) is never applied to values or merged
-        into typed location fields (decision D37). DSS7 reads return ``None`` for every
+        into typed location fields. DSS7 reads return ``None`` for every
         ``user_header_*`` key (not decoded yet).
 
-        **No data (P29).** ``no_data="refuse"`` applies HEC DSS6's rule: a regular
+        **No data.** ``no_data="refuse"`` applies HEC DSS6's rule: a regular
         record (types 100/105, not a pattern) whose stored values are all -901 or
         -902 raises :class:`DssNoDataError` (``status`` 4), as Monolith returns -2
         for it. The default ``"return"`` returns the block. A block with any other
@@ -420,9 +434,9 @@ class DssFile:
 
         ``trim_missing`` (default) removes leading and trailing -901, -902 and -FLT_MAX
         from regular data, as heclib's ``ztsTrim`` does; a stored NaN is a value and is
-        kept (P30).
+        kept.
 
-        ``no_data`` (P29): ``"return"`` (default) returns what the window holds, which
+        ``no_data``: ``"return"`` (default) returns what the window holds, which
         after the default trim can be no values. ``"refuse"`` raises
         :class:`DssNoDataError` when the blocks of a DSS6 regular window exist but no
         value in the window (before the trim) is other than -901/-902, HEC's rule for the
@@ -472,11 +486,11 @@ class DssFile:
         (inclusive) limit the read; HEC moves window ends forward to the next interval
         stamp. With ``trim_missing`` (default) leading and trailing missing values are
         removed (regular data), which is what the Java path returns. The trim is heclib's
-        ``ztsTrim`` (P30): -901, -902 and -FLT_MAX are missing (``zisMissingFloat`` /
+        ``ztsTrim``: -901, -902 and -FLT_MAX are missing (``zisMissingFloat`` /
         ``zisMissingDouble``); a stored NaN is a value and is kept, also at either end,
         where it reads as a NaN row. Irregular data is not trimmed.
 
-        All-missing DSS6 blocks (P28; docs/format/dss6.md §7.4): HEC reports "no data"
+        All-missing DSS6 blocks (docs/format/dss6.md §7.4): HEC reports "no data"
         for a regular block whose values are all -901/-902 (Monolith status -2); the
         engine counts the block as found. With ``trim_missing=False`` its rows are
         returned (NaN; stored markers with ``raw=True``). With the default trim they are
@@ -485,7 +499,7 @@ class DssFile:
         :class:`DssPathnameNotFoundError` ("no data", as for any read with no values left).
         :meth:`read_record` returns the block unless ``no_data="refuse"``.
 
-        ``no_data="refuse"`` (P29) applies HEC DSS6's rule to the read as a whole: when
+        ``no_data="refuse"`` applies HEC DSS6's rule to the read as a whole: when
         the blocks of the window exist but no value in the window (before the trim) is
         other than -901/-902, :class:`DssNoDataError` (a
         :class:`DssPathnameNotFoundError`, ``status`` 4) is raised, whatever
@@ -515,7 +529,7 @@ class DssFile:
         ``extra_attrs`` adds ``dss_version``, ``record_type``, ``time_zone``,
         ``time_offset_seconds``, ``blocks_found`` and ``warnings``; for pattern records
         also the four ``pattern_*`` time-origin keys; plus ``user_header_text``,
-        ``user_header_items`` and ``user_header_encoding`` (P28) when the DSS6 user header
+        ``user_header_items`` and ``user_header_encoding`` when the DSS6 user header
         is not empty, and
         ``user_header_conflict`` when its blocks disagree (see :meth:`read_record_arrays`;
         the user header is informational text, never validated).
@@ -540,7 +554,7 @@ class DssFile:
         """One stored record (block) by its full pathname, as a DataFrame shaped like
         :meth:`read_timeseries`. Regular blocks cover every interval of the block, with
         missing values where nothing is stored (NaN unless ``raw``).
-        ``no_data="refuse"`` (P29): see :meth:`read_record_arrays`."""
+        ``no_data="refuse"``: see :meth:`read_record_arrays`."""
         d = self.read_record_arrays(pathname, no_data=no_data)
         return self._frame(d, pathname, raw=raw, include_quality=include_quality, extra_attrs=extra_attrs)
 
@@ -610,7 +624,9 @@ class DssFile:
             d = self._native.read_grid(pathname, max_cells, bool(preserve_legacy_missing))
         except DssPathnameNotFoundError as exc:
             raise DssPathnameNotFoundError(f"No data found for pathname: {pathname}") from exc
-        return Grid._from_native(d, missing=missing, order=order, dss_file=str(self._resolved_path))
+        return Grid._from_native(
+            d, missing=missing, order=order, dss_file=str(self._resolved_path), owned=True
+        )
 
     def read_grid_at(
         self,
@@ -626,9 +642,11 @@ class DssFile:
         ``IndexError``."""
         _check_grid_args(missing, order)
         d = self._native.read_grid_at(_index(index), max_cells, bool(preserve_legacy_missing))
-        return Grid._from_native(d, missing=missing, order=order, dss_file=str(self._resolved_path))
+        return Grid._from_native(
+            d, missing=missing, order=order, dss_file=str(self._resolved_path), owned=True
+        )
 
-    # -- profiles (P14) ----------------------------------------------------------------
+    # -- profiles ----------------------------------------------------------------
 
     def read_profile_arrays(
         self,
@@ -691,7 +709,12 @@ class DssFile:
         d = self.read_profile_arrays(pathname, start, end, trim_missing=trim_missing)
         if len(d["times"]) == 0:
             raise DssPathnameNotFoundError(f"No data found for pathname: {pathname}")
-        return Profile._from_native(d, pathname=pathname, raw=raw, dss_file=str(self._resolved_path))
+        # A one-sided window returns slices of the native arrays; keep copying those so
+        # the result does not pin the uncut arrays.
+        owned = (start is None) == (end is None)
+        return Profile._from_native(
+            d, pathname=pathname, raw=raw, dss_file=str(self._resolved_path), owned=owned
+        )
 
     def read_profile_record(self, pathname: str, *, raw: bool = False) -> Profile:
         """One stored profile record (one block) by its full pathname, as
@@ -703,7 +726,9 @@ class DssFile:
             d = self._native.read_profile_record(pathname)
         except DssPathnameNotFoundError as exc:
             raise DssPathnameNotFoundError(f"No data found for pathname: {pathname}") from exc
-        return Profile._from_native(d, pathname=pathname, raw=raw, dss_file=str(self._resolved_path))
+        return Profile._from_native(
+            d, pathname=pathname, raw=raw, dss_file=str(self._resolved_path), owned=True
+        )
 
     def _match_ignoring_d(self, pathname: str, types, what: str) -> Optional[str]:
         """First live catalog pathname of a record type in ``types`` that equals
@@ -759,7 +784,7 @@ class DssFile:
                 # P25: pattern time-origin facts (reported, never applied to the index).
                 for key in _PATTERN_ATTR_KEYS:
                     df.attrs[key] = d.get(key)
-            # P26: DSS6 user header, only when present (informational, D37).
+            # P26: DSS6 user header, only when present (informational).
             if d.get("user_header_text"):
                 df.attrs["user_header_text"] = d["user_header_text"]
                 df.attrs["user_header_items"] = dict(d["user_header_items"])
@@ -769,7 +794,7 @@ class DssFile:
                 df.attrs["user_header_conflict"] = True
         return df
 
-    # -- locations (P15; decision D37) ------------------------------------------------
+    # -- locations ------------------------------------------------
 
     def read_location(self, pathname: str) -> Location:
         """Read a DSS7 location record (type 20) by its pathname, ``/A/B/Location Info////``.
@@ -802,7 +827,7 @@ class DssFile:
         Records that are not time series, and blocks whose coordinates are all zero
         (HEC: none stored), give ``None``.
 
-        DSS6 supplemental text (P27): ``supplemental`` is the time-series user-header
+        DSS6 supplemental text: ``supplemental`` is the time-series user-header
         text (``supplemental_source="dss6_user_header"``), decoded exactly as
         ``user_header_text`` (UTF-8, modified UTF-8, else UTF-8 with U+FFFD; P28, P31;
         ``supplemental_encoding``), as Monolith fills
@@ -815,7 +840,7 @@ class DssFile:
         window read: a D part that names a block that is not stored (before, between or
         after the stored blocks) also reads the whole dataset, so for irregular data it
         gives the last stored block's text, where a P26 window read ending in an absent
-        irregular block reports no header. The text is informational (decision D37): a
+        irregular block reports no header. The text is informational: a
         datum named in it never changes values or the typed fields, and a block without
         coordinates still gives ``None``.
 
@@ -867,7 +892,7 @@ class DssFile:
         return index
 
 
-    # -- forensic catalog-index reads (P16, DSS_TASK DT6) -----------------------------
+    # -- forensic catalog-index reads -----------------------------
 
     def read_record_at(
         self,
@@ -958,7 +983,7 @@ class DssFile:
     # -- P20: writing -----------------------------------------------------------------
 
     def write_timeseries(self, pathname: str, values: Any, **kwargs: Any) -> Dict[str, Any]:
-        """Store a regular- or irregular-interval series in this DSS7 file (P20, P21).
+        """Store a regular- or irregular-interval series in this DSS7 file.
 
         Same arguments and result as :func:`ras_commander_fast_dss.write_timeseries`. The write
         uses its own handle and lock; this object's read handle is closed for the write
@@ -978,7 +1003,7 @@ class DssFile:
             self._native = _native.open(str(self._path), bool(recover))
 
     def write_paired_data(self, pathname: str, x: Any, y: Any, **kwargs: Any) -> Dict[str, Any]:
-        """Store one paired-data record in this file (P23), in the file's DSS version.
+        """Store one paired-data record in this file, in the file's DSS version.
 
         Same arguments and result as :func:`ras_commander_fast_dss.write_paired_data`. The read
         handle is closed for the write and reopened afterwards, as for
@@ -999,7 +1024,7 @@ class DssFile:
     # -- P39: profile and location writers --------------------------------------------
 
     def write_profile(self, pathname: str, depths: Any, values: Any, **kwargs: Any) -> Dict[str, Any]:
-        """Store a regular profile in this file (P39). Same arguments and result as
+        """Store a regular profile in this file. Same arguments and result as
         :func:`ras_commander_fast_dss.write_profile`; the read handle is closed for the
         write and reopened afterwards."""
         from ._write_profile_location import write_profile as _write_profile
@@ -1014,7 +1039,7 @@ class DssFile:
             self._native = _native.open(str(self._path), bool(recover))
 
     def write_location(self, pathname: str, **kwargs: Any) -> Dict[str, Any]:
-        """Store location data in this file (P39). Same arguments and result as
+        """Store location data in this file. Same arguments and result as
         :func:`ras_commander_fast_dss.write_location`; the read handle is closed for the
         write and reopened afterwards."""
         from ._write_profile_location import write_location as _write_location
@@ -1033,7 +1058,7 @@ class DssFile:
     # -- P24: grid writer -------------------------------------------------------------
 
     def write_grid(self, pathname: str, data: Any, **kwargs: Any) -> Dict[str, Any]:
-        """Store one grid record in this file (P24).
+        """Store one grid record in this file.
 
         Same arguments and result as :func:`ras_commander_fast_dss.write_grid`; ``version``
         defaults to this file's DSS version. The write uses its own handle and lock;
@@ -1064,7 +1089,7 @@ def _location_key(d: Optional[Dict[str, Any]]) -> Optional[tuple]:
 
 #: DSS6 time-series record types grouped into datasets. Single source of truth:
 #: ``dss_core::dss6::DatasetIndex::build`` (crates/dss-core/src/dss6/dataset.rs, live
-#: records of types 100-119); keep the two equal (P27 review).
+#: records of types 100-119); keep the two equal.
 _DSS6_TS_RECORD_TYPES = range(100, 120)
 
 
@@ -1072,7 +1097,7 @@ def _p27_block_order(pathname: str, d: Dict[str, Any]) -> tuple:
     """Sort key of a DSS6 block as ``dss6::DatasetIndex`` orders a dataset's blocks: block
     date from the D part (blocks whose D part does not parse first), then pathname
     bytes. The last block in this order is the one whose user header HEC reports for a
-    whole-dataset read (docs/format/dss6.md §14.4; P27)."""
+    whole-dataset read (docs/format/dss6.md §14.4)."""
     j = d.get("block_julian")
     try:
         raw = pathname.encode("latin-1")
@@ -1086,7 +1111,7 @@ def open(path: PathLike, *, recover: bool = False) -> DssFile:  # noqa: A001 - m
 
     ``recover`` (DSS7 only): list records in bins the bin-block chain no longer links
     (interrupted writes), and read the best-preserved copy of duplicated pathnames
-    (P06 recovery mode). HEC's own catalog omits these; default is HEC parity.
+    (recovery mode). HEC's own catalog omits these; default is HEC parity.
 
     Raises ``FileNotFoundError`` for a missing file and :class:`DssFormatError` for a
     file that is not DSS6/DSS7.
@@ -1094,7 +1119,7 @@ def open(path: PathLike, *, recover: bool = False) -> DssFile:  # noqa: A001 - m
     return DssFile(path, recover=recover)
 
 
-# -- profiles (P14) ---------------------------------------------------------------------
+# -- profiles ---------------------------------------------------------------------
 
 #: Profile record types: regular 102/107 are read; irregular 112/117 are refused.
 PROFILE_RECORD_TYPES = (102, 107)
@@ -1132,7 +1157,7 @@ def _profile_slice(d: Dict[str, Any], start, end, trim_missing: bool) -> Dict[st
 __all__ += ["PROFILE_RECORD_TYPES"]
 
 
-# -- P16 (DSS_TASK DT6): catalog-index recovery route ----------------------------------
+# -- P16: catalog-index recovery route ----------------------------------
 
 #: Outcomes :meth:`DssFile.read_record_at` returns data for.
 _READABLE_OUTCOMES = ("ordinary", "recovered", "unreachable_by_pathname")

@@ -1,4 +1,4 @@
-//! DSS7 catalog harness for golden-fixture and corpus runs (packet P06).
+//! DSS7 catalog harness for fixture and corpus runs.
 //!
 //! ```text
 //! dss7_corpus stats <list.tsv> <out.jsonl> [--info N] [--threads T]

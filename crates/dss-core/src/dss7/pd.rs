@@ -1,4 +1,4 @@
-//! DSS7 paired-data reads (packet P10): record types 200 (PD, float) and 205 (PDD,
+//! DSS7 paired-data reads: record types 200 (PD, float) and 205 (PDD,
 //! double).
 //!
 //! The read path is a port of the full-record branch of
@@ -16,7 +16,8 @@
 //!
 //! Values keep their stored bits; missing markers are not converted. Vertical-datum
 //! conversion (`zpdRetrieve()` lines 704–1033) only runs when a caller sets HEC's `VDTM`
-//! option, which neither oracle does; this reader always returns the stored (native)
+//! option, which neither HEC reader used for comparison sets (HEC's C library and HEC
+//! Monolith); this reader always returns the stored (native)
 //! values. Partial reads (`startingCurve`, `startingOrdinate`, ...) are not ported:
 //! callers slice the full record.
 //!
@@ -55,7 +56,7 @@ pub enum PdError {
     /// No live record with this pathname (HEC `STATUS_RECORD_NOT_FOUND`).
     NotFound { pathname: Vec<u8> },
     /// The record is not paired data (types 200/205): time series, grid, text, location,
-    /// ... (`zpdRetrieve()` lines 289–296 return `WRONG_RECORD_TYPE`; decision D29).
+    /// ... (`zpdRetrieve()` lines 289–296 return `WRONG_RECORD_TYPE`).
     UnsupportedRecordType { pathname: Vec<u8>, record_type: i32 },
     /// A stored size is inconsistent with the areas it describes.
     Corrupt {

@@ -1,4 +1,4 @@
-"""Paired-data and grid results (P10/P11 readers, exposed in P12).
+"""Paired-data and grid results.
 
 Both classes wrap the native dicts from ``_native`` (NumPy arrays plus plain values);
 :class:`~ras_commander_fast_dss.DssFile` builds them.
@@ -46,7 +46,7 @@ class PairedData:
     ``labels`` are the curve labels as HEC's C library returns them: at most one per
     curve, possibly fewer, possibly empty strings, trailing blanks removed and
     **leading blanks kept**. (Monolith's Java DSS6 path also strips leading blanks,
-    so a DSS6 label ``" 5%LIMIT"`` reads ``"5%LIMIT"`` there; see P10 report §3.)
+    so a DSS6 label ``" 5%LIMIT"`` reads ``"5%LIMIT"`` there.)
 
     ``units_*``/``type_*`` are HEC's four unit/type strings (``type_independent`` is
     for example ``LINEAR``, ``LOG`` or ``PROB``). ``x_precision``/``y_precision`` are
@@ -156,6 +156,19 @@ class PairedData:
 # -- grids ------------------------------------------------------------------------------
 
 
+def _fresh_array(a: Any, dtypes) -> bool:
+    """True when ``a`` can be adopted as a record array without a copy: a writeable,
+    C-contiguous ndarray of one of ``dtypes`` (what the native binding returns).
+    The caller must also know that nothing else references it."""
+    return (
+        isinstance(a, np.ndarray)
+        and a.dtype.type in dtypes
+        and a.dtype.isnative
+        and bool(a.flags.writeable)
+        and bool(a.flags.c_contiguous)
+    )
+
+
 def grid_missing_mask(
     values: np.ndarray, null_value: float, grid_type: Optional[str] = None
 ) -> np.ndarray:
@@ -188,7 +201,7 @@ class Grid:
     ``(ny, nx)``. With ``order="native"`` (default) rows are in stored order: x varies
     fastest and row 0 is the **bottom** (southernmost) row, so ``data.ravel()`` is the
     stored cell order (index ``y * nx + x``, Java heclib ``GridData.getValue``) and
-    compares directly with P11 oracle dumps. ``order="north_up"`` flips the rows so
+    compares directly with HEC Monolith's ``GridData.getData()``. ``order="north_up"`` flips the rows so
     row 0 is the top row, as image and raster tools expect.
 
     **Missing values.** With ``missing="nan"`` (default) every missing cell is NaN: NaN
@@ -216,7 +229,7 @@ class Grid:
     modern grids it equals ``srs_definition``. Legacy grids have ``None`` there.
     ``metadata["albers"]`` holds the Albers parameters (``None`` for other grid types):
     as stored for legacy grids, and for modern grids parsed from the stored WKT as
-    Monolith's ``GridStructContainer.setAlbersSpatialReferenceInfo`` does (P34).
+    Monolith's ``GridStructContainer.setAlbersSpatialReferenceInfo`` does.
 
     **Time.** ``start_time``/``end_time`` are naive ``datetime64[s]`` (no time-zone
     conversion) or ``None`` for grids without time (odd record types). DSS7 modern
@@ -260,11 +273,25 @@ class Grid:
 
     @classmethod
     def _from_native(
-        cls, d: Dict[str, Any], *, missing: str, order: str, dss_file: str
+        cls,
+        d: Dict[str, Any],
+        *,
+        missing: str,
+        order: str,
+        dss_file: str,
+        owned: bool = False,
     ) -> "Grid":
+        """``owned=True`` only when ``d`` is a fresh native result that nothing else
+        references: its cell array is then used in place, without a copy, and a
+        ``north_up`` flip makes the one new array. Otherwise the cells are copied."""
         _check_grid_args(missing, order)
         d = dict(d)
-        data = np.array(d.pop("data"), dtype=np.float32, copy=True)
+        cells = d.pop("data")
+        if owned and _fresh_array(cells, (np.float32,)):
+            data = cells
+        else:
+            data = np.array(cells, dtype=np.float32, copy=True)
+        del cells
         null_value = float(d.pop("null_value"))
         if missing == "nan":
             data[grid_missing_mask(data, null_value, d["grid_type"])] = np.nan
@@ -352,7 +379,7 @@ def _check_grid_args(missing: str, order: str) -> None:
         raise ValueError(f"order must be one of {_GRID_ORDERS}, not {order!r}")
 
 
-# -- locations (P15; decision D37) ------------------------------------------------------
+# -- locations ------------------------------------------------------
 
 #: ``zStructLocation.h`` code tables. Codes outside a table, and code 0 (unset), have
 #: no name: the name field (``vertical_datum``, ...) is ``None`` and ``*_code`` keeps it.
@@ -407,7 +434,7 @@ def parse_supplemental(text: Optional[str]) -> List[Tuple[str, str]]:
 
 @dataclass(frozen=True, eq=False)
 class Location:
-    """Location metadata for a DSS record (decision D37 extends D29).
+    """Location metadata for a DSS record.
 
     DSS7 stores it in a location record (type 20) at ``/A/B/Location Info////``, shared
     by every dataset with the same A and B parts (``source="dss7_location_record"``).
@@ -415,14 +442,14 @@ class Location:
     coordinates and six descriptor codes (``source="dss6_ts_header"``, ``time_zone`` is
     ``None``).
 
-    **DSS6 supplemental text (P27).** For a DSS6 location, ``supplemental`` is the
+    **DSS6 supplemental text.** For a DSS6 location, ``supplemental`` is the
     user-header text of the same time-series record (docs/format/dss6.md §14): up to the
     first NUL, trailing blanks removed, then decoded as standard UTF-8, else Java
-    modified UTF-8, else UTF-8 with U+FFFD per malformed sequence (P28, P31; the
+    modified UTF-8, else UTF-8 with U+FFFD per malformed sequence (the
     decode is the engine's, the same as ``user_header_text``); ``None`` when that text
     is empty. This is Monolith's
     behavior (its ``supplementalInfo`` for a DSS6 time series is the user header); HEC's C library leaves the location's supplemental text empty
-    for DSS6. The text is informational only (decision D37): it may be stale or wrong,
+    for DSS6. The text is informational only: it may be stale or wrong,
     and a datum named in it (for example ``VerticalDatum: NAVD88``) is never applied to
     values and never fills the typed fields; at most it shows up in
     ``supplemental_vertical_datum``. The presence rule does not change: a DSS6 record
@@ -453,7 +480,7 @@ class Location:
     ``None`` when not stored, ``""`` when stored empty) and ``supplemental_items`` its
     ``Keyword:Item;`` pairs (first occurrence wins). For ``source="dss7_location_record"``
     the text is Latin-1 decoded; for ``source="dss6_ts_header"`` it is the user-header
-    text decoded as above. ``supplemental_encoding`` (P28) names the decoding:
+    text decoded as above. ``supplemental_encoding`` names the decoding:
     ``"utf-8"``, ``"modified-utf-8"`` or ``"utf-8-replaced"`` (always ``"latin-1"`` for DSS7),
     ``None`` exactly when ``supplemental`` is ``None``.
     """
@@ -501,7 +528,7 @@ class Location:
     def _from_native(cls, d: Dict[str, Any], *, requested: str, dss_file: str) -> "Location":
         sup_b = d["supplemental"]
         # P28: the text is decoded once, in dss-core (DSS6 user-header text: UTF-8, else
-        # modified UTF-8, else UTF-8 with U+FFFD (P31); DSS7: Latin-1). No Python fallback.
+        # modified UTF-8, else UTF-8 with U+FFFD; DSS7: Latin-1). No Python fallback.
         sup = d["supplemental_text"]
         pairs = parse_supplemental(sup)
         items: Dict[str, str] = {}
@@ -559,7 +586,7 @@ class Location:
 __all__ += ["Location", "parse_supplemental", "find_supplemental_keyword"]
 
 
-# -- profiles (P14) ---------------------------------------------------------------------
+# -- profiles ---------------------------------------------------------------------
 
 #: HEC missing markers for profile values (``zdssVals.h``: -901 missing, -902 not
 #: computed, -FLT_MAX UNDEFINED). Same rule as ``ras_commander_fast_dss.missing_mask``.
@@ -633,12 +660,25 @@ class Profile:
 
     @classmethod
     def _from_native(
-        cls, d: Dict[str, Any], *, pathname: str, raw: bool, dss_file: str
+        cls,
+        d: Dict[str, Any],
+        *,
+        pathname: str,
+        raw: bool,
+        dss_file: str,
+        owned: bool = False,
     ) -> "Profile":
+        """``owned=True`` only when ``d`` is a fresh native result that nothing else
+        references: its ``depths`` and ``values`` arrays are then used in place.
+        Otherwise both are copied."""
         d = dict(d)
         secs = np.asarray(d.pop("times"), dtype=np.int64)
-        depths = np.array(d.pop("depths"), copy=True)
-        values = np.array(d.pop("values"), copy=True)
+        depths = d.pop("depths")
+        values = d.pop("values")
+        widths = (np.float32, np.float64)
+        if not (owned and _fresh_array(depths, widths) and _fresh_array(values, widths)):
+            depths = np.array(depths, copy=True)
+            values = np.array(values, copy=True)
         if values.ndim != 2 or values.shape != (len(secs), len(depths)):
             raise ValueError(
                 f"profile values shaped {values.shape}, expected ({len(secs)}, {len(depths)})"
@@ -744,7 +784,7 @@ def parse_user_header_items(text: Optional[str]) -> Dict[str, str]:
       on such text instead; the engine keeps the item.
 
     The text is free-form and unvalidated; treat every item as informational. A datum
-    named here is never a typed location datum (decision D37). Matches the native
+    named here is never a typed location datum. Matches the native
     ``user_header_items`` of :meth:`DssFile.read_record_arrays`.
     """
     out: Dict[str, str] = {}

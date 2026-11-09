@@ -1,4 +1,4 @@
-//! Dump every time-series record of a DSS6 file (packet P08b test harness).
+//! Dump every time-series record of a DSS6 file (test harness).
 //!
 //! ```text
 //! cargo run --release -p dss-core --example dss6_ts_dump -- <file.dss> <out-dir> [--max N]

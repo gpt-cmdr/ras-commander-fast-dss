@@ -382,7 +382,7 @@ fn mutated_grid_headers_and_payloads_never_panic() {
 }
 
 // ---------------------------------------------------------------------------------
-// Public synthetic fixtures for the Python binding (P12):
+// Public synthetic fixtures for the Python binding:
 // fixtures/public/synthetic_grid{6,7}.dss. To regenerate, set DSS_PY_FIXTURE_OUT to a
 // scratch directory, run this test, and copy both files into fixtures/public/. When
 // the committed files exist the test checks that they still match this generator.

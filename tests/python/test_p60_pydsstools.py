@@ -1,7 +1,7 @@
-"""P60: engine findings E1-E3 of the P58 pydsstools validation.
+"""P60: engine findings E1-E3 of the pydsstools 3.1.0 cross-check (see the README).
 
-``p60_pydsstools6.dss`` is written by pydsstools 3.1.0 from synthetic values
-(``evidence/P60/scripts/pyd_fixture.py``). It holds a regular series
+``p60_pydsstools6.dss`` is written by pydsstools 3.1.0 from synthetic values.
+It holds a regular series
 whose units word is ``CFS``, NUL and stray bytes (E1), an irregular series, and a
 specified grid whose header byte count exceeds the stored header (E2). E3: DSS6
 time-invariant grids are written as 410/420/430, as HEC's DSS6 grid store does; DSS7

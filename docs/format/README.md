@@ -3,8 +3,8 @@
 Written specifications derived from HEC's `heclib` source. Code cites these notes and
 the underlying source files.
 
-- `dss7.md` — DSS7 (packet P04, from `heclib_c`, commit `283185bd`)
-- `dss6.md` — DSS6 (packet P05, from `heclib_f` and `heclib_c/src/Dss6`, commit `283185bd`)
+- `dss7.md` — DSS7 (from `heclib_c`, commit `283185bd`)
+- `dss6.md` — DSS6 (from `heclib_f` and `heclib_c/src/Dss6`, commit `283185bd`)
 
 ## Established so far
 

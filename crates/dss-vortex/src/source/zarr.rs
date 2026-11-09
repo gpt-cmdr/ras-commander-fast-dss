@@ -1,8 +1,8 @@
-//! A local Zarr v2 directory store: the route for AORC v1.1 (packet P49, decision V8).
+//! A local Zarr v2 directory store: the route for AORC v1.1.
 //!
 //! No network: a commander library fetches the metadata and the chunks it needs into a folder, and
 //! this reads the folder. Sources: the Zarr v2 storage specification; `xarray` 2026.9.0 with
-//! `zarr-python` 3.4.2 as the reference for what a store's values mean (`oracle/vortex/compare_zarr.py`);
+//! `zarr-python` 3.4.2 as the reference for what a store's values mean (`tests/zarr_fixtures.rs`);
 //! NetCDF-Java 5.5.3 for the grid's edges, as the NetCDF source reads an AORC `.nc4`.
 //! Vortex 0.13.3 and 1.1.0 read no Zarr, so Vortex is not a reference here.
 //!

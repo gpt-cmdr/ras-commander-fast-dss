@@ -2,7 +2,7 @@
 //!
 //! Sources, Vortex 1.1.0: `io/DssDataWriter.write`, `updatePathname`, `util/DssUtil.getGridInfo`.
 //! Monolith: `hec.heclib.grid.GriddedData.setGriddedTimeWindow` and `setGridTime`, whose results
-//! were read from `oracle/vortex/writer_cases.py`'s outputs. Lock, atomicity and crash behaviour
+//! were observed by calling them through HEC Monolith. Lock, atomicity and crash behaviour
 //! are the writer's: `dss_core::dss7::write::write_grid` and `dss6::write::write_grid6`.
 //!
 //! Time parts: a period's D part is its start, with midnight as `0000`, and its E part is its end,
@@ -452,7 +452,7 @@ fn input<'a>(
         y_coord_of_grid_cell_zero: 0.0,
         units: planned.meaning.units.as_bytes(),
         data_type: planned.meaning.data_type.dss_code(),
-        // As Monolith writes DSS7. DSS6 is checked against Monolith in the P46 report.
+        // As Monolith writes DSS7; DSS6 was checked against Monolith too.
         compression: GridCompression::Zlib,
     }
 }

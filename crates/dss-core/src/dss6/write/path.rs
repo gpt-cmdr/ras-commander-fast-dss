@@ -95,7 +95,7 @@ pub(super) struct Path6 {
     pub parts: [Vec<u8>; 6],
     pub e_part: &'static str,
     pub kind: Kind,
-    /// P38: the interval in minutes of a pseudo-regular (`~`) E part (`KBPINTL`, `INTLPS`);
+    /// The interval in minutes of a pseudo-regular (`~`) E part (`KBPINTL`, `INTLPS`);
     /// 0 otherwise.
     pub pseudo_minutes: i32,
 }
@@ -135,7 +135,7 @@ fn split(pathname: &[u8]) -> Result<[Vec<u8>; 6], WriteError> {
 }
 
 /// The shared checks; a pattern D part and a `~` E part are allowed only where the caller
-/// handles them (P38).
+/// handles them.
 fn split_as(
     pathname: &[u8],
     allow_pattern: bool,
@@ -272,7 +272,7 @@ fn pseudo_block6(minutes: i32) -> (BlockSpan, &'static str) {
     }
 }
 
-/// Validate a pattern pathname (P38): D starts `TS-` (`zsrtsi6.f` line 231, `zsitsi6.f` line
+/// Validate a pattern pathname: D starts `TS-` (`zsrtsi6.f` line 231, `zsitsi6.f` line
 /// 213), E a regular or `IR-` interval. Returns the stored pathname, upper case, with the
 /// D part as given and the canonical E part.
 pub(super) fn validate_pattern(pathname: &[u8]) -> Result<(Vec<u8>, Kind), WriteError> {
@@ -387,7 +387,7 @@ mod tests {
         assert!(p.is_elevation());
         assert_eq!(p.e_part, "IR-YEAR");
         assert!(validate_irregular(b"/A/B/C//1HOUR/F/").is_err());
-        // P38.
+        // Pseudo-regular E part.
         let p = validate_irregular(b"/A/B/C//~1hour/F/").unwrap();
         assert_eq!((p.e_part, p.pseudo_minutes), ("IR-MONTH", 60));
         let e = |b: &[u8]| validate_irregular(b).unwrap().e_part;

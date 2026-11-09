@@ -1,5 +1,4 @@
-//! Pathname validation for the regular (P20 §3.1, gate G3) and irregular (P21 §3.1)
-//! time-series writers.
+//! Pathname validation for the regular and irregular time-series writers.
 //!
 //! HEC cleans pathnames silently: `Public/zpathnameClean.c:zpathnameClean()` drops bytes
 //! below 32 and above 126 and everything after the seventh slash, and lookups hash only
@@ -134,7 +133,7 @@ pub fn regular_e_part(e: &[u8]) -> Option<(i64, &'static str)> {
         .map(|&(n, s)| (s, n))
 }
 
-/// Checks shared by the regular and irregular writers (P20 §3.1): slashes, bytes and
+/// Checks shared by the regular and irregular writers: slashes, bytes and
 /// part lengths. Returns parts A..F as given.
 fn split_checked(pathname: &[u8]) -> Result<[Vec<u8>; 6], WriteError> {
     if pathname.first() != Some(&b'/') || pathname.last() != Some(&b'/') {
@@ -196,7 +195,7 @@ fn check_stored_length(stored: usize) -> Result<(), WriteError> {
     Ok(())
 }
 
-/// Validate a pathname for a regular time-series write (P20 §3.1).
+/// Validate a pathname for a regular time-series write.
 pub fn validate_rts_pathname(pathname: &[u8]) -> Result<RtsPathname, WriteError> {
     let parts = split_checked(pathname)?;
     let (interval_seconds, e_part) = regular_e_part(&parts[4]).ok_or_else(|| {
@@ -216,7 +215,7 @@ pub fn validate_rts_pathname(pathname: &[u8]) -> Result<RtsPathname, WriteError>
     Ok(p)
 }
 
-/// Validate a paired-data pathname (P23): the P20 §3.1 slash, byte and part-length
+/// Validate a paired-data pathname: the shared slash, byte and part-length
 /// rules and the 392-byte lookup limit. D, E and F are free text for paired data
 /// (`zpdStore()` stores the pathname as given); the case is kept.
 pub fn validate_pd_pathname(pathname: &[u8]) -> Result<(), WriteError> {
@@ -238,8 +237,8 @@ const EPARTS7_IRREGULAR: [(&str, i64); 5] = [
 ];
 
 /// Resolve an irregular E part: exact (case-insensitive) `IR-Day` .. `IR-Century` only.
-/// Pseudo-regular (`~1Day`) E parts have their own resolver ([`pseudo_e_part`], P38);
-/// HEC's prefix rule is not used for writes (P21 §3.1).
+/// Pseudo-regular (`~1Day`) E parts have their own resolver ([`pseudo_e_part`]);
+/// HEC's prefix rule is not used for writes.
 pub fn irregular_e_part(e: &[u8]) -> Option<(i64, &'static str)> {
     EPARTS7_IRREGULAR
         .iter()
@@ -286,7 +285,7 @@ const PSEUDO_NAMES: [&str; 34] = [
     "~1Second",
 ];
 
-/// Resolve a pseudo-regular E part (P38): `~` and an exact (case-insensitive) regular name.
+/// Resolve a pseudo-regular E part: `~` and an exact (case-insensitive) regular name.
 /// The data is irregular; the block comes from the named interval
 /// (`SemiPublic/ztsGetStandardInterval.c` lines 193-216, [`iv::standard_interval`]).
 pub fn pseudo_e_part(e: &[u8]) -> Option<(i64, &'static str)> {
@@ -298,7 +297,7 @@ pub fn pseudo_e_part(e: &[u8]) -> Option<(i64, &'static str)> {
     Some((block, stored))
 }
 
-/// A pathname accepted for an irregular time-series write (P21 §3.1).
+/// A pathname accepted for an irregular time-series write.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ItsPathname {
     /// Parts A..F as given (D is replaced per block).
@@ -329,7 +328,7 @@ impl ItsPathname {
     }
 }
 
-/// Validate a pathname for an irregular time-series write (P21 §3.1): the P20 rules,
+/// Validate a pathname for an irregular time-series write: the regular rules,
 /// with the E part one of the irregular block names.
 pub fn validate_its_pathname(pathname: &[u8]) -> Result<ItsPathname, WriteError> {
     let parts = split_checked(pathname)?;
@@ -352,7 +351,7 @@ pub fn validate_its_pathname(pathname: &[u8]) -> Result<ItsPathname, WriteError>
     Ok(p)
 }
 
-/// Validate a pattern pathname (P38): the P20 §3.1 rules, a D part starting `TS-P` and
+/// Validate a pattern pathname: the shared rules, a D part starting `TS-P` and
 /// longer than 4 bytes (`ztsProcessTimes()` lines 268-272) and a standard regular or `IR-`
 /// E part, which HEC standardizes (line 229). Returns the stored pathname and, for a
 /// regular E part, the interval in seconds.

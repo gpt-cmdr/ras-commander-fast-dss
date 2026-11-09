@@ -1,5 +1,5 @@
-//! P43 evidence: runs `crs::Transformer` over the job `oracle/vortex/crs_cases.py` writes and
-//! dumps f64 bits for comparison with PROJ 7.2.0 inside Vortex. A failed point is written as
+//! Comparison helper: runs `crs::Transformer` over a JSON job file of input points and writes the
+//! output f64 bits, for comparison with PROJ 7.2.0 inside Vortex. A failed point is written as
 //! +infinity, which is what `HUGE_VAL` is. Usage: `crs_dump <job.json> <suffix>`.
 
 use dss_vortex::crs::{reproject_envelope, CrsDef, DatumPolicy, Envelope, Transformer};

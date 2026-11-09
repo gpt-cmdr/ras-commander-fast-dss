@@ -1,11 +1,12 @@
 //! P23 paired-data writer tests (DSS7 and DSS6): create → add → replace → read round
 //! trips (multi-curve, labels, float and double), refusals that leave the file
-//! byte-identical, the HMS Atlas 14 pathname regression (P17 Issue B2), every other
+//! byte-identical, the HMS Atlas 14 pathname regression (an HMS import issue), every other
 //! record word-identical, a crash at every step of the transaction with recovery, and a
 //! fuzz pass on input validation. Synthetic data only.
 //!
-//! HEC oracle checks (heclib `zpdStore`/`zcheckFile`, hecdss, Monolith `HecPairedData`)
-//! are local-only: `evidence/P23/REPORT.md`.
+//! The same writer was also checked with HEC software (heclib `zpdStore`/`zcheckFile`,
+//! hecdss, Monolith `HecPairedData`); those checks need HEC software and do not run in
+//! this test suite.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -540,7 +541,7 @@ fn refusals_dss6() {
     refusals(V::V6);
 }
 
-/// P17 Issue B2 regression: the HMS Atlas 14 import built an 8-slash pathname, which
+/// Regression: the HMS Atlas 14 import built an 8-slash pathname, which
 /// heclib truncated so every probability column landed in one record. The native writer
 /// refuses that pathname, and well-formed pathnames per probability stay distinct.
 fn b2_distinct(v: V) {
@@ -661,7 +662,7 @@ fn crash(v: V) {
         V::V7 => WriteStep::ALL.to_vec(),
         V::V6 => DSS6_STEP_ORDER.to_vec(),
     };
-    // P23 review m4: a same-type growth (more ordinates, float as stored) and a
+    // A same-type growth (more ordinates, float as stored) and a
     // label-only rewrite (same values, new labels).
     let go: Vec<f32> = (0..12).map(|i| i as f32).collect();
     let gv: Vec<f32> = (0..36).map(|i| 50.0 + i as f32).collect();
@@ -896,7 +897,7 @@ fn fuzz_input_validation() {
 }
 
 // ---------------------------------------------------------------------------------
-// P23 review M1: ELEV paired data (heclib's vertical-datum branch, zpdStore.c 324-647)
+// ELEV paired data (heclib's vertical-datum branch, zpdStore.c 324-647)
 // ---------------------------------------------------------------------------------
 
 fn hec_elev_fixture() -> PathBuf {
@@ -932,7 +933,7 @@ fn elev_rules_dss7() {
         BlockOutcome::Added
     );
     // 2. An existing ELEV record with a user header (heclib-written, no vertical-datum
-    // text): heclib drops the header on a rewrite without one (probe `p23hec elevrw`), and
+    // text): heclib drops the header on a rewrite without one (observed with heclib), and
     // so does the writer.
     let mut f = Dss7File::open(&p).unwrap();
     assert!(!f
@@ -1020,7 +1021,7 @@ fn elev_rules_dss6() {
 }
 
 // ---------------------------------------------------------------------------------
-// P23 review m2: the accept side of the 392-byte, 100-curve and 100-character limits
+// The accept side of the 392-byte, 100-curve and 100-character limits
 // ---------------------------------------------------------------------------------
 
 #[test]

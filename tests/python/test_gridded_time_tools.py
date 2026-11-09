@@ -566,8 +566,9 @@ def test_what_states_no_usable_crs_stays_refused(tmp_path, grid, match):
 
 
 def test_transverse_mercator_is_read_and_kept_as_stated(tmp_path):
-    # Refused until the CRS module held Transverse Mercator (P53b). Compared with Vortex in
-    # run_temporal.py's `transverse_mercator` cases.
+    # Refused until the CRS module held Transverse Mercator. The projection itself is
+    # checked against PROJ 7.2.0 as Vortex 1.1.0 runs it, in
+    # crates/dss-vortex/tests/crs_tm.rs.
     wkt = ('PROJCS["NAD83 / UTM zone 11N",GEOGCS["NAD83",DATUM["North_American_Datum_1983",SPHEROID["GRS 1980",6378137,298.257222101]],'
            'PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["latitude_of_origin",0],'
            'PARAMETER["central_meridian",-117],PARAMETER["scale_factor",0.9996],PARAMETER["false_easting",500000],'

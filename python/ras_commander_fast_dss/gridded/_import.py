@@ -1,4 +1,4 @@
-"""Importer API over ``_native`` (packets P46 and P46b). Argument checks live here; rules live in the engine."""
+"""Importer API over ``_native``. Argument checks live here; rules live in the engine."""
 
 from __future__ import annotations
 
@@ -238,7 +238,7 @@ def import_gridded(
         - with ``align="vortex"``, as Vortex converts it: with the international foot of 0.3048 m
           whichever foot the CRS states. On a US survey foot zone 10,000 m is then stored as
           32,808.3984 ft, which is 10,000.0198 m, and the lattice shifts with it. Awaiting the
-          maintainer's confirmation (P53b).
+          maintainer's confirmation.
     parts:
         Pathname parts ``A``, ``B``, ``C`` and ``F``, as given, case kept. D and E always come from
         each frame's window. A stated ``C`` replaces the name only; the data type still follows

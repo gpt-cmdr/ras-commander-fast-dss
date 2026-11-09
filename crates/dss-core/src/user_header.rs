@@ -1,4 +1,4 @@
-//! Record user headers as text (packet P26).
+//! Record user headers as text.
 //!
 //! A DSS record can carry a **user header**: an array of 4-byte words that HEC stores
 //! beside the internal header and never interprets itself. In DSS6 it is the
@@ -7,7 +7,7 @@
 //! words `KIAUHE`/`KINUHE` (dss6.md §5.1). Programs that write time series put free-form
 //! `Keyword: value;` text in it; HEC-DSSVue's USGS import writes gage metadata there.
 //! The text is not validated by HEC, and a datum named in it is informational only: it
-//! is never merged into typed location fields (decision D37).
+//! is never merged into typed location fields.
 //!
 //! Text rules (docs/format/dss6.md §14):
 //! - The words hold characters packed four per word in file byte order, the same packing
@@ -20,21 +20,22 @@
 //! - Trailing blanks are padding and are removed here (Fortran `HOLCHR` blank-fills, and
 //!   `userHeaderToString`'s trailing-blank loop never runs because of operator
 //!   precedence). Monolith keeps them; see [`user_header_text`].
-//! - Decoding (P28, maintainer decision 2026-10-28: the text is "probably UTF-8"; step 3
-//!   from P31, maintainer decision 2026-10-30: "use UTF-8"): the text bytes (after the
+//! - Decoding (maintainer decision 2026-10-28: the text is "probably UTF-8"; then
+//!   maintainer decision 2026-10-30: "use UTF-8"): the text bytes (after the
 //!   NUL cut and the trailing-blank trim) are decoded as standard UTF-8 when valid; else
 //!   as Java modified UTF-8 when valid (what Monolith's JNI layer writes: 6-byte
 //!   surrogate pairs for characters outside the BMP, `C0 80` for U+0000); else as UTF-8
 //!   with each malformed sequence replaced by one U+FFFD, exactly as Java's own decoder
 //!   does (`new String(bytes, StandardCharsets.UTF_8)`; [`decode_utf8_replacing`]).
-//!   P28 decoded that last case as whole-text Latin-1, and P26 used Latin-1 for all text
+//!   Earlier versions decoded that last case as whole-text Latin-1, and before that
+//!   Latin-1 was used for all text
 //!   ([`decode_user_header_text`], [`UserHeaderEncoding`]).
 //! - Monolith reads the text with JNI `NewStringUTF` (`javaHeclib/src/jni_utility.c`,
 //!   `hec_dss_jni_setStringField`, called from `Hec_ztsRetrieve.c` for
 //!   `supplementalInfo`). For invalid text HotSpot's `NewStringUTF` never gives U+FFFD:
 //!   it maps each bad byte to its Latin-1 character and sizes the string by the count of
 //!   non-continuation bytes, so characters at the end are dropped; it also splits valid
-//!   4-byte UTF-8 (docs/format/dss6.md §14.2, P31 REPORT). The engine does not copy that
+//!   4-byte UTF-8 (docs/format/dss6.md §14.2). The engine does not copy that
 //!   loss. Other DSS6 character fields (pathnames, units, types) stay Latin-1. The raw
 //!   bytes are always available ([`user_header_bytes`]).
 //! - [`parse_user_header_items`] follows `hec.io.DataContainer.getSupplementalInfo()`
@@ -59,7 +60,7 @@ pub fn user_header_text_bytes(words: &[i32]) -> Vec<u8> {
     b
 }
 
-/// How user-header text bytes were decoded (P28; P31 replaced `Latin1` with
+/// How user-header text bytes were decoded (`Latin1` was replaced with
 /// `Utf8Replaced`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum UserHeaderEncoding {
@@ -126,13 +127,14 @@ fn decode_modified_utf8(b: &[u8]) -> Option<String> {
     String::from_utf16(&units).ok()
 }
 
-/// UTF-8 to a string with each malformed sequence replaced by one U+FFFD (P31). It
+/// UTF-8 to a string with each malformed sequence replaced by one U+FFFD. It
 /// matches the observable output of Java 17's UTF-8 decoder with replacement,
 /// `new String(bytes, StandardCharsets.UTF_8)` (17.0.11+9 is the JRE Monolith 3.3.27 runs
-/// on in HMS 4.13). Clean-room implementation (P59): written from the Unicode Standard
+/// on in HMS 4.13). Clean-room implementation: written from the Unicode Standard
 /// (chapter 3, §3.9, Table 3-7 "Well-Formed UTF-8 Byte Sequences" and the U+FFFD
 /// substitution of maximal subparts) and black-box tests of the JDK; no JDK source was
-/// consulted (`evidence/P59/REPORT.md`).
+/// consulted (recorded JDK outputs: `tests/data/p59b_monolith.tsv`, checked by
+/// `tests/dss6_user_header_lossy.rs`).
 ///
 /// Valid UTF-8 decodes unchanged. For invalid input each maximal subpart of a
 /// well-formed sequence (or each byte that starts none) becomes one U+FFFD, the practice
@@ -197,7 +199,7 @@ pub fn decode_utf8_replacing(src: &[u8]) -> String {
     out
 }
 
-/// Decode user-header text bytes (P28; step 3 from P31), in this order:
+/// Decode user-header text bytes, in this order:
 /// 1. standard UTF-8 when `bytes` is valid UTF-8 ([`UserHeaderEncoding::Utf8`]);
 /// 2. else Java modified UTF-8 when valid ([`UserHeaderEncoding::ModifiedUtf8`]): Monolith
 ///    writes text through JNI, which uses it for characters outside the BMP (a 6-byte
@@ -234,7 +236,7 @@ pub fn user_header_text(words: &[i32]) -> String {
     decode_user_header_text(&user_header_text_bytes(words)).0
 }
 
-/// The decoding [`user_header_text`] uses for these words (P28); `None` when the text is
+/// The decoding [`user_header_text`] uses for these words; `None` when the text is
 /// empty (no words, a leading NUL, or only blanks), matching
 /// `Location::supplemental_encoding`.
 pub fn user_header_text_encoding(words: &[i32]) -> Option<UserHeaderEncoding> {
@@ -302,7 +304,7 @@ impl crate::dss6::Dss6TsRecord {
         parse_user_header_items(&self.user_header_text())
     }
 
-    /// [`user_header_text_encoding`] of this block's user header (P28); `None` when the
+    /// [`user_header_text_encoding`] of this block's user header; `None` when the
     /// text is empty.
     pub fn user_header_encoding(&self) -> Option<UserHeaderEncoding> {
         user_header_text_encoding(&self.user_header)
@@ -349,7 +351,7 @@ mod tests {
 
     #[test]
     fn invalid_utf8_is_replaced() {
-        // P31: a lone 0xE9 is one U+FFFD; the rest of the text is unchanged.
+        // A lone 0xE9 is one U+FFFD; the rest of the text is unchanged.
         let w = words(b"N\xe9e: x");
         assert_eq!(user_header_text(&w), "N\u{fffd}e: x");
         assert_eq!(
@@ -365,7 +367,7 @@ mod tests {
 
     #[test]
     fn replacement_follows_java() {
-        // Expected strings are Java 17 `new String(bytes, UTF_8)` (P31 REPORT §2).
+        // Expected strings are Java 17 `new String(bytes, UTF_8)`.
         let cases: &[(&[u8], &str)] = &[
             (b"A\x80B", "A\u{fffd}B"),
             (b"A\xc3B", "A\u{fffd}B"),

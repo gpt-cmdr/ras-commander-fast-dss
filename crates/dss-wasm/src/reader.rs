@@ -24,7 +24,7 @@ use std::io::Cursor;
 use std::rc::Rc;
 
 /// Error category, the same split the Python binding raises as exception classes
-/// (decision D32). JavaScript sees it as the `kind` property of the thrown `Error`.
+///. JavaScript sees it as the `kind` property of the thrown `Error`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ErrorKind {
     /// Damaged or non-DSS bytes (Python `DssFormatError`).
@@ -449,7 +449,7 @@ pub struct GridData {
     pub grid: Grid,
 }
 
-/// Time-series record types (100-199), for the typed "not a time series" error (D29).
+/// Time-series record types (100-199), for the typed "not a time series" error.
 fn record_is_ts(t: i32) -> bool {
     (100..200).contains(&t)
 }
@@ -468,13 +468,13 @@ enum Inner {
         file: Box<Dss7File<Cursor<SharedBytes>>>,
         /// The bytes `file` reads, for the size check of the profile guard.
         bytes: SharedBytes,
-        catalog: Option<Box<Dss7Catalog>>,
-        recover_catalog: Option<Box<Dss7Catalog>>,
+        catalog: Option<Box<dss7::IndexedDss7Catalog>>,
+        recover_catalog: Option<Box<dss7::IndexedDss7Catalog>>,
     },
 }
 
 /// The file bytes, shared without a copy between the reader and the profile guard.
-/// Reference counted, not atomic: this crate has no threads (spec D11).
+/// Reference counted, not atomic: this crate has no threads.
 #[derive(Clone)]
 struct SharedBytes(Rc<Vec<u8>>);
 
@@ -499,7 +499,7 @@ impl DssBuffer {
         Self::open(bytes, false)
     }
 
-    /// Open in explicit recovery mode (P06, P16; the Python `recover=True`). DSS7 catalogs
+    /// Open in explicit recovery mode (the Python `recover=True`). DSS7 catalogs
     /// also list entries in unlinked bins (interrupted writes, which HEC's catalog omits)
     /// and pathname reads take the best-preserved copy of a duplicated pathname, through
     /// [`Dss7Catalog::find`] and [`Dss7File::record_at`]. Every integrity check still
@@ -583,16 +583,14 @@ impl DssBuffer {
     }
 
     /// Turn not-found into the typed unsupported-record error when the pathname names
-    /// a record that is not a time series (decision D29).
+    /// a record that is not a time series.
     fn refine(&mut self, err: ReadError, pathname: &str) -> ReadError {
         if err.kind == ErrorKind::NotFound {
             if let Some(t) = self.record_type_of(pathname) {
                 if !record_is_ts(t) {
                     return ReadError::new(
                         ErrorKind::Unsupported,
-                        format!(
-                            "record {pathname} has type {t}, which is not a time series (decision D29)"
-                        ),
+                        format!("record {pathname} has type {t}, which is not a time series"),
                     );
                 }
             }
@@ -722,8 +720,8 @@ impl DssBuffer {
                     };
                     if window.is_none() {
                         let slot = if recover { recover_catalog } else { catalog };
-                        let cat = v7_catalog(file, slot, recover)?;
-                        file.read_ts_with_catalog(cat, &p, &opts)
+                        let cat = v7_indexed(file, slot, recover)?;
+                        file.read_ts_with_indexed_catalog(cat, &p, &opts)
                     } else {
                         file.read_ts(&p, &opts)
                     }
@@ -873,7 +871,7 @@ pub fn count_arg(v: f64, what: &str, max: u64) -> ReadResult<u64> {
 
 fn v7_catalog<'a>(
     file: &mut Dss7File<Cursor<SharedBytes>>,
-    slot: &'a mut Option<Box<Dss7Catalog>>,
+    slot: &'a mut Option<Box<dss7::IndexedDss7Catalog>>,
     recover: bool,
 ) -> ReadResult<&'a Dss7Catalog> {
     if slot.is_none() {
@@ -882,8 +880,19 @@ fn v7_catalog<'a>(
             ..CatalogOptions::default()
         };
         let cat = file.catalog_with(&opts).map_err(map_dss7)?;
-        *slot = Some(Box::new(cat));
+        *slot = Some(Box::new(dss7::IndexedDss7Catalog::new(cat)));
     }
+    Ok(slot.as_deref().expect("catalog just set").catalog())
+}
+
+/// P61: the cached catalog snapshot with its whole-dataset range index (built on the
+/// first whole read and dropped with the cached catalog).
+fn v7_indexed<'a>(
+    file: &mut Dss7File<Cursor<SharedBytes>>,
+    slot: &'a mut Option<Box<dss7::IndexedDss7Catalog>>,
+    recover: bool,
+) -> ReadResult<&'a dss7::IndexedDss7Catalog> {
+    v7_catalog(file, slot, recover)?;
     Ok(slot.as_deref().expect("catalog just set"))
 }
 
@@ -891,7 +900,7 @@ fn v7_catalog<'a>(
 /// recovery catalog selects (as the Python binding's `read_by_pathname`).
 fn v7_record(
     file: &mut Dss7File<Cursor<SharedBytes>>,
-    recover_slot: &mut Option<Box<Dss7Catalog>>,
+    recover_slot: &mut Option<Box<dss7::IndexedDss7Catalog>>,
     recover: bool,
     pathname: &[u8],
     map_lookup: fn(dss7::Dss7Error) -> ReadError,

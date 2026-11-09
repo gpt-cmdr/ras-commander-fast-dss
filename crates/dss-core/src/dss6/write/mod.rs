@@ -1,9 +1,9 @@
-//! DSS6 writer, packet P22: create a DSS6 file and add, replace or merge regular (RTS 100,
+//! DSS6 writer: create a DSS6 file and add, replace or merge regular (RTS 100,
 //! RTD 105) and irregular (ITS 110, ITD 115) time series with HEC's store semantics.
-//! Specification: `packets/P22_dss6_ts_writer.md`; format: `docs/format/dss6.md`
+//! Format: `docs/format/dss6.md`
 //! (§9.3 for the native write ordering).
 //!
-//! Built on the P20 DSS7 writer ([`crate::dss7::write`]): the same input, option, report
+//! Built on the DSS7 writer ([`crate::dss7::write`]): the same input, option, report
 //! and error types, the same lock guard and held write lock (`LockPolicy::default()`), the
 //! same fault-injection hook ([`FaultPoint`], [`WriteStep`]) and the same rule of refusing
 //! rather than truncating. What differs is the DSS6 layout (127-word records with a pad,
@@ -14,7 +14,7 @@
 //!
 //! 1. validates the input (pathname, times, values, strings; refusal, never truncation);
 //! 2. tests HEC's DSS6 lock words on its own handle and applies the [`crate::lock::LockPolicy`];
-//! 3. holds HEC's write lock while writing (P20 `lockhold`, `KLOCKB`);
+//! 3. holds HEC's write lock while writing (`lockhold`, `KLOCKB`);
 //! 4. reconciles a file left with the in-progress marker by an interrupted native write;
 //! 5. writes block by block, each block one transaction ordered "data first, pointers
 //!    last" ([`DSS6_STEP_ORDER`]).
@@ -38,14 +38,14 @@
 
 mod check;
 mod engine;
-// P24: grid records.
+// Grid records.
 mod grid;
 mod io;
 mod its;
-// P39: location data of time-series records.
+// Location data of time-series records.
 mod location;
 mod path;
-// P38: pattern records.
+// Pattern records.
 mod pattern;
 mod pd;
 mod rts;
@@ -253,7 +253,7 @@ pub fn validate_its6_input(input: &ItsInput) -> Result<(), WriteError> {
 }
 
 /// Store one paired-data record, PD (200) or PDD (205) as the arrays' width, in the
-/// existing DSS6 file at `path` (P23; `zpdStore6.c` → `zspdi6.f` `IPLAN` 0): a new record
+/// existing DSS6 file at `path` (`zpdStore6.c` → `zspdi6.f` `IPLAN` 0): a new record
 /// or a full replacement of an existing paired-data record. The pathname is stored in
 /// upper case. `input.time_zone` must be `None`; at most 100 curves; units and types at
 /// most 8 characters; labels at most 100 characters without trailing blanks.
@@ -283,7 +283,7 @@ pub fn validate_pd6_input(input: &PdInput) -> Result<(), WriteError> {
 }
 
 // ---------------------------------------------------------------------------------
-// P24: grids (add, replace). Specification: packets/P24_grid_writer.md.
+// Grids (add, replace).
 // ---------------------------------------------------------------------------------
 
 pub use crate::dss7::write::{
@@ -299,7 +299,7 @@ pub fn validate_grid6_input(input: &GridInput) -> Result<GridPlan, WriteError> {
     Ok(plan)
 }
 
-/// Store one grid record in the existing DSS6 file at `path` (P24): a new record, or a
+/// Store one grid record in the existing DSS6 file at `path`: a new record, or a
 /// replacement of a grid record of the same type. Every check runs before the first
 /// write; a refused write leaves the file unchanged.
 pub fn write_grid6(
@@ -335,7 +335,7 @@ pub fn write_grid6_to(
 }
 
 // ---------------------------------------------------------------------------------
-// P38: pattern records. Specification: packets/P38_ts_writer_variants.md.
+// Pattern records.
 // ---------------------------------------------------------------------------------
 
 /// Store one pattern record in the existing DSS6 file at `path` (`zsrtpa6.f`, `zsitsi6.f`

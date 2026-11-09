@@ -1,4 +1,4 @@
-//! Oracle tool: run the production warp on one case file, as `oracle/vortex/` tools call it.
+//! Comparison tool: run the production warp on one case file and write its cells.
 //!
 //! Usage: `warp_case <case.txt> <out.f32>`. The case holds `input`, `nx`, `ny`, `ox`, `dx`, `oy`,
 //! `dy`, `nodata`, `method`, `wkt`, `start`, `end`, `units`, `variable` and `description`, and
@@ -8,8 +8,8 @@
 //! The input's length must be exactly `nx * ny * 4` bytes. A warp goes through `warp_frame`, and
 //! what is printed comes from the frame it returns, one `key=value` to a line: `nx`, `ny`, `chunks`,
 //! `gt` (all six coefficients), `nodata_bits`, `start`, `end`, `interval_seconds`, `units`,
-//! `variable`, `description` and `wkt`. A harness compares those with the oracle's, so the tool
-//! declares its own frame rather than being classified under the oracle's.
+//! `variable`, `description` and `wkt`. They are compared with HEC-Vortex's, so the tool
+//! declares its own frame rather than being classified under Vortex's.
 use dss_vortex::crs::{CrsDef, Envelope};
 use dss_vortex::frame::{
     Crs, DataType, FrameTime, GeoTransform, GridFrame, GridFrameParts, RowOrder,

@@ -1,4 +1,4 @@
-//! Packet P60: the three engine findings of the P58 pydsstools validation.
+//! The three engine findings of the pydsstools cross-check (see the README).
 //!
 //! - E1: DSS6 time-series units and type are C strings (cut at the first NUL), as heclib's
 //!   `stringFortToC` returns them and Monolith reads them; pydsstools leaves `CFS`, NUL and
@@ -10,7 +10,7 @@
 //!   no other type, and Monolith cannot read DSS7 411/421); DSS7 specified ones keep 431.
 //!
 //! `fixtures/public/p60_pydsstools6.dss` is written by pydsstools 3.1.0 from synthetic
-//! values (`evidence/P60/scripts/pyd_fixture.py`); its SHA-256 is
+//! values; its SHA-256 is
 //! pinned in `fixtures/public/README.md` and checked by `tests/python/test_p60_pydsstools.py`.
 
 use std::path::{Path, PathBuf};
@@ -70,7 +70,7 @@ fn e2_pydsstools_grid_header_count_beyond_stored_header() {
     let stored_ints = rec.info.internal_header.1;
     let g = f.read_grid(GRID).unwrap();
     assert_eq!(g.record_type, 430);
-    // pydsstools' count (744 here, 764 in P58: it depends on the WKT length) exceeds
+    // pydsstools' count (744 here, 764 in the cross-check: it depends on the WKT length) exceeds
     // the stored header.
     assert!(
         g.struct_version / 4 > stored_ints,
@@ -81,7 +81,7 @@ fn e2_pydsstools_grid_header_count_beyond_stored_header() {
     assert_eq!(g.data_units, "MM");
     assert_eq!(g.srs_name, "UTM17N");
     // pydsstools flips rows (row 0 of its input is north); HEC stores the south row first.
-    // The -9999 null cell reads as HEC's undefined marker (Java heclib legacy rule, P11).
+    // The -9999 null cell reads as HEC's undefined marker (Java heclib legacy rule).
     assert_eq!(g.null_value, -9999.0);
     assert_eq!(g.data[..3], [4.0, GRID_UNDEFINED, 6.0]);
     assert_eq!(g.data[3..], [1.0, 2.0, 3.0]);
@@ -122,7 +122,7 @@ fn read(path: &Path, v: u8, p: &[u8]) -> Grid {
 }
 
 /// E3: HEC's DSS6 grid store (Monolith `GriddedData.storeGriddedData`) writes only
-/// 410/420/430 and refuses 4x1 (P60 probe: status -1); its own time-invariant DSS6 grid
+/// 410/420/430 and refuses 4x1 (status -1); its own time-invariant DSS6 grid
 /// is 420 with empty D and E. DSS7 stores the type it is given, but Monolith reads back
 /// only 410/420/430/431 (`GridStructContainer.returnGridInfo`), so HRAP and Albers use
 /// 410/420 there too and specified grids keep 431.

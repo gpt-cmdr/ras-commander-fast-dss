@@ -540,7 +540,7 @@ fn dss6_every_word() {
     dss6_words("castro.dss", 1024);
 }
 
-/// Review M1: KHASH 8 puts KLOCKB at byte 512, inside the first 800 bytes. The header
+/// KHASH 8 puts KLOCKB at byte 512, inside the first 800 bytes. The header
 /// read must stop at 276 bytes, so a held read slot is reported, not an I/O error.
 #[test]
 fn dss6_klockb_512_every_word() {
@@ -580,7 +580,7 @@ fn dss6_pre_6k_with_holder() {
     assert!(ensure_unlocked_for_write(&status(&t.path), &allow).is_ok());
 }
 
-/// Review m2: a DSS6 copy truncated inside its lock record is BadLockLayout, never
+/// A DSS6 copy truncated inside its lock record is BadLockLayout, never
 /// "unlocked".
 #[test]
 fn dss6_truncated_lock_record_is_an_error() {
@@ -593,7 +593,7 @@ fn dss6_truncated_lock_record_is_an_error() {
     ));
 }
 
-/// Review m1: a DSS7 copy with a corrupt read-array pointer or file size is
+/// A DSS7 copy with a corrupt read-array pointer or file size is
 /// BadLockLayout (no overflow, no wrap to offset 0).
 #[test]
 fn dss7_corrupt_lock_pointer_is_an_error() {
@@ -656,7 +656,7 @@ fn not_dss_is_an_error_and_missing_is_io() {
     ));
 }
 
-/// Opt-in: zero false positives over a directory of DSS copies (P02 golden set).
+/// Opt-in: zero false positives over a directory of DSS copies.
 #[test]
 fn golden_dir_no_false_positives() {
     let Ok(dir) = std::env::var("DSS_LOCK_GOLDEN_DIR") else {

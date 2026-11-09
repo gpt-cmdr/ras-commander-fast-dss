@@ -1,4 +1,4 @@
-//! Dump every paired-data record of a DSS6 or DSS7 file (packet P10 test harness).
+//! Dump every paired-data record of a DSS6 or DSS7 file (test harness).
 //!
 //! ```text
 //! cargo run --release -p dss-core --example pd_dump -- <file.dss> <out-dir> [--max N] [--no-arrays]

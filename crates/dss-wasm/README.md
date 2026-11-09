@@ -1,10 +1,10 @@
 # dss-wasm
 
-Read-only WebAssembly bindings for `dss-core` (packets P35, P40). JavaScript passes the
+Read-only WebAssembly bindings for `dss-core`. JavaScript passes the
 bytes of a whole DSS6 or DSS7 file as a `Uint8Array`; the module reads the signature, the
 catalog, time-series records and datasets, paired data, grids, profiles and locations from
 those bytes, with an explicit recovery mode for interrupted-write files.
-It has no file access, no locking, no threads and no writers (spec D11).
+It has no file access, no locking, no threads and no writers.
 
 ## Build
 
@@ -126,7 +126,7 @@ keeps stored bits exactly), `descriptorsStored`, the stored codes `coordinateSys
 `timeZone`, `supplemental` (`Uint8Array` or `null`), `supplementalText`,
 `supplementalEncoding`, `supplementalSource`, and for DSS7 `values1`, `program`,
 `lastWriteMs`; for DSS6 `blockJulian`. A datum named in the supplemental text stays
-informational and never changes the codes (decision D37). DSS7: the associated location
+informational and never changes the codes. DSS7: the associated location
 is the record `/A/B/Location Info////`, and the data record need not exist. DSS6 has no
 location records: `readLocation` throws `unsupported`, and `readAssociatedLocation` reads
 the time-series header. A DSS6 pathname naming no stored block reads every block of the
@@ -160,7 +160,7 @@ Conventions, the same as the Python binding:
   `DssValueError`, `DssIndexError`, `DssRecordUnavailableError`,
   `DssLocationConflictError`) and `kind` is `format`, `not_found`, `unsupported`, `dss`,
   `index` or `invalid_argument`. A pathname naming a record that is not a time series raises
-  `unsupported` from the time-series reads (decision D29).
+  `unsupported` from the time-series reads.
 
 Limits (refusals are `invalid_argument`, thrown before any data is assembled; they read
 only the catalog, pathname lookups and record headers. `readGrid`'s `maxCells`, checked by
@@ -210,7 +210,7 @@ use of an object") and its memory may not be released. Typed `Dss*` errors leave
 object usable.
 
 Reading a profile record through the time-series reads throws `unsupported` naming it a
-profile record. Not exported yet: the DSS6 "no data" refusal (P29), text records, and the
+profile record. Not exported yet: the DSS6 "no data" refusal, text records, and the
 catalog-index route for paired data and grids (in recovery mode they read by pathname).
 
 ## Tests

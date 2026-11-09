@@ -1,5 +1,5 @@
-# P33 reference values recorded from HEC Monolith 3.3.27 (javaHeclib 7-IU) on
-# disposable copies of the HEC-written fixtures; see docs/project/packets/evidence/P33.
+# Reference values recorded from HEC Monolith 3.3.27 (javaHeclib 7-IU) on
+# disposable copies of the HEC-written fixtures (see fixtures/public/README.md).
 FILE	synthetic_hec_compress6.dss	12
 CAT	synthetic_hec_compress6.dss	/P33/DELTA2/ELEV/01JAN2000/1DAY/S2/
 CAT	synthetic_hec_compress6.dss	/P33/DELTA3/FLOW/01JAN2000/1DAY/S3/

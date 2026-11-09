@@ -1,4 +1,4 @@
-//! Test harness: the `tiff` crate's decoder on one file, for the P50 process-limit evidence.
+//! Test harness: the `tiff` crate's decoder on one file, to measure it under a process memory limit.
 //! Usage: tiff_crate_probe <input>
 use std::io::Cursor;
 use tiff::decoder::{Decoder, Limits};

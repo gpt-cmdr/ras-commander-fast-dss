@@ -13,7 +13,7 @@
 //! `catch_unwind` cannot catch it. Here every allocation sized by the input is fallible and checked
 //! against what the file can hold first.
 //!
-//! BIL is not read here: it is its own packet in the Vortex long tail (`VORTEX_DECISIONS`, V1).
+//! BIL is not read here: it is a separate format and is not supported yet.
 
 mod asc;
 pub(crate) mod geokeys;
@@ -113,7 +113,7 @@ pub(crate) enum CrsResolution {
 /// The sidecar beside `path` that GDAL applies to what it reads, as (what was found, what it does).
 /// GDAL matches sibling names without regard to case (`CPLCheckForFile`), so this lists the folder.
 ///
-/// Measured with GDAL 3.12.2 by `oracle/vortex/tests/test_sidecars.py`: `<name>.aux.xml` and the
+/// Measured with GDAL 3.12.2: `<name>.aux.xml` and the
 /// HFA `<name>.aux` or `<stem>.aux` replace nodata, CRS and georeference (`GDALPamDataset`), and
 /// `<name>.msk` replaces the mask (`GDALDefaultOverviews::HaveMaskFile`). A world file or `.tab`
 /// has no effect on a raster with an internal georeference, and one without is refused for that.

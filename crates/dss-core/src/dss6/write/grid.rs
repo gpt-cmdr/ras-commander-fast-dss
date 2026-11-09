@@ -1,7 +1,7 @@
-//! DSS6 grid records (packet P24): what HEC Monolith 3.3.27 hands to `zwritx` for a DSS6
+//! DSS6 grid records: what HEC Monolith 3.3.27 hands to `zwritx` for a DSS6
 //! file, `GriddedData.storeGriddedData` (DSS6 branch, offsets 19-1054) ->
 //! `javaHeclib/src/Hec_zwritx.c` -> `heclib_c/src/DssInterface/v6and7/zwritex.c` ->
-//! `heclib_f/src/zwritex6.f` (tag `7-IU-15`). The record is stored by the P22 engine as
+//! `heclib_f/src/zwritex6.f` (tag `7-IU-15`). The record is stored by the engine as
 //! one transaction (`dss6.md` §9.3).
 //!
 //! - Internal header: the Java `GridInfoFlat` int array (`GridInfoFlat.flatten`, with
@@ -40,7 +40,7 @@ fn counted(b: &[u8], out: &mut Vec<i32>) {
 
 /// HEC minutes of a (julian, seconds) time (`HecTime.value()`); -2147483647 when there
 /// is none: the value of an unset `HecTime` that Monolith stores (`UNDEFINED_TIME`,
-/// `headers/heclibDate.h`; checked on Monolith-written grids, P24).
+/// `headers/heclibDate.h`; checked on Monolith-written grids).
 fn minutes(t: Option<(i64, i64)>) -> i32 {
     t.map_or(-2_147_483_647, |(j, s)| (j * 1440 + s / 60) as i32)
 }

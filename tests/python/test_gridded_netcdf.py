@@ -1,8 +1,8 @@
-"""NetCDF files through ``import_gridded`` and ``list_variables`` (packet P46b), by the public API.
+"""NetCDF files through ``import_gridded`` and ``list_variables``, by the public API.
 
 The AORC hours in ``fixtures/public/netcdf_p46b`` hold NOAA's rain for 19 and 20 September 2019 in the
 layout of the real ``AORC_APCP_MARFC_1984010100.nc4``, which is a dry hour. Expected stamps are literals.
-Vortex and HEC's readers are in ``oracle/vortex/run_import.py --netcdf``.
+These tests do not run Vortex or HEC's readers.
 """
 
 import os

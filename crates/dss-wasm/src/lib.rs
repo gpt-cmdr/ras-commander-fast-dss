@@ -1,7 +1,7 @@
 //! Read-only WebAssembly bindings. Inputs are in-memory byte buffers; there is no
-//! file access, locking, threading or writing in WASM (spec D11).
+//! file access, locking, threading or writing in WASM.
 //!
-//! JavaScript API (P35):
+//! JavaScript API:
 //!
 //! - `dssVersion(head)`: DSS major version (6 or 7) from the file header.
 //! - `fileSignature(bytes)`: header summary object.
@@ -635,7 +635,7 @@ impl DssFile {
         Ok(DssFile { inner })
     }
 
-    /// Open a whole DSS file in explicit recovery mode (P06, P16). DSS7 catalogs also list
+    /// Open a whole DSS file in explicit recovery mode. DSS7 catalogs also list
     /// entries in unlinked bins, which HEC's catalog omits, and pathname reads take the
     /// best-preserved copy of a duplicated pathname. Every integrity check still applies.
     /// `new DssFile` never does this. DSS6 has no recovery mode and reads as usual.

@@ -7,8 +7,8 @@
 //! grid's null value) is HEC's marker in the frame. Observed behaviour we did not implement: Vortex
 //! computes on those as numbers.
 //!
-//! HRAP and Albers grids other than SHG keep the CRS text Vortex gives them through GDAL 3.2.1, as
-//! compared in `oracle/vortex/grid_tools_cases.py`. An HRAP grid's cell numbers count from the CRS's
+//! HRAP and Albers grids other than SHG keep the CRS text Vortex gives them through GDAL 3.2.1
+//! (compared with Vortex 1.1.0 output). An HRAP grid's cell numbers count from the CRS's
 //! own false origin (HRAP point 401, 1601 is the pole), so it is not [`crate::crs::CrsDef::hrap`],
 //! whose origin is the pole, and its records become specified grids as they do in Vortex.
 //!

@@ -1,4 +1,4 @@
-//! DSS7 location records (type 20) and associated-location lookup (packet P15).
+//! DSS7 location records (type 20) and associated-location lookup.
 //!
 //! Port of `heclib_c/src/Public/zlocationRetrieve.c:zlocationRetrieve()`; layout written
 //! by `Public/zlocationStore.c:zlocationStore()` (dss7.md §11):

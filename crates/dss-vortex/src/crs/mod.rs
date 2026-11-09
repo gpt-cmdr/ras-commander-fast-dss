@@ -330,8 +330,8 @@ impl CrsDef {
     /// A Transverse Mercator's values as PROJ reads them, 15 significant digits each, the unit's
     /// factor included: two texts of one CRS that differ past those digits, such as a US survey
     /// foot of 0.3048006096012192 and of 0.304800609601219, are the same CRS to PROJ, and its
-    /// pipeline between them is `noop` (measured, P53b `same_unit_text`). Other projections are
-    /// compared as stated, as P43 measured them.
+    /// pipeline between them is `noop` (measured against PROJ). Other projections are compared as
+    /// stated, as measured against PROJ.
     fn read_by_proj(&self) -> Projection {
         match self.projection {
             Projection::TransverseMercator {

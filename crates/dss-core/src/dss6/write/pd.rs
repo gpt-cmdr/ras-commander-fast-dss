@@ -1,4 +1,4 @@
-//! DSS6 paired-data store (packet P23): the full-record path of
+//! DSS6 paired-data store: the full-record path of
 //! `DssInterface/v6and7/zpdStore6.c:zpdStore6()` (`heclib_c`) → `zspdi6.f:ZSPDI6` with
 //! `IPLAN = 0` (normal write) → `zwritex6.f` (hec-dss tag `7-IU-15`; Fortran paths
 //! relative to `heclib/heclib_f/src/`). This is the path HEC Monolith 3.3.27's
@@ -54,7 +54,7 @@ pub(super) fn plan(input: &PdInput) -> Result<Pd6Plan, WriteError> {
     // zcheck6.f lines 70-82: DSS6 stores pathnames in upper case.
     let path = input.pathname.to_ascii_uppercase();
     check_common(input)?;
-    // P23 review M1: '|' in an elevation-side unit (crack_unit_spec, zspdi6.f lines 187-196).
+    // '|' in an elevation-side unit (crack_unit_spec, zspdi6.f lines 187-196).
     crate::dss7::write::pd_elev_units(input)?;
     let nord = input.data.number_ordinates();
     let ncurve = input.number_curves;
@@ -66,7 +66,7 @@ pub(super) fn plan(input: &PdInput) -> Result<Pd6Plan, WriteError> {
     }
     // zpdStore6.c lines 165-171 store -1 unless `xprecision > 0`, so HEC never writes an
     // x precision of 0 to DSS6; Monolith 3.3.27 reads a stored `0·10 + y` as (y, y)
-    // (P23 REPORT §3). Refused rather than dropped to -1 or misread.
+    // (observed). Refused rather than dropped to -1 or misread.
     if input.x_precision == 0 {
         return Err(bad(
             "x_precision 0 cannot be stored in DSS6 (heclib stores -1, and Monolith reads 0*10+y as x=y); use -1 or 1..=9",
@@ -110,7 +110,7 @@ pub(super) fn plan(input: &PdInput) -> Result<Pd6Plan, WriteError> {
             maxlabel = maxlabel.max(l.len());
         }
         // zrpdi6.f / zpdRetrieve6.c return labels only when one of them has a non-blank
-        // character in its first 8 (P10 REPORT §4).
+        // character in its first 8.
         if !labels.iter().any(|l| l.iter().take(8).any(|&c| c != b' ')) {
             return Err(bad(
                 "every label is blank in its first 8 characters; DSS6 readers would return \
@@ -161,8 +161,8 @@ fn build(plan: &Pd6Plan, look: &Lookup) -> Result<Record6, WriteError> {
             )));
         }
         // ZSPDI6 lines 106-306: for an elevation C part HEC applies vertical-datum handling
-        // and re-stores the record's user header when none is given (P22 refuses the same
-        // case for time series).
+        // and re-stores the record's user header when none is given (the DSS6 time-series
+        // writer refuses the same case).
         if is_elevation_pd(&plan.path) && ex.f(I_NUHE) > 0 {
             return Err(WriteError::Unsupported(format!(
                 "{}: an elevation paired-data record with a user header (HEC applies \

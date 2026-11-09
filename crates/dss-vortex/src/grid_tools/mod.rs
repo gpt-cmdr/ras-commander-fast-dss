@@ -1,8 +1,8 @@
 //! Grid tools: calculator, sanitizer, normalizer and clipper, replacing the Vortex tools of those
 //! names (`math/Calculator`, `math/GridCalculator`, `math/Sanitizer`, `math/Normalizer`,
-//! `geo/BatchSubsetter`). No Java runs here; Vortex is a test oracle only (`oracle/vortex/run_grid_tools.py`).
+//! `geo/BatchSubsetter`). No Java runs here; Vortex is used only as a test oracle.
 //!
-//! This module is called `grid_tools` and not `math`, as the packet's scope first named it, so that
+//! This module is called `grid_tools` and not `math`, Vortex's package name, so that
 //! it cannot be confused with [`crate::maths`], the portable floating-point functions. Everything
 //! here is IEEE `+ - * /` on `f32`, which is exact on every platform and needs no portable
 //! function; the warp behind the clipper and the raster calculator uses `maths` already.
@@ -15,7 +15,7 @@
 //! it may or may not be in the file, since a failure late in a write can follow its publication.
 //!
 //! Observed behaviour we did not implement, on Vortex 1.1.0 and 0.13.3. Each is a test in
-//! `tests/grid_tools.rs` and a named case in `oracle/vortex/grid_tools_cases.py`:
+//! `tests/grid_tools.rs`:
 //!
 //! - **A missing cell as an operand.** `GridCalculator` applies the operation to every cell, so HEC's
 //!   marker (-FLT_MAX) in the input and the raster's marker are both used as numbers. Here a cell

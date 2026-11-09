@@ -1,8 +1,8 @@
-"""A local Zarr v2 store through the public API (packet P49).
+"""A local Zarr v2 store through the public API.
 
 Inputs are ``fixtures/public/zarr``: real AORC v1.1 chunks, and a store built here. Expected cells
-are what xarray 2026.9.0 decodes (``expected.json``, by ``oracle/vortex/make_zarr_fixtures.py``);
-stamps are literals. xarray itself, Monolith and hecdss are in ``oracle/vortex/compare_zarr.py``.
+are what xarray 2026.9.0 decodes (``expected.json``); stamps are literals. These tests do not run
+xarray, Monolith or hecdss.
 """
 
 import datetime as dt
@@ -218,7 +218,7 @@ def test_selections_that_take_nothing_are_refused(tmp_path):
     assert not out.exists()
 
 
-# ---- Review of 8fc6610a: limits, stop, a complete store, the selection, recognition, links.
+# ---- Limits, stop, a complete store, the selection, recognition, links.
 
 
 def test_limits_are_named_and_settable():

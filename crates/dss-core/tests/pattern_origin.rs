@@ -1,4 +1,4 @@
-//! P25: pattern time-origin facts (DSS_TASK DT5 follow-up).
+//! P25: pattern time-origin facts.
 //!
 //! Pattern records (types 101/106 regular, 111/116 irregular; D part `TS-...`) store no
 //! dates. The readers put the first regular value at 01Jan3000 00:00 on both versions
@@ -222,7 +222,7 @@ fn dss7_stored_offset_is_reported_not_applied() {
             }
         }
     }
-    // Expected heclib starts (oracle-verified in the P25 report).
+    // Expected heclib starts (checked against HEC's C library).
     let mut first = |p: &str| {
         f.read_ts(p.as_bytes(), &TsReadOptions::default())
             .unwrap()
@@ -262,7 +262,7 @@ fn dss7_origin(ih: Vec<i32>) -> dss_core::timeseries::PatternOrigin {
             .join("_")
     );
     let bytes = build_dss7_patterns(&[(path, 101, ih, &[1.0, 2.0, 3.0])]);
-    // Optional oracle copies (P25 report): DSS_P25_FIXTURE_OUT=<scratch dir>.
+    // Optional copies for reading with HEC software: DSS_P25_FIXTURE_OUT=<scratch dir>.
     if let Some(out) = std::env::var_os("DSS_P25_FIXTURE_OUT") {
         let out = std::path::PathBuf::from(out);
         std::fs::create_dir_all(&out).unwrap();
@@ -299,7 +299,7 @@ fn dss7_offset_larger_than_interval() {
 fn dss7_short_internal_headers() {
     // INT_HEAD_timeOffset is int 2: headers of 1 or 2 ints have no offset word.
     // heclib diverges on 2 ints: ztsInternalHeaderUnpack.c line 76 only rejects < 2, so it
-    // reads one int past the header (pydsstools/Monolith showed garbage, P25 report).
+    // reads one int past the header (pydsstools/Monolith showed garbage).
     for (ih, stored) in [
         (vec![60], None),
         (vec![60, -1], None),
@@ -424,7 +424,8 @@ const PATTERN6: &str = "/A/B/FLOW/TS-PATTERN/15MIN/JUNK3/";
 const PATTERN6_SHORT: &str = "/A/B/FLOW/TS-PATTERN/15MIN/SHORT/";
 const ORDINARY6: &str = "/A/B/FLOW/01JAN2000/1HOUR/F/";
 
-/// DSS6 patterns: word 0 = 3 minutes (like g27's junk `IOFSET`), and a 1-word header
+/// DSS6 patterns: word 0 = 3 minutes (like the junk `IOFSET` of a private
+/// HEC-written test file), and a 1-word header
 /// (heclib C applies word 0 only when the header has at least 5 words).
 fn dss6_pattern_file() -> Vec<u8> {
     let recs = [
@@ -485,7 +486,7 @@ fn dss6_word0_is_reported_not_applied() {
         o.stored_offset_source.as_str(),
         "dss6_internal_header_word0_minutes"
     );
-    // heclib C applies word 0 (g27: pydsstools / Monolith start 00:03).
+    // heclib C applies word 0 (on that private file pydsstools and Monolith start at 00:03).
     assert_eq!(o.heclib_first_seconds, Some(secs(3000, 1, 1, 0, 3)));
     let d = f
         .read_ts_dataset(PATTERN6.as_bytes(), &DatasetOptions::whole())

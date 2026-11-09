@@ -1,7 +1,7 @@
 //! Warping one grid to another: `near`, `bilinear` and `average`, reproducing GDAL 3.2.1 as HEC
 //! Vortex drives it from `geo/Resampler.java`.
 //!
-//! Evidence and the per-case results are in `evidence/P44/REPORT.md`.
+//! The per-case checks against GDAL output are in `tests/p41_warp_cases.rs`.
 //! All maths goes through [`crs::maths`](crate::crs::maths). Only exact operations (`floor`,
 //! `ceil`, `abs`, `sqrt`, `trunc`) come from `std`; `tests/warp_maths_gate.rs` enforces that.
 //!
@@ -19,7 +19,7 @@
 //! worker is a typed refusal.
 //!
 //! Sources must be axis-aligned. A rotated geotransform is refused, because `VortexGrid` cannot
-//! express one, so the oracle harness has never measured this warp on such a grid.
+//! express one, so no comparison with Vortex covers this warp on such a grid.
 
 mod extent;
 mod kernel;
@@ -365,7 +365,7 @@ impl WarpPlan {
             return Err(refused(
                 "source geotransform",
                 "it is rotated, and this warp is not qualified on rotated sources: Vortex's grid \
-                 model cannot express one, so no oracle comparison covers them",
+                 model cannot express one, so no comparison with Vortex covers them",
             ));
         }
         let target = spec.target.clone().unwrap_or_else(|| source.crs.clone());

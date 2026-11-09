@@ -16,8 +16,8 @@ use std::fmt;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompressError {
     /// A scheme the caller did not enable: schemes 4 and 5 (sig-digits) with
-    /// `allow_sig_digits = false`. They are absent from the corpus (P02); P33 verified
-    /// them bit for bit against heclib on HEC-written data.
+    /// `allow_sig_digits = false`. They are absent from the corpus; they were verified
+    /// bit for bit against heclib on HEC-written data.
     UnsupportedScheme(i32),
     /// The header is inconsistent (`DHCHEK`/`DHINFO` status, or out-of-range fields).
     BadHeader(String),
@@ -185,7 +185,7 @@ impl CompressionHeader {
                 )));
             }
         }
-        // Sig-digits: byte 25 (the S section's ISIZE) is not checked (P33). DHINFO line 208
+        // Sig-digits: byte 25 (the S section's ISIZE) is not checked. DHINFO line 208
         // reads it, but HEC's writer stores whatever ISIZE the caller passed: `dhinit.f`
         // line 74 `PUTHOL(IH, 25, ISIZE)` (its -1802 status for ISIZE /= 2 is overwritten
         // by `dcreal.f` before it is tested), and `zsrtsi6.f` lines 825-832 set that
@@ -248,7 +248,7 @@ fn delta_quantum(prec: i32) -> f32 {
 
 /// Decode a compressed block (`DUREAL`). `header` is the `KINCHE` words at `KIACHE`,
 /// `data` the `KINDAT` words at `KIADAT`, `allow_sig_digits` enables schemes 4/5
-/// (verified against heclib's `zrrtsx` on HEC-written data in P33). Returns `NELMS` values; HEC's -901 markers are produced as stored.
+/// (verified against heclib's `zrrtsx` on HEC-written data). Returns `NELMS` values; HEC's -901 markers are produced as stored.
 pub fn decode(
     header: &[i32],
     data: &[i32],
@@ -438,7 +438,7 @@ mod tests {
 
     #[test]
     fn sig_digit_size_byte_ignored() {
-        // P33: HEC-written scheme 4/5 headers carry 0 (or a stale 2) at byte 25; HEC's
+        // HEC-written scheme 4/5 headers carry 0 (or a stale 2) at byte 25; HEC's
         // DUREAL ignores it. Codes 1001 (0.0) and 15*1024 + 123 (123 x 10**0).
         for size in [0u8, 2, 7] {
             let mut h = header(4, 2, None, &[]);

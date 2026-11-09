@@ -1,9 +1,9 @@
-//! Paired-data reads on the public fixtures in `fixtures/public/` (packet P10), so PD
-//! coverage runs in CI. Expected values come from the P02 golden oracle dumps: `hecdss`
-//! for DSS7 (`g01`, `g02`) and HEC Monolith for DSS6 (`g04`, `g05`, `g10`, `g19`). The
+//! Paired-data reads on the public fixtures in `fixtures/public/`, so PD
+//! coverage runs in CI. Expected values come from HEC reads of the same files: `hecdss`
+//! for the DSS7 fixtures and HEC Monolith for the DSS6 fixtures. The
 //! checksum is FNV-1a 64 over every PD record sorted by pathname bytes: pathname, then
-//! ordinates, then values, little-endian in the stored width (computed from the oracle
-//! arrays by `evidence/P10/scripts/public_expected.py`).
+//! ordinates, then values, little-endian in the stored width (computed from the arrays
+//! HEC's readers returned).
 
 mod pd_support;
 
@@ -236,7 +236,7 @@ fn sample6_short_labels_and_stale_klnda() {
         .unwrap();
     assert_eq!(r.pd.labels, vec!["FLOW-RES IN"]);
     assert_eq!(r.pd.number_ordinates, 31);
-    // KILNDA is 365 although the record holds 31 * 2 values (P05 O9).
+    // KILNDA is 365 although the record holds 31 * 2 values (`docs/format/dss6.md` §12, item O9).
     assert_eq!((r.meta.logical_values, r.meta.data_words), (365, 62));
     assert!(r.meta.logical_values_stale);
     assert_eq!(f32s(&r.pd.ordinates)[0], 7406.0);

@@ -1,4 +1,4 @@
-//! Version-neutral paired-data model shared by the DSS6 and DSS7 readers (packet P10).
+//! Version-neutral paired-data model shared by the DSS6 and DSS7 readers.
 //!
 //! The DSS7 reader (`dss7::pd`) and the DSS6 reader (`dss6::pd`) decode their own on-disk
 //! layouts and map them into [`PairedData`]. Field meanings follow HEC's

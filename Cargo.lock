@@ -142,7 +142,7 @@ checksum = "9e9de72ce2ad1f90dc62fa25f0f430ef85eb4b0d8fa0be4f30373bc40a21d28e"
 
 [[package]]
 name = "dss-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "miniz_oxide 0.8.9",
  "nix",
@@ -150,7 +150,7 @@ dependencies = [
 
 [[package]]
 name = "dss-py"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dss-core",
  "dss-vortex",
@@ -160,7 +160,7 @@ dependencies = [
 
 [[package]]
 name = "dss-vortex"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dss-core",
  "flate2",
@@ -178,7 +178,7 @@ dependencies = [
 
 [[package]]
 name = "dss-wasm"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dss-core",
  "js-sys",

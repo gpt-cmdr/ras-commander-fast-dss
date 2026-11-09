@@ -229,7 +229,7 @@ def test_every_word_detected_and_released(tmp_path, holder_factory, name):
 
 @pytest.mark.parametrize("name,klockb", [("synthetic_python6.dss", 512), ("castro.dss", 1024)])
 def test_dss6_read_slot_plus_write_word(tmp_path, holder_factory, name, klockb):
-    """Review M1: with KLOCKB = 512 the lock record lies inside the first 800 bytes; a
+    """With KLOCKB = 512 the lock record lies inside the first 800 bytes; a
     held read slot must be reported (not an OSError), together with the write word."""
     path = copy(tmp_path, name)
     assert ranges(path)[0] == ("primary_write", klockb, 4)
@@ -247,7 +247,7 @@ def test_dss6_read_slot_plus_write_word(tmp_path, holder_factory, name, klockb):
 
 
 def test_truncated_dss6_is_format_error(tmp_path):
-    """Review m2: lock record past EOF is an error, never 'unlocked'."""
+    """A lock record past EOF is an error, never 'unlocked'."""
     path = copy(tmp_path, "castro.dss")
     path.write_bytes(path.read_bytes()[:1100])
     with pytest.raises(dss.DssFormatError):

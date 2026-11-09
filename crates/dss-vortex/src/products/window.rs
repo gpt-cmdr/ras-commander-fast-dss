@@ -1,4 +1,4 @@
-//! A caller's statement of how long a GRIB2 record's accumulation is (packet P46c).
+//! A caller's statement of how long a GRIB2 record's accumulation is.
 //!
 //! MRMS GRIB2 states an instant: template 4.0 with no time range, so Section 4 cannot say what period a
 //! QPE covers. Its name can, in the MRMS table (`RadarOnly_QPE_15M`, `MultiSensor_QPE_24H_Pass2`). Vortex
@@ -11,8 +11,8 @@
 //!
 //! **What states a duration.** A variable's name comes from the GRIB2 tables, so all of it counts
 //! ([`durations_in`]). A file's name is free text, so only its QPE stem counts ([`stem_durations`]):
-//! `24H_RadarOnly_QPE_01H_x.grib2` states one hour, and `storm_24H.grib2` states nothing. This is the same
-//! rule as `_stem_seconds` in ras-commander's `precip/_native_vortex.py`; keep the two together.
+//! `24H_RadarOnly_QPE_01H_x.grib2` states one hour, and `storm_24H.grib2` states nothing. ras-commander
+//! applies the same rule to QPE file names; keep the two together.
 //!
 //! **What is a depth.** `VortexVariable.fromName` calls any name holding `qpe` precipitation, so MRMS's
 //! `FLASH_QPE_ARI24H`, a recurrence interval in years, and `FLASH_QPE_FFG01H`, a ratio, arrive here as

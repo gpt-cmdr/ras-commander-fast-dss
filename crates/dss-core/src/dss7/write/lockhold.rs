@@ -1,5 +1,5 @@
-//! Holding HEC's write lock for the duration of a native write (P20 §2.1, policy
-//! question 1; `LockPolicy::hold_primary_lock_during_write`).
+//! Holding HEC's write lock for the duration of a native write (`dss7.md` §6.2;
+//! `LockPolicy::hold_primary_lock_during_write`).
 //!
 //! HEC takes an exclusive byte-range lock on the primary lock word
 //! (`Internal/zlockActive.c` line 262, 8 bytes at `klockAddressWord × 8`) and, on its
@@ -35,7 +35,7 @@ pub(crate) enum HoldError {
 
 // `File::try_lock` / `File::unlock` are std 1.89. The workspace `rust-version` stays at
 // 1.80 (raising it enables MSRV-gated clippy lints across older code), so the Windows
-// writer lock needs Rust 1.89 or later to build (P20 REPORT, open items).
+// writer lock needs Rust 1.89 or later to build.
 #[cfg(windows)]
 #[allow(clippy::incompatible_msrv)]
 mod sys {

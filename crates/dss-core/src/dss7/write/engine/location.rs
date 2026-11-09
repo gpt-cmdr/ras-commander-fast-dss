@@ -1,6 +1,6 @@
-//! DSS7 location store (packet P39): `Public/zlocationStore.c:zlocationStore()` (storage
+//! DSS7 location store: `Public/zlocationStore.c:zlocationStore()` (storage
 //! flag 1) with `Internal/zlocationUpdatePerm.c:zlocationUpdatePerm()`, committed with
-//! P20's transaction order. Tag `7-IU-15`.
+//! the transaction order. Tag `7-IU-15`.
 //!
 //! Record: the pathname from `zlocationPath()`; values1 x, y, z (doubles, low word
 //! first), the six codes, then the time-zone name when it is not empty and fits (lines
@@ -54,7 +54,7 @@ fn areas(f: &LocationFields) -> Areas {
     }
     v1.extend_from_slice(&f.codes);
     if let Some(tz) = f.time_zone.as_deref().filter(|t| !t.is_empty()) {
-        // Deviation (P39 REPORT §5): heclib uses `numberIntsInBytes(len)`, so a name of 4, 8,
+        // Deviation: heclib uses `numberIntsInBytes(len)`, so a name of 4, 8,
         // ... bytes has no NUL, and zlocationRetrieve() reads past values1 into whatever
         // memory follows (observed with heclib and Monolith on heclib's own files). One
         // more int keeps the name terminated; every other length is word-identical.
@@ -78,6 +78,7 @@ fn areas(f: &LocationFields) -> Areas {
         first: (0, 0),
         last: (0, 0),
         total_expanded: 0,
+        copy_out: false,
     }
 }
 

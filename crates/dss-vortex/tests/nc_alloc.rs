@@ -1,6 +1,6 @@
 //! Size claims in a file must be checked against limits before anything sized by them is allocated.
 //! An allocator records the largest request and can refuse requests over a limit. Fixtures here are
-//! real HDF5 written by `oracle/vortex/make_nc_hostile.py`: each declares a large grid with little
+//! real HDF5 written with h5py: each declares a large grid with little
 //! or highly compressed data. One `#[test]` only, so no other test thread adds to the counts.
 
 use dss_vortex::source::netcdf::{Limits, NetcdfFile};

@@ -1,4 +1,4 @@
-//! Location metadata (packet P15; decision D37 extends D29): DSS7 location records
+//! Location metadata: DSS7 location records
 //! (type 20) and the coordinates DSS6 stores in time-series internal headers.
 //!
 //! Format rules: `docs/format/dss7.md` §11 and `docs/format/dss6.md` §13. Sources:
@@ -10,7 +10,7 @@
 //! | Location pathname `/A/B/Location Info////` | `Public/zlocationPath.c:zlocationPath()` |
 //! | Supplemental `Keyword:Item;` convention | `Public/zlocationRetrieve.c` header comment; `Utilities/verticalDatum.c:extractFromDelimitedString()` |
 //! | DSS6 coordinates in TS headers | `heclib_f/src/zrrtsi.f` lines 588–601, `heclib_f/src/zritsi6.f` lines 737–749; `Dss6/ztsRetrieveReg6.c` lines 239–248 |
-//! | DSS6 supplemental text from the TS user header (P27) | Monolith `supplementalInfo` (`javaHeclib/src/Hec_ztsRetrieve.c`, "User header (supplemental)"); HEC's C library leaves it empty (`Dss6/ztsRetrieveReg6.c`) |
+//! | DSS6 supplemental text from the TS user header | Monolith `supplementalInfo` (`javaHeclib/src/Hec_ztsRetrieve.c`, "User header (supplemental)"); HEC's C library leaves it empty (`Dss6/ztsRetrieveReg6.c`) |
 //!
 //! Codes are kept exactly as stored. The typed accessors decode them; a code outside
 //! HEC's table decodes to an `Unknown(code)` variant, never to a guessed value. An unset
@@ -269,7 +269,7 @@ pub enum LocationSource {
     Dss6TsHeader,
 }
 
-/// Where [`Location::supplemental`] came from (P27).
+/// Where [`Location::supplemental`] came from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SupplementalSource {
     /// values2 of a DSS7 location record (`zlocationRetrieve()`).
@@ -278,7 +278,7 @@ pub enum SupplementalSource {
     /// (docs/format/dss6.md §14). This is Monolith's behavior: its `supplementalInfo` for a
     /// DSS6 time series is the user-header text (`javaHeclib/src/Hec_ztsRetrieve.c`).
     /// HEC's C library leaves the location's supplemental text empty for DSS6
-    /// (`Dss6/ztsRetrieveReg6.c`). Informational only (decision D37).
+    /// (`Dss6/ztsRetrieveReg6.c`). Informational only.
     Dss6UserHeader,
 }
 
@@ -316,8 +316,8 @@ pub struct Location {
     /// Location time-zone name (DSS7). `None` when no words are stored; may be empty.
     pub time_zone_name: Option<String>,
     /// Supplemental text bytes up to the first NUL. DSS7: values2, `None` when values2 is
-    /// empty. DSS6: the time-series user-header text (P27,
-    /// [`Location::with_dss6_user_header`]), `None` when that text is empty. See
+    /// empty. DSS6: the time-series user-header text
+    /// ([`Location::with_dss6_user_header`]), `None` when that text is empty. See
     /// [`Location::supplemental_source`].
     pub supplemental: Option<Vec<u8>>,
 }
@@ -348,12 +348,12 @@ impl Location {
         })
     }
 
-    /// DSS6 (P27): set the supplemental text from the user-header words of the same
+    /// DSS6: set the supplemental text from the user-header words of the same
     /// time-series record, as Monolith fills `supplementalInfo`. The text is
     /// [`crate::user_header::user_header_text_bytes`]: up to the first NUL, trailing
     /// blanks removed. An empty text leaves `supplemental` as `None`. Coordinates, codes
     /// and the presence rule are untouched; a datum named in the text stays informational
-    /// (D37) and is never merged into the typed fields.
+    /// and is never merged into the typed fields.
     pub fn with_dss6_user_header(mut self, user_header: &[i32]) -> Self {
         let text = crate::user_header::user_header_text_bytes(user_header);
         self.supplemental = (!text.is_empty()).then_some(text);
@@ -363,14 +363,14 @@ impl Location {
     /// Supplemental text. `source == Dss7Record`: Latin-1 decoded (lossless for bytes).
     /// `source == Dss6TsHeader`: [`Location::supplemental`] holds user-header text bytes
     /// (already cut at the NUL and trimmed by [`Location::with_dss6_user_header`]) and is
-    /// decoded as the user-header text ([`crate::user_header::decode_user_header_text`],
-    /// P28, step 3 from P31): UTF-8, else Java modified UTF-8, else UTF-8 with each
+    /// decoded as the user-header text ([`crate::user_header::decode_user_header_text`]):
+    /// UTF-8, else Java modified UTF-8, else UTF-8 with each
     /// malformed sequence replaced by one U+FFFD, as Java's decoder does.
     pub fn supplemental_text(&self) -> Option<String> {
         self.supplemental_decoded().map(|(s, _)| s)
     }
 
-    /// How [`Location::supplemental_text`] decodes the bytes (P28, P31): `"utf-8"`,
+    /// How [`Location::supplemental_text`] decodes the bytes: `"utf-8"`,
     /// `"modified-utf-8"` or `"utf-8-replaced"` when `source == Dss6TsHeader`, always
     /// `"latin-1"` when `source == Dss7Record`; `None` exactly when
     /// [`Location::supplemental`] is `None`.
@@ -615,7 +615,7 @@ mod tests {
             l.supplemental_source().unwrap().as_str(),
             "dss6_user_header"
         );
-        // Informational only: the typed datum stays unset (D37).
+        // Informational only: the typed datum stays unset.
         assert_eq!(l.vertical_datum(), VerticalDatum::Unset);
         assert_eq!(l.supplemental_vertical_datum().as_deref(), Some(" NAVD88"));
         assert_eq!((l.x, l.y, l.z), (base.x, base.y, base.z));
@@ -633,7 +633,7 @@ mod tests {
     #[test]
     fn dss6_supplemental_uses_the_user_header_decode() {
         let base = Location::from_dss6_ts(b"/A/B/C/D/E/F/", Some([1.0, 2.0, 3.0]), None).unwrap();
-        // Valid UTF-8 (P28): one character, as the user-header text.
+        // Valid UTF-8: one character, as the user-header text.
         let u = base
             .clone()
             .with_dss6_user_header(&words(b"Gage: Y\xc3\xbd;VerticalDatum: NAVD88"));
@@ -653,7 +653,7 @@ mod tests {
             u.supplemental.as_deref(),
             Some(&b"Gage: Y\xc3\xbd;VerticalDatum: NAVD88"[..])
         );
-        // Invalid UTF-8 (P31): the bad byte is one U+FFFD, the rest is UTF-8.
+        // Invalid UTF-8: the bad byte is one U+FFFD, the rest is UTF-8.
         let l = base
             .clone()
             .with_dss6_user_header(&words(b"Gage: \xc3\xbd\xe9"));

@@ -1,7 +1,7 @@
 //! Importer cases with no oracle at run time, so CI on every platform checks the same bits.
 //!
 //! `fixtures/public/vortex_p46/` holds synthetic GRIB2 inputs and, in `expected.json`, every record
-//! Vortex 1.1.0's importer wrote from them (`oracle/vortex/make_p46_fixture.py`): pathnames with
+//! Vortex 1.1.0's importer wrote from them: pathnames with
 //! their D and E parts, data types, units, placement, CRS, statistics and a digest of every cell.
 //! This test runs the same cases and compares through one function, which negative controls below
 //! prove can fail. DSS6 repeats each case: Vortex 1.x cannot write DSS6, so there only the pathname
@@ -142,7 +142,7 @@ fn f32_bits(v: Option<f32>) -> Value {
 
 /// Every difference between what Vortex wrote and what a file holds. Empty means identical. `upper`
 /// is DSS6: pathnames are upper case, and an Albers record holds parameters where DSS7 holds WKT
-/// text, so the CRS text is left to `oracle/vortex/run_import.py`'s DSS6 route against Vortex 0.13.3.
+/// text, so the CRS text is not compared here (Vortex 1.x cannot write DSS6).
 fn differences(wanted: &[Value], got: &BTreeMap<String, Grid>, upper: bool) -> Vec<String> {
     let mut problems = Vec::new();
     if wanted.is_empty() {

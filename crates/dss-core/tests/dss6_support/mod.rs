@@ -1,4 +1,4 @@
-//! Synthetic DSS6 file builder for tests (packet P07).
+//! Synthetic DSS6 file builder for tests.
 //!
 //! Lays files out the way HEC does (dss6.md §2-§5): 69-word header, hash table at word
 //! 70, a lock record, bin blocks linked through word `KBNSIZ` of their last bin, overflow

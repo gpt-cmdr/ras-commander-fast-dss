@@ -1,10 +1,9 @@
-//! Location writer input (packet P39), shared by the DSS7 writer
+//! Location writer input, shared by the DSS7 writer
 //! ([`super::write_location`]) and the DSS6 writer
-//! (`crate::dss6::write::write_location6`). Specification:
-//! `packets/P39_profile_location_writers.md`.
+//! (`crate::dss6::write::write_location6`). Format: `docs/format/dss7.md` §11.
 //!
 //! Field meanings: `Public/zlocationStore.c` comment block, `headers/zStructLocation.h`.
-//! Codes are not validated, as heclib does not validate them (P15 §1).
+//! Codes are not validated, as heclib does not validate them.
 
 use super::WriteError;
 
@@ -27,7 +26,7 @@ pub struct LocationInput<'a> {
     pub vertical_datum: Option<i32>,
     /// DSS7 only. An empty name is not stored (`zlocationStore()` line 218).
     pub time_zone: Option<&'a [u8]>,
-    /// DSS7: values2. DSS6: the record's user header (P27). `Some(b"")` is stored text.
+    /// DSS7: values2. DSS6: the record's user header. `Some(b"")` is stored text.
     pub supplemental: Option<&'a [u8]>,
     /// Keep what the record holds for fields left `None`, so a partial update loses
     /// nothing.

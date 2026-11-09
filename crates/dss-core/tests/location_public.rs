@@ -1,10 +1,9 @@
-//! Location reads on public fixtures (packet P15). Expected values: `hecdss` 0.1.33
+//! Location reads on public fixtures. Expected values: `hecdss` 0.1.33
 //! (`hec_dss_locationRetrieve`, HEC's `zlocationRetrieve`) and HEC Monolith 3.3.27
-//! (`HecTimeSeries.read` location fields) dumps of the same files; see
-//! `evidence/P15/REPORT.md`.
+//! (`HecTimeSeries.read` location fields) reads of the same files.
 //!
-//! `synthetic_location7.dss` was written by hecdss 0.1.33
-//! (`evidence/P15/scripts/make_fixture.py`); `sample6.dss` is HEC's DSSVue sample.
+//! `synthetic_location7.dss` was written by hecdss 0.1.33 (HEC's Python package) from
+//! synthetic values; `sample6.dss` is HEC's DSSVue sample.
 
 use std::path::PathBuf;
 

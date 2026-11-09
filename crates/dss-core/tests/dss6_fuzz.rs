@@ -1,4 +1,4 @@
-//! Deterministic robustness tests for the DSS6 reader (P05 acceptance check 7):
+//! Deterministic robustness tests for the DSS6 reader :
 //! truncation, bit flips, hostile header and bin words, cyclic chains, out-of-range
 //! addresses, bad pathname lengths and statuses. The reader must never panic and every
 //! loop must terminate; errors and anomalies are expected.

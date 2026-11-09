@@ -1,5 +1,5 @@
-//! Generated from NetCDF-Java 5.5.3 `ucar/nc2/grib/grib2/table/MrmsLocalTables.java`, `init`,
-//! by `oracle/vortex/gen_mrms_table.py`. Do not edit by hand.
+//! Transcribed mechanically from NetCDF-Java 5.5.3
+//! `ucar/nc2/grib/grib2/table/MrmsLocalTables.java`, `init`. Do not edit by hand.
 //! Columns: discipline, category, number, name, description, unit, fill, missing.
 
 #[rustfmt::skip]

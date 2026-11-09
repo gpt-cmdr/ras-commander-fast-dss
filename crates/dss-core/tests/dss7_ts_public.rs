@@ -1,5 +1,5 @@
-//! DSS7 time-series reads on the public fixtures (packet P08a). Expected values come from
-//! the `hecdss` oracle dumps (P02 golden set); the tests skip when a fixture is absent.
+//! DSS7 time-series reads on the public fixtures. Expected values come from
+//! `hecdss` reads of the same files; the tests skip when a fixture is absent.
 
 mod dss7_common;
 

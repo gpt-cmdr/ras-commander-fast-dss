@@ -1,4 +1,4 @@
-//! DSS6 reader checks against real files and the Monolith oracle (packet P07).
+//! DSS6 reader checks against real files and the Monolith oracle (see `docs/format/dss6.md`).
 //!
 //! These tests need files that are not in this repository, so they skip when the
 //! variables are unset or the files are absent:
@@ -7,8 +7,7 @@
 //!   extracted read-only from the HEC-HMS sample zips. `00_castro.dss` is HMS 3.3
 //!   `castro/castro.dss`.
 //! - `DSS6_GOLDEN_EXPECT`: one TSV per
-//!   golden fixture, exported from `golden\<id>\monolith\catalog.json` by
-//!   a private export script. Header lines `#file\t<path>`, then
+//!   reference file, exported from its HEC Monolith catalog. Header lines `#file\t<path>`, then
 //!   `<monolith type>\t<pathname as hex>` per catalogued record.
 //!
 //! Output names fixtures by id only, never record pathnames.
@@ -24,7 +23,7 @@ fn env_dir(var: &str) -> PathBuf {
         .unwrap_or_else(|| PathBuf::from(format!("<{var} unset>")))
 }
 
-/// P05 acceptance check 2: HMS 3.3 castro.dss address map golden values.
+/// HMS 3.3 castro.dss address map reference values.
 #[test]
 fn castro_address_map_golden() {
     let path = env_dir("DSS6_PUBLIC_DIR").join("00_castro.dss");
@@ -135,8 +134,8 @@ fn unhex(s: &str) -> Option<Vec<u8>> {
         .collect()
 }
 
-/// P05 acceptance checks 4-6: catalog equality with Monolith for every DSS6 golden
-/// fixture (public and client), plus negative fixtures that must fail cleanly.
+/// Catalog equality with Monolith for every DSS6 reference
+/// file (public and private), plus negative fixtures that must fail cleanly.
 #[test]
 fn golden_catalogs_match_monolith() {
     let dir = env_dir("DSS6_GOLDEN_EXPECT");
@@ -182,7 +181,7 @@ fn golden_catalogs_match_monolith() {
         let their_paths: Vec<&Vec<u8>> = theirs.iter().map(|r| &r.1).collect();
         assert_eq!(our_paths.len(), their_paths.len(), "{}: live count", exp.id);
         assert!(our_paths == their_paths, "{}: pathname sets differ", exp.id);
-        // Monolith reports type 0 for the Latin-1 pathnames it cannot look up (P02 §5.5).
+        // Monolith reports type 0 for the Latin-1 pathnames it cannot look up.
         let mut type_zero_nonascii = 0;
         for (o, m) in ours.iter().zip(&theirs) {
             if m.0 == 0 && o.1.iter().any(|&b| b >= 0x80) {

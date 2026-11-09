@@ -1,9 +1,9 @@
-//! Synthetic paired-data files for P10 tests (no external files).
+//! Synthetic paired-data files for the paired-data tests (no external files).
 //!
-//! DSS7: starts from P06's builder (`dss7_common::build`), appends each record's internal
+//! DSS7: starts from the catalog test builder (`dss7_common::build`), appends each record's internal
 //! header, header2 (labels), user header, values1 (ordinates) and values2 (curves) after
 //! the end of file, points the info block at them (`zdssInfoKeys` 13–24, dss7.md §5.1)
-//! and moves the end-of-file word. DSS6: P08b's payload builder (`dss6_ts_support`),
+//! and moves the end-of-file word. DSS6: the time-series payload builder (`dss6_ts_support`),
 //! with the internal header of `zspdi6.f` / `zrpdi6.f` (dss6.md §5.2).
 
 #![allow(dead_code)]

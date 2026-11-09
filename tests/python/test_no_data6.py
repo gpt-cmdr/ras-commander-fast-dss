@@ -6,7 +6,7 @@ value read is other than -901/-902. The rule is for the request as a whole, not 
 block: an all-missing block inside a window that holds data is read as found
 (docs/format/dss6.md §7.4). The default ``no_data="return"`` keeps the P28 behavior.
 
-Fixtures: ``synthetic_all_missing6.dss`` (P28) and ``synthetic_no_data6.dss`` (P29), both
+Fixtures: ``synthetic_all_missing6.dss`` and ``synthetic_no_data6.dss``, both
 generated and byte-checked by the Rust tests (``dss6_all_missing.rs``, ``dss6_no_data.rs``).
 """
 
@@ -100,7 +100,7 @@ def test_dataset_of_only_all_missing_blocks(f28, path):
         assert ei.value.pathname == path
         with pytest.raises(dss.DssNoDataError):
             f28.read_arrays(path, trim_missing=trim, no_data="refuse")
-    # Default modes unchanged (P28).
+    # Default modes unchanged.
     assert len(f28.read_timeseries(path, trim_missing=False)) == 366
     assert len(f28.read_arrays(path)["values"]) == 0
 
@@ -203,8 +203,8 @@ def test_public_dss6_irregular_and_pattern_unaffected(name):
             assert np.array_equal(a["values"], b["values"], equal_nan=True)
 
 
-# -- P29 review ----------------------------------------------------------------------
-# M1: records the option must not reach, each with every value -901/-902 (synthetic
+# -- records the option must not reach --------------------------------------------
+# Records the option must not reach, each with every value -901/-902 (synthetic
 # fixtures; the public DSS6 and DSS7 files above hold no such record).
 
 P_PAT = "/P29/GAGE P/FLOW/TS-PATTERN/1DAY/OBS/"  # type 100, TS- pattern

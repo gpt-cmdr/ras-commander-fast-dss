@@ -1,12 +1,13 @@
-//! Time-series variant writer harness for oracle comparisons (packet P38).
+//! Time-series variant writer harness for comparisons with HEC software.
 //!
 //! ```text
 //! ts_variants_write store <file.dss> <spec.txt> [--fault <block>:<step>] [--no-sync] [--six]
 //! ```
 //!
-//! Same spec format as the HEC helper `evidence/P38/scripts/p38hec.c`; `--six` writes a
-//! DSS6 file (irregular entries and patterns only need the fields DSS6 has). Prints one
-//! line per block. Point it only at new files or copies, never at golden files.
+//! The spec holds `STORE`, `IRREG` and `PATTERN` lines (their fields are parsed below);
+//! `--six` writes a DSS6 file (irregular entries and patterns only need the
+//! fields DSS6 has). Prints one line per block. Point it only at new files or copies, never
+//! at reference files.
 
 use dss_core::dss6::write as w6;
 use dss_core::dss7::interval::parse_date;

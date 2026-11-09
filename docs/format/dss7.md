@@ -1,6 +1,6 @@
 # HEC-DSS version 7 on-disk format
 
-Packet P04. These notes come from HEC's MIT-licensed `hec-dss` C source and were checked
+These notes come from HEC's MIT-licensed `hec-dss` C source and were checked
 read-only against public DSS7 files. Rust code that implements a rule from this document
 cites the section here and the `heclib` function named in that section.
 
@@ -15,7 +15,7 @@ cites the section here and the `heclib` function named in that section.
 
 ## 0. Files used for verification
 
-We read these files read-only with an ad hoc Python probe kept outside every repository.
+These files were read read-only.
 We copied no data into any repository. Only the first two files are public.
 
 | File | Version string | Notes |
@@ -59,7 +59,7 @@ All four files had:
 - The version string is the 4 bytes at **16..20** (word 2, `kversion`), for example `7-IU`.
   `zpermCreate()` (line 136); `Public/zgetFileVersion.c:zgetFileVersion()` reads bytes
   16..19 and returns 5/6/7/8 from the first character. The same byte offset holds the DSS6
-  version, so one probe works for both formats.
+  version, so one check works for both formats.
 - `Internal/zopenInternal.c:zopenInternal()` (lines 242–285) rejects a file when:
   - bytes 0..3 are not `ZDSS`; or
   - the first version character is not `7`. A `6` or `8` gives `INCOMPATIBLE_VERSION`.
@@ -116,7 +116,7 @@ index × 8. Values in "Default / create" come from `zpermCreate()` and
 | 26 | 208 | `ktotalBins` | Bins in use | 0 | info |
 | 27 | 216 | `kbinsOverflow` | Overflow bins | 0 | info |
 | 28 | 224 | `kfilePassword` | Encoded password (unused, 0) | 0 | — |
-| 29 | 232 | *(gap)* | No key in heclib: `kfileError = kfilePassword + 2` (`Internal/zinit.c` lines 535-548; the same in tags 7-IG to 7-JA-7). heclib never reads or writes it and preserves it (`zpermWrite()` writes the cached header back whole). **The P20 native writer uses it as its in-progress marker**: the new info address from the Allocation step until the write finishes, or minus the info address of a record being deleted (P21) (§6.4); 0 in all 25 golden DSS7 copies | 0 | — |
+| 29 | 232 | *(gap)* | No key in heclib: `kfileError = kfilePassword + 2` (`Internal/zinit.c` lines 535-548; the same in tags 7-IG to 7-JA-7). heclib never reads or writes it and preserves it (`zpermWrite()` writes the cached header back whole). **The native writer uses it as its in-progress marker**: the new info address from the Allocation step until the write finishes, or minus the info address of a record being deleted (§6.4); 0 in all 25 private DSS7 test copies | 0 | — |
 | 30 | 240 | `kfileError` | Unused | — | — |
 | 31 | 248 | `kfileErrorCode` | Unused | — | — |
 | 32 | 256 | `kcatSequenceNumber` | Catalog sort sequence. Copied into the high half of each bin's type word. Marked "obsolete" in the source. | — | — |
@@ -196,7 +196,7 @@ pointers and never assume these offsets.
 hints. Validate everything:
 
 - `kbinSize` ∈ [20, 1000], as in `zpermRead()` line 88;
-- `kmaxHash` ≥ 1. The P06 reader accepts 1..1,000,000. HEC's automatic sizing writes at
+- `kmaxHash` ≥ 1. The native reader accepts 1..1,000,000. HEC's automatic sizing writes at
   most 64000 and an explicit `hashSize` at most 100,000 (`znewFileSize()` lines 97–100).
   Clamp `ibit` (§3.2) to ≥ 1: `kmaxHash` = 1 gives `frexp` = (0.5, 1), so `ibit` = 0
   and `zhash()` would divide by zero;
@@ -217,10 +217,10 @@ and a writer that skips them still produces a valid file, but HEC's tools report
    becomes `'?'`; otherwise it becomes `toupper(ich)`. The buffer is followed by 8 NUL
    bytes.
    - On MSVC/x86 `char` is signed, so every byte ≥ 0x80 is negative, tests `< 32`, and
-     is hashed as `'?'`. Such bytes are **not** sign-extended. The P06 reader implements
+     is hashed as `'?'`. Such bytes are **not** sign-extended. The native reader implements
      this rule.
    - Platforms with unsigned `char` would hash these bytes differently. No DSS7 corpus
-     pathname contains a byte ≥ 0x80 (P06 corpus run, 2,846 files), so this stays
+     pathname contains a byte ≥ 0x80 (a survey of 2,846 private corpus files), so this stays
      source-only (§10 item 1).
 2. `h: i64 = 0; for c in bytes: h = h.wrapping_mul(31).wrapping_add(c as i64)`. This is
    Java's `String.hashCode` widened to 64 bits. After step 1 every buffer byte is in
@@ -312,7 +312,7 @@ is none (`zcheckInternal()` line 426; `Internal/zbinNew.c:zbinNew()` lines 86–
 
 | Value | Name | Where used | Live? |
 |---|---|---|---|
-| 0 | `REC_STATUS_VALID` | Bin status after **undelete** (`Internal/zdeleteInternal.c` writes 0). Also in the `7-10` info status. **[VERIFIED-CORPUS]** one corpus file has 187 status-0 entries; all are live and both oracles list them (P06 §5 item 10). | **yes** (treated as primary; `statusRead <= 1`) |
+| 0 | `REC_STATUS_VALID` | Bin status after **undelete** (`Internal/zdeleteInternal.c` writes 0). Also in the `7-10` info status. **[VERIFIED-CORPUS]** one corpus file has 187 status-0 entries; all are live and both oracles list them. | **yes** (treated as primary; `statusRead <= 1`) |
 | 1 | `REC_STATUS_PRIMARY` | Normal record | **yes** |
 | 2 | `REC_STATUS_ALIAS` | Alias pathname | yes (resolves to primary) |
 | 10 | `REC_STATUS_MOVED` | **Info** status of an expanded record's old copy (`Internal/zwriteExisting.c`) | no — dead space |
@@ -347,10 +347,10 @@ and reported as an anomaly.
    `info[kinfoHash] != binHash`, the space was reused and the record is not found.
    - **Alias caveat:** `zreadInfo()` compares the info hash with the hash of the
      *looked-up* pathname. For an alias that is the alias's hash, but the info block
-     belongs to the primary. The P06 reader skips the hash check for aliases. The P06
-     concern that HEC's alias read fails as written is superseded by P32 (below): HEC
+     belongs to the primary. The native reader skips the hash check for aliases. An earlier
+     concern that HEC's alias read fails as written is superseded by the check below: HEC
      reads aliases correctly.
-   - **P32 [VERIFIED-HEC]:** on the HEC-written `synthetic_catalog_ops7.dss`, HEC's C
+   - **[VERIFIED-HEC]** On the HEC-written `synthetic_catalog_ops7.dss`, HEC's C
      library reads three aliases (two of one primary block, one of the second block)
      with the primary's values, and the engine agrees. The primary pathname is read from
      the info block with the primary's own length (`Public/zaliasGetPrimary.c` lines
@@ -394,27 +394,27 @@ loop:
   numberAliasDeletes` (lines 186–188). Writers may append during a scan; HEC truncates.
 - **Order:** this unsorted catalog is in physical bin order, which is effectively hash
   order. **[VERIFIED-CORPUS]** HEC's unsorted catalog order (`hec_dss_catalog` on copies)
-  equals bin order on 25 of 25 fixtures with hecdss dumps, 435,593 entries (verified P06
-  golden run, 25 files).
+  equals bin order on 25 of 25 files read with hecdss, 435,593 entries (25 private test
+  files).
 - **Orphan bins** (in the block chain, but no hash slot or overflow link reaches them):
   HEC's catalog lists their entries, but lookup cannot reach them. **[VERIFIED-CORPUS]**
-  on all 12 loose files with orphan bins (P06 corpus run, 2,846 files). When a pathname
+  on all 12 loose files with orphan bins (a survey of 2,846 private corpus files). When a pathname
   is duplicated, the hash-reachable copy is the one lookup returns; the stale copies sit
   in orphan bins.
 - **Unlinked bins** (the reverse case): a hash-table slot or overflow link reaches a bin
   that is not in the bin-block chain. Because this walk never uses the hash table, HEC's
   catalog **omits** their entries, but a lookup **finds** them. **[VERIFIED-CORPUS]** in
-  one `7-IQ` corpus file (task 4983): 2,930 slots reach 2,970 unlinked bins holding
-  15,471 live entries (P06 §4 item 1). It is an interrupted-write signature (§6.4).
+  one damaged `7-IQ` corpus file: 2,930 slots reach 2,970 unlinked bins holding
+  15,471 live entries. It is an interrupted-write signature (§6.4).
 - **Recovery mode** (a reader option, not HEC behaviour): `dss_core::dss7::CatalogOptions::recover_unlinked`
   also walks the bins that the hash table and overflow links reach outside the block
   chain, and appends their entries after the bin-order entries. In this mode every copy
   of a duplicated pathname is checked, and the best-preserved copy wins: a valid info
   block first, then the latest info write time, then HEC's lookup order. HEC's own rule
   (and the default mode) takes the first copy in the hash chain, which can be a damaged
-  copy when an intact one exists. On task 4983 recovery yields 217,564 distinct live
+  copy when an intact one exists. On that file recovery yields 217,564 distinct live
   records, all with valid info blocks, against 202,291 valid in the default catalog. On
-  undamaged files it changes nothing (P06 addendum, 2,846 files).
+  undamaged files it changes nothing (2,846 private corpus files).
 
 ### 4.2 Deleted records, dead space, renames, expansions
 
@@ -454,13 +454,13 @@ loop:
   - **Recommendation:** never trust the stored list; sort in Rust with the key above.
 - **Side effect:** a sorted catalog in HEC may **write** the sort list into the file
   (`zcatInternalSort()` line 476 calls `zsetCatalogSortAddresses`, which needs write
-  access). Oracle harnesses must open corpus files read-only or work on copies.
+  access). A comparison harness must open such files read-only or work on copies.
 - **Condensed catalog:** no DSS7 C code exists. "Condensed" catalogs are produced only by
   the Fortran DSS6 catalog writers (`heclib_f/src/zcat6.f`, `zcatit.f`,
   `Support/makedsscatalog.f`). It is a presentation that groups TS D parts and has no
-  on-disk structure. That belongs to P05 or the Python layer.
+  on-disk structure. That belongs to the DSS6 notes (`dss6.md`) or the Python layer.
 
-**Reader needs:** §4.1–§4.3, plus the §4.4 sort key if catalog order must match HEC (D15).
+**Reader needs:** §4.1–§4.3, plus the §4.4 sort key if catalog order must match HEC.
 **Writer only:** the sort list and its status words (writers should set
 `kcatSortStatus` = 2 or 3 as HEC does: `zwriteNew` sets 1→2; delete/rename sets 3).
 
@@ -481,10 +481,10 @@ words, plus space for up to 20 alias words (`maxInfoSize`).
 | 3 | `kinfoHash` | Pathname (bin) hash; must equal the bin entry |
 | 4 | `kinfoTypeVersion` | `i4toi8(dataType, version)`: low = type; high = number of times written (starts at 1) |
 | 5 | `kinfoExpansion` | `i4toi8(numberExpansions, expansionFlag)` |
-| 6 | `kinfoLastWriteTime` | ms since 1970. In `7-10` files the stored values are seconds-like (about 1.25e9, that is 2009), but HEC (Monolith) still interprets them as ms (15 Jan 1970); the bins in the same files hold real ms (§3.4). **[VERIFIED-CORPUS]** (P06 corpus run). The bin value `kbinLastWrite` equals this word in most files, but is later in `7-10` (all records), in some `7-IC`/`7-IQ` files, and by about 47 minutes for every record of one 309k-record file. |
+| 6 | `kinfoLastWriteTime` | ms since 1970. In `7-10` files the stored values are seconds-like (about 1.25e9, that is 2009), but HEC (Monolith) still interprets them as ms (15 Jan 1970); the bins in the same files hold real ms (§3.4). **[VERIFIED-CORPUS]** (corpus survey). The bin value `kbinLastWrite` equals this word in most files, but is later in `7-10` (all records), in some `7-IC`/`7-IQ` files, and by about 47 minutes for every record of one 309k-record file. |
 | 7–8 | `kinfoProgram` | Program name, 16 bytes, NUL-padded (for example `"not specified"`, `"DSSUTL"`) |
-| 9 | `kinfoFirstDate` | `i4toi8(julianDay, secondsOfDay)` of the **first stored** value (TS), not the block start. It equals the first valid (non-missing) value only when the writer does not store leading missing values. `(j, 86400)` is common: a first value at 24:00, for example (43350, 86400). 0 for non-TS. **[VERIFIED-CORPUS]** 3,378/3,393 sampled TS records match the first non-missing value from hecdss (P06 check 8); P08a (`logs/dates_check.txt`) shows every exception is a stored value that is missing (see the exceptions list after this table). |
-| 10 | `kinfoLastDate` | Same, for the last **stored** value. **[VERIFIED-CORPUS]** 3,390/3,393 match the last valid value. The bin `kbinDates` days equal the info days in 3,393/3,393 (P06 check 8). |
+| 9 | `kinfoFirstDate` | `i4toi8(julianDay, secondsOfDay)` of the **first stored** value (TS), not the block start. It equals the first valid (non-missing) value only when the writer does not store leading missing values. `(j, 86400)` is common: a first value at 24:00, for example (43350, 86400). 0 for non-TS. **[VERIFIED-CORPUS]** 3,378/3,393 sampled TS records match the first non-missing value from hecdss; a follow-up check shows every exception is a stored value that is missing (see the exceptions list after this table). |
+| 10 | `kinfoLastDate` | Same, for the last **stored** value. **[VERIFIED-CORPUS]** 3,390/3,393 match the last valid value. The bin `kbinDates` days equal the info days in 3,393/3,393. |
 | 11 | `kinfoCreationTime` | ms since 1970 |
 | 12 | `kinfoReserved1` | Unused (formerly a record password) |
 | 13 | `kinfoInternalHeadAddress` | Address |
@@ -500,7 +500,7 @@ words, plus space for up to 20 alias words (`maxInfoSize`).
 | 23 | `kinfoValues3Address` | Address |
 | 24 | `kinfoValues3Number` | int32 |
 | 25 | `kinfoAllocatedSize` | int32 allocated for values1..3 (≥ used; room for growth) |
-| 26 | `kinfoNumberData` | Number of logical values from `blockStartPosition` to `blockEndPosition` (the uncompressed count), **not** the count of stored elements **[VERIFIED-CORPUS, P08a §4 item 3]**. For irregular records it equals the decoded value count (13,827/13,827 in the P08a corpus run). **[RESOLVED, P17 §C.1]**: it is the number of block positions stored, uncompressed: `blockEnd − blockStart + 1` (`ztsRegStoreBlock.c` lines 791–836; `ztsWriteBlock.c` around lines 230–250; `zwriteNew.c:294`). It is 1 when only one valid value is stored. On 11 DSS7 goldens, all 7,348 records with `kinfoNumberData ≠ kinfoLogicalNumber` satisfy this. The about 1,200 files with the value 1 that `CENSUS.md` §4 records are single-position uncompressed blocks, trimmed to one valid value; they are not all-repeat compressed blocks. |
+| 26 | `kinfoNumberData` | Number of logical values from `blockStartPosition` to `blockEndPosition` (the uncompressed count), **not** the count of stored elements **[VERIFIED-CORPUS]**. For irregular records it equals the decoded value count (13,827/13,827 in a corpus run). **[RESOLVED]**: it is the number of block positions stored, uncompressed: `blockEnd − blockStart + 1` (`ztsRegStoreBlock.c` lines 791–836; `ztsWriteBlock.c` around lines 230–250; `zwriteNew.c:294`). It is 1 when only one valid value is stored. On 11 private DSS7 test files, all 7,348 records with `kinfoNumberData ≠ kinfoLogicalNumber` satisfy this. The about 1,200 corpus files with the value 1 are single-position uncompressed blocks, trimmed to one valid value; they are not all-repeat compressed blocks. |
 | 27 | `kinfoLogicalNumber` | Expanded count the user sees (for example, 1440 for a 1-minute daily block) |
 | 28 | `kinfoAliasesBinAddress` | Address of the **last** alias's bin entry, or 0 (`Public/zaliasAdd.c` line 198) |
 | 29 | `kinfoReserved` | 0 |
@@ -515,7 +515,7 @@ words, plus space for up to 20 alias words (`maxInfoSize`).
   (`zwriteNew()`; `numberLongsInInts`).
 - The zinit block comment (lines 760–806) mentions a "compression flag / precision" word.
   **That comment is stale; the key table above is authoritative.**
-- **`kinfoFirstDate` / `kinfoLastDate` exceptions** **[VERIFIED-CORPUS, P08a §4 item 4]**:
+- **`kinfoFirstDate` / `kinfoLastDate` exceptions** **[VERIFIED-CORPUS]**:
   they are the time of the first and last *stored* value. They differ from the first and
   last valid value only where a stored value is itself missing:
 
@@ -542,8 +542,8 @@ words, plus space for up to 20 alias words (`maxInfoSize`).
 - **User header:** opaque int32s owned by the application.
 
 **Paired data (200/205)** (`Public/zpdRetrieve.c:zpdRetrieve()`,
-`Internal/zpdUnitsToHead.c:zpdHeadToUnits()`) **[VERIFIED-CORPUS, P10 §4]**: 17,032 golden
-DSS7 PD records (17,031 PD + 1 PDD; 34 multi-curve, 34 labelled) are identical to both
+`Internal/zpdUnitsToHead.c:zpdHeadToUnits()`) **[VERIFIED-CORPUS]**: 17,032
+DSS7 PD records of private test files (17,031 PD + 1 PDD; 34 multi-curve, 34 labelled) are identical to both
 hecdss and Monolith, and 405,187 sampled corpus records decode with 0 errors.
 
 - **Data areas:**
@@ -568,13 +568,13 @@ hecdss and Monolith, and 405,187 sampled corpus records decode with 0 errors.
   shorter than 5 ints is `WRONG_RECORD_TYPE`. In the corpus, 99.99% of PD records use
   padded units (405,150 of 405,187 sampled); the exceptions are 7-10 and 7-GT files.
 - **Sizes** come from the internal header (`INT_HEAD_pdNumberOrdinates` and
-  `INT_HEAD_pdNumberCurves`), never from `kinfoLogicalNumber` (P05 O9).
+  `INT_HEAD_pdNumberCurves`), never from `kinfoLogicalNumber` (`dss6.md` §12 O9).
 - No public fixture contains PDD; no vertical-datum conversion is applied unless HEC's
   `VDTM` option is set (neither oracle sets it).
 
-**Grids (400–431)** **[VERIFIED-CORPUS, P11 §Format-document corrections]**. Decoded
-bit-for-bit against Monolith (and hecdss where it can read the layout) on 14 golden
-fixtures (7,784 grids) and on 57,487 loose-corpus grids with 0 errors. The first int of
+**Grids (400–431)** **[VERIFIED-CORPUS]**. Decoded
+bit-for-bit against Monolith (and hecdss where it can read the layout) on 14 private
+test files (7,784 grids) and on 57,487 loose-corpus grids with 0 errors. The first int of
 the internal header selects one of two layouts (`Public/zspatialGridRetrieve.c:
 zspatialGridRetrieveVersion`):
 
@@ -584,8 +584,8 @@ zspatialGridRetrieveVersion`):
     4/5 `lowerLeftCellX/Y`, 6/7 `numberOfCellsX/Y`, 8 `compressionMethod`,
     9 `sizeofCompressedElements`, 10 `numberOfRanges`, 11 `srsDefinitionType`,
     12 `timeZoneRawOffset`, 13 `isInterval`, 14 `isTimeStamped`, 15 `storageDataType`,
-    24 `internalHeaderNumber`. **[RESOLVED from the header file; P11's "0..15 only" omits
-    index 24]**
+    24 `internalHeaderNumber`. **[RESOLVED from the header file; an earlier "0..15 only" note
+    omitted index 24]**
   - header2 holds five strings.
   - The user header holds the geometry (four geometry floats).
   - values1 holds statistics and range tables.
@@ -596,7 +596,7 @@ zspatialGridRetrieveVersion`):
     follows the cells** (`zspatialGridStore.c`, `numLongs*2*4`); the stream must end there.
   - Stored statistics keep their bits, including non-finite values. The missing-value
     policy is independent of the file name: modern grids always keep stored bits.
-  - **Null value (`_nullValue`, geometry float 3)** **[VERIFIED-ORACLE, P34]**: HEC's C
+  - **Null value (`_nullValue`, geometry float 3)** **[VERIFIED-ORACLE]**: HEC's C
     header documents it as "the value used in the grid's data array to represent a 'no
     data' cell" (`headers/zStructSpatialGrid.h:74`) for every grid, but Monolith carries
     it only for specified grids: `GridStructContainer`'s `(GridInfo)` constructor copies
@@ -608,8 +608,8 @@ zspatialGridRetrieveVersion`):
     the stored value in `Grid.null_value` but, matching Monolith, applies it as a missing
     marker only for specified grids (`Grid::is_missing`; Python `grid_missing_mask`).
     Checked on `fixtures/public/real_grid7.dss` (4 affected records, 94,306 zero cells)
-    and on the 14 grid-bearing golden fixtures (7,784 grids: missing counts equal
-    Monolith's under both rules; 2 golden HRAP/Albers grids store a null value other than
+    and on the 14 grid-bearing private test files (7,784 grids: missing counts equal
+    Monolith's under both rules; 2 private HRAP/Albers grids store a null value other than
     -FLT_MAX, 0.0 in one and a non-zero value in the other, and no cell equals either).
 - **First int non-negative: legacy flat layout**, in the internal header and in the values1
   payload. The internal header is the same Java `GridInfoFlat` int array as DSS6 grids
@@ -617,8 +617,7 @@ zspatialGridRetrieveVersion`):
   - **A positive first int (for example 300) is the legacy flat-header byte size, not a
     modern struct revision.** Applying the `-100` offsets to it mislabels ordinary header
     fields (lower-left, dimensions, cell size, compression) as compression, storage type and
-    SRS values. Never read legacy storage codes or SRS from modern offsets (see the
-    `CENSUS.md` §5 relabel).
+    SRS values. Never read legacy storage codes or SRS from modern offsets.
   - The first-int size can be stale (296 on specified headers whose actual transfer is
     longer); the actual transfer length is authoritative.
   - Legacy compression 26 (ZLIB) and 101001 (PRECIP_2_BYTE) occur. Legacy ZLIB missing
@@ -626,14 +625,14 @@ zspatialGridRetrieveVersion`):
     specified null markers and HRAP/Albers values outside the stored min/max are normalized
     too. PRECIP_2_BYTE missing runs decode to the undefined marker.
 - **Strings:** specified WKT and time-zone strings are returned verbatim except trailing
-  Hollerith padding/NUL termination. HRAP supplies heclib's HRAP WKT. **[OPEN, P13: for
+  Hollerith padding/NUL termination. HRAP supplies heclib's HRAP WKT. **[OPEN: for
   modern `-100` HRAP (410) records the Rust reader keeps the stored string, while Monolith
   `HrapInfo.getSpatialReferenceSystem` always returns its HRAP constant; no corpus
   instances]** Legacy Albers headers
   store no WKT: every stored projection parameter is returned, and the reported WKT follows
   the Albers SRS rule below; other legacy Albers projections keep their stored parameters only.
-- **Albers SRS rule** **[VERIFIED-ORACLE, P13: `javap -p -c` of the pinned Monolith 3.3.27
-  jar; 4,955 Albers grids in 7 golden fixtures and 81 synthetic records compared with
+- **Albers SRS rule** **[VERIFIED-ORACLE: `javap -p -c` of the pinned Monolith 3.3.27
+  jar; 4,955 Albers grids in 7 private test files and 81 synthetic records compared with
   Monolith]**.
   Monolith reports either `SHG_SRC_DEFINITION` or `""` for every Albers grid and never
   another WKT. `AlbersInfo.getSpatialReferenceSystem` returns the SHG WKT only when all of
@@ -664,12 +663,12 @@ zspatialGridRetrieveVersion`):
     - Units: the **last** match of `UNIT\["(.*?)"` (`.` excludes line terminators), which
       is normally the linear unit. No match gives `""`.
     - The origin comes from the geometry x0/y0.
-    - **[VERIFIED-ORACLE, P34]** The Rust reader reports these parsed values as
+    - **[VERIFIED-ORACLE]** The Rust reader reports these parsed values as
       `Grid.albers` for modern 420/421 records (`grid::albers_from_wkt`; Monolith
       `GridStructContainer.returnGridInfo` offsets 288-326 and
       `setAlbersSpatialReferenceInfo` offsets 0-207). Equal to Monolith on the 3 modern
       Albers records of `real_grid7.dss`, the 25 modern records of
-      `synthetic_albers7.dss` and the 2 modern Albers golden grids (g18, g24).
+      `synthetic_albers7.dss` and the 2 modern Albers grids of two private test files.
 
     Monolith creates no grid-info class for a modern 421 record, so its decode fails there.
     The Rust reader applies the same rule to modern 421 records and keeps the stored string
@@ -678,7 +677,7 @@ zspatialGridRetrieveVersion`):
   420 `-100` uncompressed 1; 420 raw 300 ZLIB 6,353; 420 raw 300 PRECIP_2_BYTE 1,323;
   430 `-100` ZLIB 22,684. No DSS7 HRAP grids exist in the corpus.
 
-- **Writing (P24, `dss7::write::write_grid`)** **[VERIFIED-ORACLE, P24]**. A grid record is
+- **Writing (`dss7::write::write_grid`)** **[VERIFIED-ORACLE]**. A grid record is
   the five areas `Public/zspatialGridStore.c:zspatialGridStore()` hands to `zwrite()`,
   filled the way HEC Monolith 3.3.27 fills `zStructSpatialGrid`
   (`GridStructContainer(GridInfo)`, `javaHeclib/src/Hec_zgridStore.c`):
@@ -688,7 +687,7 @@ zspatialGridRetrieveVersion`):
   - header2: HRAP `units, source, "WKT", HRAP WKT, "UTC"`; Albers `units, "", "WKT",
     WKT, ""`; specified its own five strings;
   - the user header is 11 ints; Monolith stores 0.0 as the HRAP/Albers null value (the
-    writer -FLT_MAX, P24 spec §4);
+    native writer stores -FLT_MAX);
   - values1 is `min, max, mean`, 13 range limits and 13 counts
     (`GridData.updateStatistics`); values3 the cells: ZLIB of `numLongs*2` floats, or
     plain (`sizeofCompressedElements` = `n*4`);
@@ -737,15 +736,15 @@ zspatialGridRetrieveVersion`):
 | 600 | FILE | Generic file |
 | 610 | IMAGE | Image |
 
-- **Profiles** **[VERIFIED-CORPUS, P08a §4 item 8]**: 102 is the RTS profile (float) and 107
+- **Profiles** **[VERIFIED-CORPUS]**: 102 is the RTS profile (float) and 107
   is the RTD profile (double). Profile values are rows of `profileDepthsNumber` values; the
   depths are in values2. One 107 record decodes bit-identically to Monolith (366 x 449
-  values, 366 times); hecdss crashes on it (access violation, P02 §5.4). Irregular profiles
+  values, 366 times); hecdss crashes on it (access violation). Irregular profiles
   (112/117) and irregular patterns (111/116) remain unverified (no corpus data).
 - Types < 50 are internal: HEC does not record them as the "last type"
   (`zcheckInternal()` line 366).
 - HEC's default catalog still lists them. **[VERIFIED-CORPUS]** type 20 records are listed
-  by both hecdss and Monolith (P06 check 4).
+  by both hecdss and Monolith.
 - Overwriting an existing record with a different type is refused, except
   RTS↔RTD and ITS↔ITD (`zwriteExisting()`).
 
@@ -796,7 +795,7 @@ Recommended policy:
 - Refuse (`DssLockedError`) if any of (1) or (2) is held.
 - Also refuse if any word of (3) is held. An HEC process with the file open, even
   read-only, can become a writer later, and in advisory mode it caches the header and
-  does not flush. **[DECISION for P0x lock packet]**
+  does not flush. **[OPEN DECISION]**
 - Old-scheme files: test words 100..102 only. A passive HEC reader cannot be detected.
 
 ### 6.3 Reader implications
@@ -829,20 +828,20 @@ Expansions mark the old info as MOVED **before** writing the new one
 (`zwriteExisting()`). HEC relies on the lock and its buffers, **not** on "data first,
 pointers last".
 
-**Interrupted-write signatures** seen in the corpus (P06 §4 item 1; rerun with full info
+**Interrupted-write signatures** seen in the corpus (rerun with full info
 checks). A reader must report these as anomalies, not fail:
 
-- table slots pointing at allocated but all-zero bins (one golden fixture: 433 slots,
+- table slots pointing at allocated but all-zero bins (one private test file: 433 slots,
   `ktotalBins` 9,937 against 9,504 walked);
 - table slots and overflow links pointing at whole bin blocks missing from the block
-  chain (task 4983, §4.1 "Unlinked bins");
-- zeroed info blocks behind live bin entries (6,437 of 208,732 walked entries in task
-  4983; 7,800 in the golden fixture above);
-- `knumberRecords` ahead of the walk (task 4983: 251,496 against 208,732; even with
+  chain (the damaged `7-IQ` file of §4.1 "Unlinked bins");
+- zeroed info blocks behind live bin entries (6,437 of 208,732 walked entries in that
+  file; 7,800 in the private test file above);
+- `knumberRecords` ahead of the walk (that file: 251,496 against 208,732; even with
   recovery, 33,932 records are in no reachable bin).
 
-Our writer (per AGENTS.md; as implemented by P20 in `dss_core::dss7::write`, spec
-`packets/P20_dss7_ts_writer.md` §4, crash-tested after every step) runs, per
+Our writer (`dss_core::dss7::write`, crash-tested after every step by
+`crates/dss-core/tests/p64_kill.rs` and the writer fault tests) runs, per
 record:
 
 1. **Data:** allocate at EOF and write the record (and a new zeroed bin block if one is
@@ -858,9 +857,12 @@ record:
    info status (`zreadInfo()` compares the hash only), so the bin still reads the old
    copy, and `zcheckLinks()` never sees two primary copies.
 6. **Publish:** the bin entry, words +1..+7 first and the hash word +0 last (a bin entry
-   becomes visible as soon as its hash word is non-zero), or the bin `+3` info address of
-   an existing record, then +4..+6. An entry placed in a **new** bin is not reachable
-   yet.
+   becomes visible as soon as its hash word is non-zero). For an existing record it is
+   the bin's `+3` info address together with +4..+6 (type, write time, first/last days),
+   in **one** write call: process death does not split a single `write`. Engines up to
+   0.1.0 wrote them in two calls, and death between them left the new info block
+   published under the old type and dates (finding **R17**). An entry placed in a
+   **new** bin is not reachable yet.
 7. **Counters:** every header counter and statistic and the bin allocation state
    (`kaddNextEmptyBin`, `kbinsRemainInBlock`, `ktotalBins`), marker still set. The bin
    state reaches the disk before any slot points at the new bin, so heclib's
@@ -876,7 +878,10 @@ record:
 
 The next native write reconciles a file whose marker is set, from the file itself: an
 entry that names the pending info block but that no chain reaches is linked (roll
-forward), the bin cursor is moved past bins in use (no bin is ever cleared), the pending
+forward). A published entry whose words 4-6 do not describe the pending info block
+(the R17 state of step 6) gets them from that info block, keeping the entry's catalog
+sequence number. The bin cursor is moved past bins in use, and the only bin cleared is
+the cursor bin holding this write's own leftover entry body (below). The pending
 info block is activated or a retired old copy restored, and `knumberRecords`,
 `khashsUsed`, `kbinsOverflow`, `khashCollisions`, `kmaxPathsOneHash`, `ktotalBins` and the
 pathname maxima are rebuilt (`kdead` and the area statistics are not).
@@ -894,12 +899,258 @@ leave `zcheckFile` errors until the next native write repairs them:
 - a new record in an **existing bin**, interrupted after Publish and before Counters:
   `knumberRecords` stays one low.
 
-The crash model is **process death** (the OS keeps every completed `write`). The writer
-flushes (`fsync`) between the steps above and between an entry body and its hash word,
-but a single `write` of the 800-byte header spans two 512-byte sectors and is not atomic
-on power loss; neither is heclib's.
+The crash model is **process death** (the OS keeps every completed `write`). With the
+default `sync: true` the writer flushes (`fsync`) at the transaction's existing flush
+points: the record area together with the EOF flag (the Data step has no flush of its
+own), the allocation header, the chain word, an entry body before its hash word and the
+hash word itself, the counters, the link, the activation and the cleared marker; a step
+with nothing to write flushes nothing, and the write ends with one `sync_all`. A single
+`write` of the 800-byte header spans two 512-byte sectors and is not atomic on power
+loss; neither is heclib's. `sync: false` (Python `sync=False`) keeps the order of
+completed writes and of the in-progress marker under process death and gives up the
+flushes; no power-loss claim is made in either mode. Damaged files are recovered by
+copy-out (`repair_dss7`, Python `repair`; threat model below).
 
-**Deletes (P21).** The irregular writer deletes blocks that its time window empties
+**Interrupted Publish of a new bin (finding F1, repaired in 0.1.1).** The
+killed-process matrix (`crates/dss-core/tests/p64_kill.rs`) kills the writing process at
+every flush point, not only between the steps above. Up to 0.1.0 one point was not
+repaired: a write killed inside **Publish** for a record in a **new bin**, after the
+entry body (words 1..) and before its first word. Reconcile skipped that bin as in use
+because a word other than the first was non-zero, the repairing write took the next
+bin, and the catalog walk, which stops at the first bin whose first word is zero (ours
+and `zcatalogInternal()` line 280), no longer reached it or any later bin. The engine now follows
+heclib's own rules instead:
+
+- **Bin-empty test.** A bin is empty when its first word (the entry hash) is zero
+  (`zcatalogInternal()` line 280, `zbinUpdate()` line 194). Reconcile step 2 and the
+  bin allocator test only that word, so the half-written bin stays the cursor.
+- **Allocation.** `zbinNew()` (lines 130-139) hands out `kaddNextEmptyBin` without
+  reading it and clears the bin in memory; `zbinUpdate()` (line 271) writes the whole
+  bin. The native writer now writes a new bin whole too: words 1..`kbinSize` (entry body,
+  zero tail, zero overflow word), flushed, then the hash word. These are the same writes
+  in the same order as before, with the zero tail added to the body write; it is needed
+  so a shorter entry cannot leave the killed entry's tail behind as a phantom entry. An
+  entry added to an existing bin, and the reuse of a deleted entry, are unchanged.
+- **Leftover body.** Reconciliation clears words 1..`kbinSize` of the cursor bin only
+  when they are exactly this interrupted write's own entry body.
+  Every word except the unwritten hash word 0 must equal what Publish writes, as derived
+  from the marker's info block and the header:
+  - word 1: status 1;
+  - word 2: the pathname length words;
+  - word 3: the marker's info address;
+  - word 4: the info block's record type and the header's `kcatSequenceNumber`;
+  - word 5: the info block's last-write time;
+  - word 6: the Julian days of its first and last dates;
+  - then the pathname that info block names, and zeros to the end of the bin.
+
+  Anything else non-empty there is not the write's own, so reconciliation refuses with
+  `WriteError::Corrupt` and writes nothing. Clearing keeps
+  the file clean when the next write takes no new bin: heclib's `zcheckPathnameBins()`
+  (lines 111-125) requires every word after a bin's last entry to be zero, except the
+  overflow word.
+- **Cursor validation.** Before reconciliation writes anything, the
+  allocation cursor must be what heclib keeps. That means `kaddNextEmptyBin` =
+  `block + (kbinsPerBlock − kbinsRemainInBlock) · kbinSize` for a block of the
+  bin-block chain, with `0 ≤ kbinsRemainInBlock ≤ kbinsPerBlock` (`zbinNew()` lines 114,
+  123, 131-134). Both the stored cursor and the cursor reconciliation will reach are
+  checked. If either is invalid, reconciliation refuses and writes nothing.
+- **Roll-forward link targets.** Before roll-forward writes the link,
+  every bin that the pending pathname's chain reaches must be the start of a bin of the
+  bin-block chain, with no loop. This covers the hash-table slot and then each overflow
+  word. It is the same bounded walk as cursor validation. Otherwise reconciliation
+  refuses and writes nothing. The link then goes only into the slot, or into the
+  overflow word of a verified bin.
+- **What reconciliation writes.** In place, reconciliation of an
+  interrupted write writes only locations that this write's own marker and allocation
+  state identify:
+  - its bin entry and link (the roll-forward of step 1);
+  - its own leftover bin body (step 2b, exact match only);
+  - its info block (step 3; for a delete, the rollback of the info status);
+  - the header counters, which are written together with the cleared marker.
+
+  It never repairs earlier damage found by scanning. A hidden-bin repair, and the
+  allocation map it needed, were tried during development and removed: a scanned
+  "protected set" cannot be proven complete on an arbitrarily damaged file. Damaged files are recovered by copy-out instead (below).
+- **Threat model (maintainer decision).**
+  - **Guarantee.** A file that was consistent before an interrupted write is reconciled
+    exactly, after ordinary process death at any point: no reachable record changes. The
+    kill matrix and the HEC checks test this. "Any point" means between any two separate
+    `write` calls: the matrix kills the writer at every flush point,
+    every step boundary, and immediately before every separate write of both engines.
+  - **Damage outside the guarantee.** Independent extra damage on top of that, such as
+    corrupted pointers that process death cannot produce, is outside the in-place
+    guarantee, as it is for heclib. Reconciliation and normal writes refuse it when
+    **cheap, bounded** checks detect it:
+    - the cursor (cursor validation above);
+    - the roll-forward link targets;
+    - the exact leftover match (leftover body above);
+    - the allocator's non-empty and permanent-section checks.
+
+    They do not promise to detect every case. No whole-file ownership map is built on
+    the in-place path.
+  - **Safe path.** For a damaged file it is copy-out, `repair_dss7`.
+  - **Documented limitations** of these checks: R7 (below) and R12.
+- **Known limitation R7 (present in 0.1.0 and 0.1.1).** If a file's bin allocation metadata
+  is **already damaged**, a write can publish a new bin over another structure. Here
+  "damaged" means the cursor, or the chain word it adopts, points outside bin storage.
+  The overwritten structure can include zero-valued record data. This applies to any
+  write, including one that reconciles a marker.
+
+  The allocator makes cheap checks only:
+  - it refuses a "next empty" bin that holds a non-zero word;
+  - it refuses a bin that overlaps the permanent section as `zpermCreate()` lays it out
+    (header, lock word and arrays, hash table, first reclaim table; lines 95, 272-325).
+
+  It makes no whole-file ownership check: a map costs O(records) per write, 0.2 s on a
+  390 MB file and 1.4 s on a 2.9 GB file. An intact heclib or native file always has a
+  valid cursor; the corpus check confirms this for every HEC- and engine-written file.
+
+  heclib's own allocator validates **less**. `zbinNew()` hands out `kaddNextEmptyBin`
+  without reading it or checking where it lies (lines 129-135) and clears the bin in
+  memory (lines 136-139). `zbinUpdate()` then writes the whole bin there (line 271). So
+  heclib writes over whatever the damaged cursor names, non-zero data included.
+
+  To recover such a file, copy it out with `repair_dss7(src, dest)`.
+- **Known limitation R12.** The checks above cannot tell that an
+  unrelated record's **damaged** pointer names a location that reconciliation
+  legitimately writes. Two examples:
+  - **A**: the pending pathname's hash slot was changed to name zero-filled words inside
+    another record's values. This one is **now refused** by the roll-forward link-target
+    check, and nothing is written.
+  - **B**: another record's values2 pointer was changed to name the cursor bin, which
+    holds this write's authentic, exactly matching leftover. Reconciliation clears its
+    leftover, and that record's values (which were the leftover's words) then read as
+    zeros. Detecting B needs knowledge of every record's extents, that is, the
+    whole-file map that the in-place path does not build.
+
+  Both need a pointer damaged independently of the interrupted write. A test pins B's
+  behaviour (`r12_limitation_shared_leftover_is_pinned`), and copy-out of the B file
+  keeps the record exactly as the damaged file shows it.
+- **Result.** The repaired file is what an uninterrupted write produces: the record in
+  the bin the killed write had taken, listed by native and HEC catalogs, nothing hidden.
+  The record of the killed attempt is never visible (its info block stays unreferenced,
+  status 10), as for any write interrupted before Publish.
+
+**Files damaged by engines up to 0.1.0.** Such a file has a *hole*: a handed-out bin
+(before `kaddNextEmptyBin`) whose first word is zero while its other words hold one
+unpublished entry. The hole is followed by bins that lookups reach but the catalog
+walk does not list. The checked catalog reports them: links outside the walked bins,
+and the `knumberRecords` mismatch. Native writes leave the hole as it is.
+
+**Copy-out repair (`dss7::write::repair_dss7(src, dest)`, Python `repair`).**
+`repair_dss7` writes nothing into `src`; it opens `src` read-only.
+
+1. **Find the records: discovery.** One procedure,
+   `Dss7File::discover`, defines what copy-out considers:
+   - **roots:** every bin of every block of the bin-block chain (the catalog walk) and
+     every non-zero hash-table slot (where `lookup()` starts);
+   - **bins:** each bin reached is parsed exactly as `lookup()` parses it, and every
+     entry is recorded;
+   - **overflow:** the overflow word of **every** bin reached is followed, **also from
+     an empty bin** (first word zero), as `lookup()` does. The recovery catalog did not,
+     which hid records behind an empty bin;
+   - **bounds:** each bin is visited once, at most `kfileSize / kbinSize + 1` bins;
+   - **records:** each entry's info block is read and checked as by `lookup()` (flag;
+     the hash rule for non-aliases); an alias's chain is resolved to its primary.
+
+   It reaches what `lookup()` reaches and the bins of every **whole** bin block of the
+   chain. It does **not** reach everything the catalog lists: when a bin block's declared
+   span (`kbinsPerBlock` bins plus its chain word) does not fit inside the data area,
+   discovery lists that block in `not_copied` as unclassified and stops following the
+   bin-block chain there, whereas the catalog walk still reads the whole bins of such a
+   partial block (`dss7/walk.rs`). Records reachable only through those bins (and not
+   from a hash-table slot) are then not copied, and `complete` is false. A pointer target that the procedure cannot classify is
+   listed in `not_copied` as unclassified, never dropped: a link outside the data area,
+   a bin block that does not fit, an entry that does not parse after a non-zero hash
+   word, or reaching the bound. **Out of scope** are bytes
+   that no pointer reaches, for example an info block that no entry names (such as a
+   replaced record's old copy), or entries after a zero hash word in a bin, where
+   `lookup()` stops.
+   - **Choosing a copy.** For each pathname (case-insensitive) it tries the
+     record a lookup returns, then every catalog copy of the pathname. It copies the
+     first whose areas read in full. `fallback_copies` lists a copy only when the
+     preferred one was not usable (the lookup failed, or an earlier candidate did not
+     read), with the source info block copied and why. Errors of alternatives that were
+     never needed do not make a copy a fallback.
+   - **Identity.** A record is written, and verified, under its own
+     identity: the pathname its info block stores. A change of identity is accepted only
+     for an alias resolving to its primary, or for a pure ASCII case difference;
+     `variants_copied` records either. A primary whose info block names another record
+     (or cannot be read) is not used. Another copy of the pathname is tried; if none
+     qualifies, the pathname is listed in `not_copied`.
+   - **Duplicates.** A further copy of a pathname, an alias, or a destination
+     collision is skipped only when it is the record copied, or its payload is equal.
+     A readable duplicate with a different payload is listed in `not_copied` with a
+     reason. `complete` is therefore true only when every readable record discovery found
+     was copied and verified, or is the same as one that was.
+   - **Aliases.** An alias entry (status 2) counts as covered only when its
+     primary record was copied. Otherwise the primary is copied through the alias, under
+     the primary's own pathname, and reported in `fallback_copies`. If that copy is not
+     possible, the alias is listed in `not_copied`.
+2. **Copy them.** It copies each record's six data areas, record type, dates, value
+   count and logical number, unchanged, into a new file with the normal writer's record
+   transaction, in one session. The new info blocks get a new write time, creation
+   time, program name and version count. An empty internal header keeps address 0, as in the source:
+   heclib's `zcheckInfo()` reads 18 ints at that address for every type-1xx record,
+   whatever its length.
+
+   Time series in a source older than 7-HA are not copied. They use the deprecated
+   aggregate layout, which the reader interprets by the file's revision, so in a new
+   7-JA file they would mean something else. They are reported as not copied, with
+   that reason.
+3. **Verify.** It reads the new file back. Every copied record must match the source
+   twice: bit-for-bit equal raw areas, and an identical decoding by the normal readers
+   (time series, profile, paired data, grid, location; the write time and program
+   name are excluded). The source side of the decoding is the very source record that
+   was copied. A record that neither file's reader decodes, or of a kind without a
+   decoder, is compared by its raw areas alone. The file must also catalog without
+   anomalies. Otherwise nothing is published.
+4. **Publish.** The new file is built under a temporary name next to `dest`
+   (`.<name>.<pid>.<nanos>.partial`) and only then published at `dest`, never replacing
+   anything:
+   - first by a hard link, which fails if `dest` exists;
+   - if hard links are not available, by an atomic no-replace rename: Linux
+     `renameat2(RENAME_NOREPLACE)`;
+   - if neither exists (for example Windows on a filesystem without hard links;
+     `MoveFileExW` would need `unsafe` code, which `dss-core` forbids), it fails with an
+     error that names the verified temporary copy, which it keeps.
+
+   `dest` must not exist (`WriteError::AlreadyExists`, Python `FileExistsError`). There
+   is no check-then-rename fallback.
+
+Every returned error removes the temporary file, except the "cannot publish
+without replacing" error above. A process killed before publication leaves `src`
+byte-identical, no `dest`, and the temporary file. A process killed just after the hard
+link leaves the verified `dest` and the temporary name, which can be deleted.
+
+**The ledger.** Every source candidate gets exactly one ledger entry
+with one outcome. A candidate is each distinct info block that a pathname's lookup or
+catalog entries reach, each alias entry, or a pathname refused as a whole. The outcomes
+are:
+- `Copied`;
+- `EqualToCopied` (its payload equals the copy);
+- `UnreadableCoveredBy` (it does not read, and the pathname was copied from another
+  candidate);
+- `NotCopied` with a reason.
+
+Every candidate is read. A readable one that is not copied, rejected for any reason
+(identity included), is compared with the copy, and is `NotCopied` unless equal. An
+alias's copy covers a primary's unresolved candidates only when they are unreadable or
+equal to it. `not_copied` is derived from the ledger, and `complete` is true exactly
+when no entry is `NotCopied`.
+
+**A partial recovery is published.** A successful return means the
+selected records were copied and verified and `dest` was published. It does not mean
+everything found was copied. When `not_copied` is not empty, `complete` is false and
+`dest` is still published. Callers must check `complete` and `not_copied`.
+
+The report also gives the hidden records among those copied (records the source's
+catalog did not list), the fallback copies and variants, and the aliases and duplicates
+skipped. It says whether the source carried an interrupted-write marker; the source is
+not reconciled. Whether hidden records come back is reported, not guaranteed. A
+complete copy is not an integrity certificate for `src`.
+
+**Deletes.** The irregular writer deletes blocks that its time window empties
 (heclib storage flag 1, `ztsStoreIrreg7()` lines 411-415). A delete is one transaction
 in the same step order: Allocation (the marker holds **minus** the deleted record's info
 address, and the header already carries `knumberDeletes` +1, `kcatSortDeletes` +1,
@@ -911,7 +1162,7 @@ Allocation counters taken back) and otherwise keeps it. Interrupted after Publis
 `knumberRecords` stays one high (`zcheckFile` reports it, also after an HEC write) until
 the next native write rebuilds it.
 
-**Paired data (P23).** A paired-data store (`Public/zpdStore.c:zpdStore()`, full record)
+**Paired data.** A paired-data store (`Public/zpdStore.c:zpdStore()`, full record)
 is one record transaction in the same step order. Its areas: internal header ints 0-4
 (`numberOrdinates`, `numberCurves`, `boolIndependentIsXaxis`, `labelsLength`, precision
 `10x+y` or −1), int 5 four blanks, then the X/Y units and types and the time zone packed by
@@ -923,13 +1174,13 @@ allocated size `2·(longs(values1) + longs(values2))`. heclib updates `kmaxValue
 308-314). A PD ↔ PDD change is a delete and a new record in heclib (`zpdStore()` lines
 904-911); the native writer replaces the record in one relocating transaction. heclib's
 in-place shrink leaves the old bytes in the unused half of the last values1/values2 word
-(readers ignore them). Spec: `packets/P23_pd_writer.md`.
+(readers ignore them). Writer: `crates/dss-core/src/dss7/write/engine/pd.rs`.
 
 **Reader needs:** §6.3. **Writer only:** §6.1, §6.2 and §6.4.
 
 ---
 
-## 7. Time series layout (enough to plan P08)
+## 7. Time series layout (enough to plan the reader)
 
 ### 7.1 Dates and times
 
@@ -939,12 +1190,12 @@ in-place shrink leaves the old bytes in the unused half of the last values1/valu
 - Info first/last stamps are `(julian, secondsOfDay)` (§5.1). Bin dates are days only.
 - Time granularity is per record (internal header word 0: `SECOND_GRANULARITY` 1,
   `MINUTE_` 60, `HOUR_` 3600, `DAY_` 86400; `headers/hecdssInternal.h` lines 427–430).
-  **[VERIFIED-CORPUS, P08a §4 item 5]** Regular times use the record's granularity `g`
+  **[VERIFIED-CORPUS]** Regular times use the record's granularity `g`
   (internal header word 0): `times[i] = (julian − base)·(86400/g) + secs/g`
   (`ztsRegAddTimes`, integer arithmetic). Irregular stored times are seconds from the block
   start (minutes for IR-Century), divided by the granularity with C truncation. Absolute
   seconds equal hecdss's `julianBaseDate*86400 + times*granularity` (432/432 dataset
-  requests bit-identical, P08a §2.3).
+  requests bit-identical).
 
 ### 7.2 Regular-interval blocks (`Internal/ztsRegGetBlockStart.c:ztsRegGetBlockStart()`)
 
@@ -962,14 +1213,14 @@ in-place shrink leaves the old bytes in the unused half of the last values1/valu
   `headers/standardIntervals.h` and in `SemiPublic/ztsGetStandardInterval.c`.
 - DSS6 names (`1MIN`, `1MON`) are recognized on input and mapped to DSS7 names. Whether
   older DSS7 writers stored DSS6-style E parts, and how month case appears in D, are
-  **[UNVERIFIED]**; P06 must catalog what it finds.
+  **[UNVERIFIED]**; a corpus catalog run must check what it finds.
 - Pseudo-regular (`~1Day`) block sizes: **[UNVERIFIED]**.
 - Logical values per block = number of intervals in the block. Example: a 1-minute daily
   block has `kinfoLogicalNumber` = 1440 **[VERIFIED-CORPUS]**.
-- **E-part matching** **[VERIFIED-CORPUS, P08a §4 item 9]**: `ztsGetStandardInterval` takes
+- **E-part matching** **[VERIFIED-CORPUS]**: `ztsGetStandardInterval` takes
   the first table entry whose first `min(len(name), len(E))` characters equal the E part,
   case-insensitively. A `~` prefix means pseudo-regular.
-- **Window semantics** **[VERIFIED-CORPUS, P08a §4 item 6]**: HEC moves both ends of an
+- **Window semantics** **[VERIFIED-CORPUS]**: HEC moves both ends of an
   explicit regular window forward to the end of their standard interval (a window ending
   05:30 on hourly data includes the 06:00 value). A single-block read covers the whole block
   (HEC passes the interval as the start's seconds to `numberPeriods`). A whole-dataset read
@@ -993,10 +1244,10 @@ in-place shrink leaves the old bytes in the unused half of the last values1/valu
 Irregular codes are stored as negative "seconds" (−1..−5) in `secondsInInterval7`.
 values1 begins with a times array (int32 offsets from the block start, in granularity
 units; seconds, or minutes for IR-Century, divided by the granularity with C truncation,
-§7.1 **[VERIFIED-CORPUS, P08a §4 item 5]**; IR-Century minute times themselves have no
+§7.1 **[VERIFIED-CORPUS]**; IR-Century minute times themselves have no
 corpus data).
 
-**Irregular writes (P21)** **[VERIFIED-ORACLE, heclib 7-JA C writer]**: times are
+**Irregular writes** **[VERIFIED-ORACLE, heclib 7-JA C writer]**: times are
 stored as seconds from the block start (minutes for IR-Century) whatever the
 granularity; internal-header word 0 holds the granularity, words 2-5 are 0. A time equal
 to the block length (24:00 of the block's last day) belongs to the block. values1 is
@@ -1007,12 +1258,12 @@ the compression ratios. `kinfoNumberData` is the number of values stored and
 `ztsIrregStoreBlock()` lines 717-743). Missing values are stored; irregular blocks are
 never trimmed. With storage flag 1, heclib's merge drops stored values after the window
 when more stored values precede it than it replaces (`ztsIrregMergeBlocks()` lines 488
-and 552; P21 REPORT §3). heclib's calendar for years 1-4 (`yearMonthDayToJulian()`, one
+and 552; found by comparing the native irregular writer with heclib's). heclib's calendar for years 1-4 (`yearMonthDayToJulian()`, one
 leap day counted before year 5) maps dates to julian numbers one day apart from the
 proleptic Gregorian calendar this engine uses; dates and block-relative times are the
 same, only julian numbers differ.
 
-**Irregular block reads** **[VERIFIED-CORPUS, P08a §4 item 7]**: HEC filters values with
+**Irregular block reads** **[VERIFIED-CORPUS]**: HEC filters values with
 `isTimeInRange`, whose status is **sticky**: the start check applies only until the first
 in-range value. HEC sizes each block read by the total `kinfoNumberData` over the whole
 window; a reader can cap it at the block's own count, with the same result and without the
@@ -1035,7 +1286,7 @@ quadratic allocation. Irregular windows are inclusive at both ends.
 | 10–12 | `qualityNumber`, `qualityElementSize`, `qualityCompressionFlag` | Quality array (0 = none) |
 | 13–15 | `inotesNumber`, `inotesElementSize`, `inotesCompressionFlag` | Integer notes |
 | 16 | `cnotesLength` | Character notes bytes |
-| 17 | `units` | Current writers blank-fill int 17 and start the strings at **int 18**. Old writers (for example `7-10`) start the strings at int 17. **[VERIFIED-CORPUS]** `7-10` has `"CFS\0INST-VAL\0"` at int 17. **Rule (P08a §4 item 1, `ztsInternalHeaderUnpack` + `unitsHavePadding`):** if int 17 is 0 or four blanks, the strings start at int 18; otherwise at int 17. HEC copies at most 200 bytes (and at most 200 ints of header). **Quirk mirrored by readers:** if the first string (units) is empty, the type and time-zone strings are also left unread. 7-GT writes padded units; 7-10 does not. |
+| 17 | `units` | Current writers blank-fill int 17 and start the strings at **int 18**. Old writers (for example `7-10`) start the strings at int 17. **[VERIFIED-CORPUS]** `7-10` has `"CFS\0INST-VAL\0"` at int 17. **Rule (`ztsInternalHeaderUnpack` + `unitsHavePadding`):** if int 17 is 0 or four blanks, the strings start at int 18; otherwise at int 17. HEC copies at most 200 bytes (and at most 200 ints of header). **Quirk mirrored by readers:** if the first string (units) is empty, the type and time-zone strings are also left unread. 7-GT writes padded units; 7-10 does not. |
 | 18… | strings | NUL-separated: units (or depth units + value units for profiles), type, time zone name |
 
 ### 7.5 Values (values1) layout (`Internal/ztsAggregate.c`, `Internal/ztsDisaggregate.c`)
@@ -1048,8 +1299,7 @@ values1 is a single int32 stream:
 4. `[inotes or cnotes]`.
 
 Compression (when more than 12 values, not a profile, and more than 5% repeats) keeps the
-non-repeated values and a repeat bitmask in header2. **[VERIFIED-CORPUS, P08a §4 item 2;
-§10 item 12 closed]**
+non-repeated values and a repeat bitmask in header2. **[VERIFIED-CORPUS; §10 item 12 closed]**
 
 - **Repeat bits:** header2 holds one repeat bit per stored position, bit `i%32` of word
   `i/32`, where 1 means "repeat the previous value". The quality bits follow the values bits
@@ -1068,15 +1318,15 @@ non-repeated values and a repeat bitmask in header2. **[VERIFIED-CORPUS, P08a §
 - Float vs double comes from the record type (100/110 float; 105/115 double) and from
   `valueSize`.
 
-### 7.5b Writing notes, multi-word quality and patterns (P38)
+### 7.5b Writing notes, multi-word quality and patterns
 
 `ztsAggregate()` places values1 as: times (irregular), values, pad to even, quality, pad, integer notes, pad, character notes, pad. Each integer array compresses on its own repeat ratio (values above 5%, quality and notes above 10%), and header2 holds one bit array per compressed array, in that order. Character notes are not compressed: `INT_HEAD_inotesNumber` is `(cnotesLength - 1) / 4 + 1`, and the bytes are stored as given with the last int zero-filled.
 
 A pattern (`ztsStorePattern()`) stores no quality, notes or time offset, and leaves internal-header words 3 to 16 at 0. Its first and last dates are never set, so in the tested sequence the info block's dates depend on what the HEC handle wrote before; the native writer stores 0.
 
-### 7.5a Pattern records (101/106/111/116; P25)
+### 7.5a Pattern records (101/106/111/116)
 
-**[VERIFIED-ORACLE, P17 §A, P25]** A D part starting `TS-P` (`Internal/ztsProcessTimes.c`
+**[VERIFIED-ORACLE]** A D part starting `TS-P` (`Internal/ztsProcessTimes.c`
 lines 268-289) marks pattern data. No dates are stored.
 
 - **Writer.** `SemiPublic/ztsStorePattern.c` lines 137-140 stores the caller's
@@ -1084,11 +1334,11 @@ lines 268-289) marks pattern data. No dates are stored.
   (`hec_dss_tsStoreRegular`) nor Monolith 3.3.27 (`Heclib.Hec_ztsStore`, `javaHeclib`
   `Hec_ztsStore.c`) sets it, and `ztsProcessTimes()` returns for a pattern before it derives
   an offset from the start time. HEC software therefore writes 0. No corpus record stores a
-  nonzero DSS7 pattern offset (0 of 5,918, P17).
+  nonzero DSS7 pattern offset (0 of 5,918).
 - **values1.** Regular patterns: `numberData` raw floats (101) or doubles (106). Irregular
   patterns: `numberData` int32 times, then the values (`Public/ztsRetrievePattern.c` lines
   300-357).
-- **Irregular pattern times (P32) [VERIFIED-HEC].** The stored times count the internal
+- **Irregular pattern times [VERIFIED-HEC].** The stored times count the internal
   header's granularity from julian 0 (`ztsRetrievePattern.c` line 330 copies them into
   `tss->times`, line 365 sets `julianBaseDate = 0`). A stored 30 at minute granularity is
   1800 s for HEC's C library and Monolith 3.3.27; dss-core reports seconds (raw x
@@ -1113,7 +1363,7 @@ lines 268-289) marks pattern data. No dates are stored.
   - dss-core reports no stored offset there and uses 0, giving 00:15 for 15Minute.
   - The 1-int and 3-int headers, a −180 s offset (2999-12-31 23:57) and a 3600 s offset on
     15Minute (01:00, applied after `cleanTime()`) all match pydsstools and Monolith
-    `startTime` (P25).
+    `startTime`.
 - **Check.** `fixtures/public/pattern_offset7.dss` holds builder-written offsets of 180, 1800
   and 0 s. pydsstools 3.1.0, Monolith 3.3.27 `startTime` and hecdss 0.1.33 all report starts
   of 00:03, 00:30 and 00:15, equal to `pattern_heclib_first_seconds`. Monolith `times[0]` is
@@ -1135,7 +1385,7 @@ lines 268-289) marks pattern data. No dates are stored.
   `cnotesLength` > 0.
 - values2 holds profile depths. values3 is used by other types.
 
-**Reader needs:** §7.1–§7.6 for TS read (P08). **Writer only:** block splitting (inverse
+**Reader needs:** §7.1–§7.6 for TS read. **Writer only:** block splitting (inverse
 of §7.2), compression decisions, and `kdataFirstDate` / `kbinDates` bookkeeping
 (`Internal/ztsRegStoreBlock.c` line 813).
 
@@ -1157,7 +1407,7 @@ case-insensitively in ASCII only.
 
 ---
 
-## 9. Reader checklist (P06)
+## 9. Reader checklist
 
 1. Read 800 bytes. Require `ZDSS`, a version starting with `7`, word 99 = −97531, and
    word 89 = 0.
@@ -1182,32 +1432,32 @@ case-insensitively in ASCII only.
 
 | # | Item | Concrete check |
 |---|---|---|
-| 1 | Non-ASCII bytes in pathnames. **Resolved from source (P06):** with signed `char`, bytes ≥ 0x80 test `< 32` and hash as `'?'`; there is no sign extension, `toupper` never sees a negative value, and `tableHash` is never negative (§3.1). Still open: files written on unsigned-`char` platforms. | No DSS7 corpus pathname has a byte ≥ 0x80 (P06 corpus run, 2,846 files). If one appears, compare the stored `kbinHash` and table-chain membership with the `'?'` rule and an unsigned variant. |
+| 1 | Non-ASCII bytes in pathnames. **Resolved from source:** with signed `char`, bytes ≥ 0x80 test `< 32` and hash as `'?'`; there is no sign extension, `toupper` never sees a negative value, and `tableHash` is never negative (§3.1). Still open: files written on unsigned-`char` platforms. | No DSS7 corpus pathname has a byte ≥ 0x80 (2,846 private corpus files). If one appears, compare the stored `kbinHash` and table-chain membership with the `'?'` rule and an unsigned variant. |
 | 2 | Collections: do any writers substitute the `C:` sequence before table hashing? | For files with `knumberCollections` > 0, verify that each collection path is found in the table chain for its unmodified hash. |
 | 3 | `kfileHeaderSize` = 0 (seen in `7-10`) | Header survey: tabulate word 1 by version string. Confirm that word 99 = −97531 everywhere. |
-| 4 | `7-10` writer quirks: info status 0, packed int32 sort list. (`kinfoLastWriteTime` in seconds-like units, read by HEC as ms: verified P06 corpus run, §5.1.) | Run the probe on every `7-1x` and other digit-version file in the corpus. Compare with `hecdss` catalog and last-write output. |
+| 4 | `7-10` writer quirks: info status 0, packed int32 sort list. (`kinfoLastWriteTime` in seconds-like units, read by HEC as ms: verified on the corpus, §5.1.) | Read every `7-1x` and other digit-version file in the corpus read-only. Compare with `hecdss` catalog and last-write output. |
 | 5 | `kendian`: `zopenInternal()` line 408 writes `ifltab[zdssFileKeys.kendian]` (the ifltab array, not the header). This is an HEC bug, so the header word may never be set. | Survey word 94 across the corpus. Expect 0 everywhere. |
 | 6 | Word `kbinSize−2` of each bin unused; end-of-bin rule | Corpus: assert word `binSize−2` is 0 in every bin. Assert that entries never cross `binSize−1`. |
 | 7 | An empty bin implies the rest of the block is empty, and only the last block is partial | Corpus: after the first empty bin in a block, all later bins in that block are zero. That block contains `kaddNextEmptyBin`. |
-| 8 | Catalog set and order vs the oracle (location records type 20; aliases; status-0 undeleted). **Mostly closed (P06):** live pathname multisets equal hecdss on 25/25 fixtures and Monolith on 26/26; unsorted order equals bin order on 25/25 (435,593 entries); type 20 is listed by both oracles; status 0 is listed by both (§3.6). Still open: aliases (none in the corpus) and the sorted catalog. | Diff the sorted catalog with `hecdss`; test alias reads on a file that has aliases (§3.7 step 6). |
+| 8 | Catalog set and order vs the oracle (location records type 20; aliases; status-0 undeleted). **Mostly closed:** live pathname multisets equal hecdss on 25/25 fixtures and Monolith on 26/26; unsorted order equals bin order on 25/25 (435,593 entries); type 20 is listed by both oracles; status 0 is listed by both (§3.6). Still open: aliases (none in the corpus) and the sorted catalog. | Diff the sorted catalog with `hecdss`; test alias reads on a file that has aliases (§3.7 step 6). |
 | 9 | Deleted records whose space was reused (status 15; info hash mismatch) | Find files with `knumberDeletes` > 0 and `kreclaimTotal` usage. Check the info hash for each status 11 entry. |
 | 10 | Windows `_locking` vs our reads (positioned reads and mmap) while HEC holds the file | With HEC-DSSVue holding a test copy open, read the header, bins and data with the Rust reader on Windows. Confirm there are no `ERROR_LOCK_VIOLATION` errors outside words 100–177. |
 | 11 | Old locking scheme (`klockReadArrayAddress` = 0) | Confirm with HEC software that a test lock on words 100–102 detects an active writer. Document that passive readers cannot be detected. |
-| 12 | **CLOSED (P08a §4 item 2).** TS values1 / header2 compression bit layout; deprecated (< 7-HA) layout | Layout and repeat bits documented in §7.5; 409,001 of 416,845 TS records bit-identical to hecdss (§7.5) |
-| 13 | **Verified (P08a §4 item 5).** Irregular times: base and units vs granularity | Seconds from block start (minutes for IR-Century) divided by granularity (§7.1, §7.3). IR-Century minute times: no corpus data |
-| 14 | **CLOSED (P08a §4 item 1).** `unitsHavePadding` detection rule | Int 17 is 0 or four blanks: strings start at int 18; otherwise at int 17 (§7.4) |
+| 12 | **CLOSED.** TS values1 / header2 compression bit layout; deprecated (< 7-HA) layout | Layout and repeat bits documented in §7.5; 409,001 of 416,845 TS records bit-identical to hecdss (§7.5) |
+| 13 | **Verified.** Irregular times: base and units vs granularity | Seconds from block start (minutes for IR-Century) divided by granularity (§7.1, §7.3). IR-Century minute times: no corpus data |
+| 14 | **CLOSED.** `unitsHavePadding` detection rule | Int 17 is 0 or four blanks: strings start at int 18; otherwise at int 17 (§7.4) |
 | 15 | Non-power-of-two `kmaxHash` (16348, 64000) | Find corpus files with these sizes. Verify §3.2. |
-| 16 | E/D part spellings written by older DSS7 revisions; pseudo-regular blocks | Tabulate E parts and D formats by version string from the P06 catalog run. |
-| 17 | Lock policy for passive read markers (§6.2) | Decide in the lock-detection packet. Test with HEC-RAS, HMS and DSSVue holding the file read-only and read/write. |
+| 16 | E/D part spellings written by older DSS7 revisions; pseudo-regular blocks | Tabulate E parts and D formats by version string from a corpus catalog run. |
+| 17 | Lock policy for passive read markers (§6.2) | Open decision. Test with HEC-RAS, HMS and DSSVue holding the file read-only and read/write. |
 
 
-## 11. Location records (type 20) and associated locations (P15)
+## 11. Location records (type 20) and associated locations
 
-Decision D37 (2026-10-27) extends D29: location records are read, not only catalogued.
+A maintainer decision (2026-10-27) extends the catalog: location records are read, not only catalogued.
 Reader: `crates/dss-core/src/dss7/location.rs`; shared model
 `crates/dss-core/src/location.rs`.
 
-### 11.1 Pathname (`Public/zlocationPath.c:zlocationPath()`) **[VERIFIED-CORPUS g25, g51]**
+### 11.1 Pathname (`Public/zlocationPath.c:zlocationPath()`) **[VERIFIED-CORPUS]**
 
 A location belongs to a point shared by every dataset with the same A and B parts. Its
 pathname is the input pathname up to the start of the C part (`zpathnamePartPositions()`
@@ -1240,8 +1490,8 @@ Read rules (`zlocationRetrieve()`): `values1Number < 6` is `STATUS_NOT_OKAY`; th
 codes are read only when `values1Number >= 12` (otherwise the struct keeps 0); the time
 zone is read when `values1Number > 12` from int 12, and the supplemental text when
 `values2Number > 0`; both are C strings (`charInt(..., zeroEnd = 1)`, end at the first
-NUL). Codes are stored as given: `zlocationStore()` does not validate them (the P15
-fixture stores vertical datum 9 and HEC reads it back as 9). The `zlocationRetrieve()`
+NUL). Codes are stored as given: `zlocationStore()` does not validate them (the public
+fixture `synthetic_location7.dss` stores vertical datum 9 and HEC reads it back as 9). The `zlocationRetrieve()`
 header comment lists horizontal units 5 "Local (other)", which `zStructLocation.h` does
 not; the reader decodes 5 as unknown. **[CONFLICT, harmless: no corpus record uses it]**
 
@@ -1258,21 +1508,23 @@ the first occurrence of `keyword:` and do not trim.
 `zlocationStore()` also updates the file's location bounds (`zlocationUpdatePerm()`,
 header words 84–88, §2.2); readers ignore them.
 
-**Verification (P15):** on the hecdss-written fixture and goldens g25 and g51 (8 records),
+**Verification:** on the hecdss-written fixture `synthetic_location7.dss` and two private
+DSS7 test files (8 records),
 every field equals `hecdss` 0.1.33 (`hec_dss_locationRetrieve`), and the associated
 location of every catalogued pathname agrees with hecdss (19,077 pathnames; 19,068
 with a location) and Monolith's `HecTimeSeries.read` (19,043 time-series records;
 19,042 with a location). Monolith re-serializes supplemental
 text as `Keyword:Item;` pairs (it appended `;` to one fixture record); hecdss truncates
-supplemental text to its 256-byte buffer. Evidence: `evidence/P15/`.
-### 11.x Writing (P39)
+supplemental text to its 256-byte buffer.
+### 11.x Writing
 
 `zlocationStore()` layout, with `zlocationUpdatePerm()` updating header words 84-88 for
 coordinate system 1 with horizontal units 3. The writer differs deliberately in one place: a time-zone name
 whose length is a multiple of 4 gets one more zero int, because heclib stores no NUL and
-`zlocationRetrieve()` then reads past values1. Profiles: `packets/P39_profile_location_writers.md`.
+`zlocationRetrieve()` then reads past values1. Writers: `crates/dss-core/src/dss7/write/location.rs` and
+`crates/dss-core/src/dss7/write/engine/profile.rs`.
 
-## 12. Time-series user header (P26 scope note)
+## 12. Time-series user header (scope note)
 
 DSS7 time-series records also have a user header. It is an int32 area located by the
 info-block keys `kinfoUserHeadAddress` / `kinfoUserHeadNumber` (`headers/zdssKeys.h`
@@ -1288,7 +1540,7 @@ NULL for empty text. Its trailing-blank loop never runs, because of operator pre
 (`javaHeclib/src/Hec_ztsRetrieve.c`, "User header (supplemental)", `zgetVersion == 7`
 branch). It is parsed into items by `DataContainer.getSupplementalInfo()` (dss6.md §14.3).
 
-**Out of scope for P26.** The Python layer returns `None` for every `user_header_*` key
+**Out of scope for now.** The Python layer returns `None` for every `user_header_*` key
 on DSS7 reads. Exposing it needs two checks first:
 
 - Which block a DSS7 dataset read reports. `Internal/ztsRetrieveReg7.c` lines 524-556
@@ -1297,4 +1549,4 @@ on DSS7 reads. Exposing it needs two checks first:
 - How `verticalDatumInfo` text should be shown, given that HecDss wraps it into a
   `TimeSeriesContainerVertDatum` (`hec.heclib.dss.HecDss.get`).
 
-Both are listed as open items in P26 REPORT §7.
+Both are open items.

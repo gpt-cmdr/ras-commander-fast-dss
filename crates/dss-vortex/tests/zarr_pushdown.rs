@@ -1,4 +1,4 @@
-//! Reading only what an import needs from a store (review of `8fc6610a`, finding 3).
+//! Reading only what an import needs from a store.
 //!
 //! `import_gridded` read each whole source frame before the warp, so a small envelope on a year
 //! of AORC read 35 million cells a step, for 8,760 steps. Now the envelope, padded for the warp,
@@ -161,7 +161,7 @@ fn an_envelope_selects_a_window_of_the_store() {
     assert_eq!((stated.nx, stated.ny), (157, 121));
 }
 
-/// The reviewer's run: a year's store with no selection at all. It is refused while planning,
+/// A year's store with no selection at all. It is refused while planning,
 /// before a cell is read or a file made, and the refusal says what to state.
 #[test]
 fn a_year_of_the_whole_grid_is_refused_while_planning() {

@@ -1,5 +1,5 @@
-//! DSS6 reader (packet P07): header, catalog walk, hash lookup. Format rules:
-//! `docs/format/dss6.md` (packet P05), derived from HEC's `heclib_f` Fortran sources.
+//! DSS6 reader: header, catalog walk, hash lookup. Format rules:
+//! `docs/format/dss6.md`, derived from HEC's `heclib_f` Fortran sources.
 //!
 //! The reader is read-only and lock-free. It opens a file with a plain read handle (or
 //! works on an in-memory byte slice, which is what the WebAssembly binding uses), never
@@ -18,9 +18,9 @@
 //! # Ok::<(), dss_core::dss6::Dss6Error>(())
 //! ```
 //!
-//! Time-series reads (packet P08b) are in [`ts`] (one block: [`Dss6File::read_ts_record`])
+//! Time-series reads are in [`ts`] (one block: [`Dss6File::read_ts_record`])
 //! and [`dataset`] (blocks stitched over a window: [`Dss6File::read_ts_dataset`]).
-//! Paired data and grids belong to later packets; [`Dss6File::read_words`] and
+//! Paired data and grids are in their own modules; [`Dss6File::read_words`] and
 //! [`Dss6Info`] give them the addresses they need.
 
 pub mod compress;
@@ -37,7 +37,7 @@ pub mod pd;
 pub mod source;
 pub mod ts;
 mod walk;
-// P22: DSS6 time-series writer (native targets only, as the DSS7 writer).
+// DSS6 time-series writer (native targets only, as the DSS7 writer).
 #[cfg(not(target_arch = "wasm32"))]
 pub mod write;
 
@@ -50,7 +50,7 @@ pub use lookup::Dss6Record;
 pub use pd::{Dss6Pd, Dss6PdMeta, LabelStyle, PdError};
 pub use source::{word_byte_offset, FileSource, ReadAt};
 pub use ts::{Dss6TsRecord, TsError, TsLayout, TsReadOptions};
-// P29: opt-in HEC "no data" refusal.
+// Opt-in HEC "no data" refusal.
 pub use ts::{all_hec_no_data, NoDataPolicy, NO_DATA_STATUS};
 pub use walk::{record_type_abbrev, BinWalk, CatalogOptions, Dss6BinEntry, InfoCheck};
 
@@ -130,7 +130,7 @@ impl<S: ReadAt> Dss6File<S> {
         Ok(file)
     }
 
-    /// Non-fatal header findings (P05 acceptance check 3 and layout checks).
+    /// Non-fatal header findings (version and layout checks).
     fn check_layout(&mut self, size: u64) {
         let h = &self.header;
         let mut warn = |kind, address: Option<u64>, detail: String| {

@@ -1,8 +1,8 @@
 """P22: DSS6 time-series writer (create, regular and irregular add, replace, merge).
 
 Synthetic data only; every file is created in ``tmp_path`` or is a copy of a public
-fixture. Round trips read back through the native reader; the Monolith oracle
-comparisons are local-only (evidence/P22/REPORT.md).
+fixture. Round trips read back through the native reader. These tests do not run
+HEC Monolith.
 """
 
 from __future__ import annotations
@@ -391,7 +391,7 @@ def test_other_records_unchanged_on_fixture_copies(tmp_path, fixture):
 
 
 def test_refused_multi_block_write_changes_nothing(new6):
-    """Review M1: a February block stored as double with quality, then float values with
+    """A February block stored as double with quality, then float values with
     no quality written from 31 January: HEC refuses the February block (zsrtsi6 status
     511), and the January block is not written either."""
     kw = dict(units="CFS", data_type="INST-VAL", version=6)

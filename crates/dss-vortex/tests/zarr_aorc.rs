@@ -1,5 +1,4 @@
-//! When a store's precipitation is AORC's hour ending at its time, and when it is not (review of
-//! `8fc6610a`, finding 2).
+//! When a store's precipitation is AORC's hour ending at its time, and when it is not.
 //!
 //! The period comes from what the product is, not from how its times are spaced: a store is
 //! AORC v1.1 when its `APCP_surface` states `aorc_version` as a recognized text, its times are at

@@ -1,5 +1,6 @@
-//! The independent review's P50 findings, each reproduced through the public API. The crafted files
-//! state things GDAL's own writers do not, so they are built here byte by byte.
+//! Regression cases for the raster code, each reproduced through the public
+//! API. The crafted files state things GDAL's own writers do not, so they are built here byte
+//! by byte.
 
 use dss_vortex::sink_raster::{write_asc, write_geotiff, AscOptions, TiffOptions};
 use dss_vortex::source::raster::{CrsStatus, RasterFile, ReadOptions, UnknownCrs};
@@ -215,7 +216,7 @@ fn epsg_5070_is_shg_only_when_nothing_contradicts_it() {
     }
     for (label, more) in [
         (
-            "the review's WGS84 and feet",
+            "WGS84 and feet",
             vec![(GEOG, V::S(4326)), (LINEAR, V::S(9002))],
         ),
         ("WGS84", vec![(GEOG, V::S(4326))]),
@@ -280,7 +281,7 @@ fn replaced(keys: Vec<(u16, V)>, id: u16, value: V) -> Vec<(u16, V)> {
 
 #[test]
 fn keys_that_cannot_be_checked_do_not_license_a_citations_wkt() {
-    // The review's file: rasterio reads EPSG:32615 and this reader said WGS84.
+    // A crafted file: rasterio reads EPSG:32615 and this reader said WGS84.
     refused(
         "unsupported EPSG with a WGS84 citation",
         &[
@@ -384,13 +385,13 @@ const TM_GEOG_END: &str = "UNIT[\"Degree\",0.0174532925199433]]";
 const TM_FOOT: &str = "UNIT[\"Foot_US\",0.30480060960121924]";
 const TM_SPHEROID: &str = "298.257222101]";
 
-/// The re-check's file: numeric keys in degrees and a citation with another angular unit. GDAL reads
+/// A crafted file: numeric keys in degrees and a citation with another angular unit. GDAL reads
 /// the keys, and this reader used to state the text and write it.
 #[test]
 fn transverse_mercator_text_whose_angular_unit_differs_from_the_keys_is_refused() {
     for (label, unit) in [
         (
-            "the re-check's factor",
+            "a near-degree factor",
             "UNIT[\"Degree\",0.0157079632679490]",
         ),
         ("gradians", "UNIT[\"Grad\",0.0157079632679490]"),
@@ -742,7 +743,7 @@ fn frame(crs: Crs) -> GridFrame {
     .unwrap()
 }
 
-/// Sidecars GDAL applies, measured by `oracle/vortex/tests/test_sidecars.py`.
+/// Sidecars GDAL applies (measured with GDAL).
 const APPLIED: &[&str] = &[
     "{name}.msk",
     "{name}.MSK",
@@ -828,7 +829,7 @@ fn a_sidecar_that_would_apply_to_the_written_file_refuses_the_write_and_changes_
 
 #[test]
 fn a_directory_at_the_prj_path_leaves_the_grid_alone() {
-    // The review's reproduction: a normal write hit an I/O error after deleting the old grid.
+    // Reproduction: a normal write hit an I/O error after deleting the old grid.
     let dir = scratch("prj_dir");
     let path = dir.join("failure.asc");
     fs::write(&path, b"ORIGINAL GRID").unwrap();

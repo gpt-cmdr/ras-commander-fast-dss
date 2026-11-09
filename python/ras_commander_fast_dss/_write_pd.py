@@ -1,10 +1,10 @@
-"""Paired-data writer, DSS7 and DSS6 (packet P23).
+"""Paired-data writer, DSS7 and DSS6.
 
 ``write_paired_data`` stores one paired-data record (rating curves, stage-damage and
 frequency curves, HEC-HMS storage-outflow and Atlas 14 temporal tables): a set of
 ordinates (X, the independent variable) and one or more curves (Y, the dependent
 variable). ``float32`` input makes a PD (200) record and ``float64`` a PDD (205) record;
-the width given is stored, never converted (``packets/P23_pd_writer.md``).
+the width given is stored, never converted.
 
 Curve labels are the names of the curves; ``x_type`` and ``y_type`` are the axis types
 (``Linear``, ``Log``, ``Probability``, ...). They are separate arguments and never
@@ -25,7 +25,7 @@ import numpy as np
 import pandas as pd
 
 from . import _native
-from ._write import HEC_MISSING_DSS6, HEC_UNDEFINED_FLOAT, _precision
+from ._write import HEC_MISSING_DSS6, HEC_UNDEFINED_FLOAT, _precision, _sync_flag
 
 __all__ = ["write_paired_data"]
 
@@ -116,6 +116,7 @@ def write_paired_data(
     time_zone: Optional[str] = None,
     version: int = 7,
     allow_undetectable_readers: bool = True,
+    sync: bool = True,
 ) -> Dict[str, Any]:
     """Store one paired-data record (a new record, or a full replacement).
 
@@ -166,6 +167,15 @@ def write_paired_data(
         version-safe call.
     allow_undetectable_readers:
         As for :func:`ras_commander_fast_dss.write_timeseries`.
+    sync:
+        Flush policy, as for :func:`ras_commander_fast_dss.write_timeseries`: ``True``
+        (default, unchanged) flushes at the transaction's existing flush points (the
+        data is flushed together with the end-of-file flag) and ends with one
+        ``sync_all``; ``False`` (opt-in) does not flush. ``False`` keeps the
+        ordering of completed writes and of the recovery marker when the writing process
+        dies, so the next write reconciles an interrupted one as with ``True``. No
+        power-loss claim is made for either mode. For a damaged DSS7 file use
+        :func:`ras_commander_fast_dss.repair`.
 
     Returns
     -------
@@ -252,6 +262,7 @@ def write_paired_data(
         time_zone,
         int(version),
         bool(allow_undetectable_readers),
+        sync=_sync_flag(sync),
     )
     if report.get("readers_undetected"):
         warnings.warn(

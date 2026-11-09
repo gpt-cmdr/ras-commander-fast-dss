@@ -2,8 +2,7 @@
 
 ``fixtures/public/vortex_p51/`` holds Vortex's public ``canyon`` test set, synthetic zones and grids,
 and in ``expected.json`` what Vortex 1.1.0 computed. Value parity is
-``crates/dss-vortex/tests/zonal.rs``; the matrix against both Vortex versions, with HEC's readers, is
-``oracle/vortex/run_zonal.py``.
+``crates/dss-vortex/tests/zonal.rs``. These tests do not run Vortex or HEC's readers.
 """
 import hashlib
 import json
@@ -231,7 +230,7 @@ def test_expected_json_has_something_in_it():
     assert {c["id"] for c in expected["cases"]} >= {"canyon", "zones.polys", "zones.random"}
 
 
-# ---- Review regressions: reserved values, aliases, reruns, failure reporting. ----
+# ---- Regressions: reserved values, aliases, reruns, failure reporting. ----
 
 TRANSFORM = (-100000.0, 2000.0, 1000000.0, -2000.0)
 ULP_NEAR_901 = 2.0**-14

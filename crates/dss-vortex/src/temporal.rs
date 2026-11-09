@@ -4,8 +4,8 @@
 //! logging): `math/TimeShifter`, `math/BatchTimeStepResampler`, `math/TimeStep`,
 //! `io/TemporalDataReader`, `io/TemporalDataCalculator`, `io/VortexDataInterval`, `io/IntervalTree`,
 //! `io/PeriodRecordIndexQuery`, `io/InstantaneousRecordIndexQuery`, `io/DssDataReader.dssToDto`,
-//! `util/DssUtil.condenseVariables`. No Java runs here; Vortex is a test oracle only
-//! (`oracle/vortex/run_temporal.py`).
+//! `util/DssUtil.condenseVariables`. No Java runs here; Vortex is used only as a test
+//! oracle.
 //!
 //! **Times** have no zone. A DSS grid's stamps are local clock stamps with no daylight saving
 //! (`DssDataReader` reads them as UTC), so a shift is plain arithmetic on whole seconds, and a shift

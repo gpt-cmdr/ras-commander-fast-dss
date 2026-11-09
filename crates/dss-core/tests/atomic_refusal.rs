@@ -1,4 +1,4 @@
-//! P38 re-check: a refusal that depends on the file must come before the first store of a
+//! P38: a refusal that depends on the file must come before the first store of a
 //! multi-record write. Each test makes a later record's store refuse, on synthetic damage or
 //! a counter at its limit, and requires the whole file byte-identical afterwards.
 
