@@ -1202,6 +1202,9 @@ pub struct GridToPointRequest {
     pub parts: PointParts,
     /// DSS version of a new output. An existing file keeps its own.
     pub version: Option<u8>,
+    /// Flush policy of the run: `End` flushes once after the last series,
+    /// `Step` at every flush point of every block, `None` never.
+    pub sync: dss_core::dss7::write::SyncMode,
     pub allow_undetectable_readers: bool,
     /// Permit `output` to be the file holding the grids. Off by default, since a distinct name is no
     /// proof of a distinct file. Zone files are never a permitted output.
@@ -1774,6 +1777,19 @@ fn store(
 
 /// Compute, plan, then write. Nothing touches `output` until every statistic and record is settled.
 pub fn grid_to_point(request: &GridToPointRequest) -> Result<GridToPointOutcome, GridToPointError> {
+    let result = point_records(request);
+    crate::sink_dss::end_sync(request.sync, &request.output, result, |e, outcome| {
+        GridToPointError {
+            phase: "writing",
+            failure: GridToPointFailure::Write(e),
+            completed: outcome.records,
+            pathname: None,
+            in_doubt: None,
+        }
+    })
+}
+
+fn point_records(request: &GridToPointRequest) -> Result<GridToPointOutcome, GridToPointError> {
     let bad = |m: String| planning(GridToPointFailure::BadRequest(m));
     if !matches!(request.version, None | Some(6) | Some(7)) {
         return Err(bad(format!(
@@ -1889,10 +1905,11 @@ pub fn grid_to_point(request: &GridToPointRequest) -> Result<GridToPointOutcome,
     }
     let created = existing.is_none();
     if created {
+        let sync = crate::sink_dss::record_sync(request.sync);
         let made = if version == 6 {
-            dss_core::dss6::write::create_dss6(&request.output)
+            dss_core::dss6::write::create_dss6_with(&request.output, sync)
         } else {
-            write7::create_dss7(&request.output)
+            write7::create_dss7_with(&request.output, sync)
         };
         made.map_err(|e| planning(GridToPointFailure::Write(e)))?;
     }
@@ -1901,8 +1918,8 @@ pub fn grid_to_point(request: &GridToPointRequest) -> Result<GridToPointOutcome,
     for (i, mut p) in plan.into_iter().enumerate() {
         let options = WriteOptions {
             lock_policy: policy,
+            sync: crate::sink_dss::record_sync(request.sync),
             fault: request.fault.filter(|(at, _)| *at == i).map(|(_, f)| f),
-            ..WriteOptions::default()
         };
         match store(&p, version, &request.output, &options) {
             Ok(report) => {

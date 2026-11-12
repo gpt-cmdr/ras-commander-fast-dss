@@ -3,8 +3,8 @@
 A native HEC-DSS engine for Python, written in Rust. It reads and writes DSS version 6 and
 version 7 files (catalogs, regular and irregular time series, paired data, grids, profiles and
 location records) without Java, HEC Monolith or any HEC native library. It also imports gridded
-data (GRIB2, NetCDF, GeoTIFF/ASCII rasters and Zarr v2) into DSS grids, the job HEC-Vortex does
-for HEC-HMS and HEC-RAS.
+data (GRIB2, NCEP Stage IV GRIB1, NetCDF, GeoTIFF/ASCII rasters, PRISM BIL and ZIP packages,
+SNODAS and Zarr v2) into DSS grids, the job HEC-Vortex does for HEC-HMS and HEC-RAS.
 
 `ras-commander-fast-dss` is the DSS backend of
 [RAS Commander](https://github.com/gpt-cmdr/ras-commander) and hms-commander. It is called
@@ -16,8 +16,8 @@ pip install ras-commander-fast-dss
 
 Wheels are abi3 (one wheel covers CPython 3.10 and later) for Windows x86_64 and for Linux
 x86_64 and aarch64 (manylinux and musllinux). There are no macOS wheels, and CI does not build
-or test on macOS. macOS users, and other platforms, can build the source distribution with a
-Rust toolchain; the build has no C dependencies.
+or test on macOS. The source distribution is published with every release: macOS users, and
+other platforms, can build it with a Rust toolchain; the build has no C dependencies.
 
 ## Quick example
 
@@ -51,7 +51,7 @@ and grids come back as NumPy arrays with their metadata. Errors are typed
 refused rather than written (`DssLockedError`). The gridded importer and tools are in
 `ras_commander_fast_dss.gridded`.
 
-## Interrupted writes, `sync=` and `repair`
+## Interrupted writes, `sync=`, `DssFile` sessions and `repair`
 
 Writers order their steps so that a DSS7 or DSS6 file that was consistent before a write
 can be reconciled after the writing process dies part-way through; the next native write
@@ -59,11 +59,23 @@ does this from the file itself. The crash model is process death, not power loss
 format notes ([`dss7.md`](docs/format/dss7.md), [`dss6.md`](docs/format/dss6.md)) give the exact steps, what is
 and is not guaranteed, and the known limitations.
 
-- `sync=` on `write_timeseries`, `write_paired_data`, `write_grid`, `write_profile` and
-  `write_location`. The default, `sync=True`, flushes (`fsync`) at the write's flush points between steps.
-  `sync=False` is opt-in and faster for many small writes: it skips those flushes but
-  keeps the write order that process-death recovery relies on. Neither mode claims
-  durability on power loss.
+- `sync=` on every writer (`write_timeseries`, `write_paired_data`, `write_grid`,
+  `write_profile`, `write_location`, `create`, `repair`, the gridded importer, the grid
+  tools and `gridded.grid_to_point`) chooses when the write calls `fsync`:
+  - `"end"` (the default since 0.1.2; `True` means the same): one flush at the end of each
+    write call. A call that stores many records flushes once, after the last.
+  - `"step"`: a flush at every flush point between the steps of the write, the default up
+    to 0.1.1.
+  - `"none"` (`False` means the same): no flush.
+
+  The three make the same writes in the same order, so the process-death recovery above is
+  the same in every mode. No mode claims durability on power loss.
+- A `DssFile` keeps one read+write handle from its first write until it is closed, so
+  consecutive writes through it do not open the file again. Every write still takes and
+  releases the HEC lock, and the handle is checked against the file the path names before
+  and after each write. Close the `DssFile` before renaming, replacing or deleting its file:
+  a write that loses a race with such a change raises `OSError`, and on Windows `os.replace`
+  onto a file held by a session fails.
 - `repair(src, dest)` copies the readable records of a damaged DSS7 file into a new file:
   every readable record that its documented discovery procedure reaches
   ([`dss7.md`](docs/format/dss7.md), copy-out repair). It does not find everything a
@@ -79,8 +91,15 @@ if not report["complete"]:
     print(report["not_copied"])
 ```
 
-`FEATURES` lists optional capabilities by name (`repair_copy_out`, `write_sync_policy`,
-...), so callers can test for them.
+`FEATURES` lists optional capabilities by name, so callers can test for them. Flags added in
+0.1.2: `write_sync_modes`, `gridded_threads_all_cores`, `dssfile_held_handle`,
+`gridded_grib1_stage4`, `gridded_prism_bil`, `gridded_snodas` and
+`write_ts_dss6_irregular_pattern_opt_in`.
+
+DSS6 irregular patterns (record type 111) are written only with
+`allow_unconfirmed_dss6_irregular_pattern=True`, on a path or through a `DssFile` session, because no
+HEC reader has confirmed such records; without the flag the write is refused and the file is
+unchanged. Pathnames with bytes outside printable ASCII are refused for writing.
 
 ## With ras-commander and hms-commander
 
@@ -110,15 +129,37 @@ linked or shipped.
   RasExamples DSS files (11,045 comparisons): every non-missing value is bit-identical and
   every missing position agrees; the remaining differences are documented corrections.
 - **Writers** are checked in this repository's tests against files written by HEC's own C
-  library and by HEC Monolith (`fixtures/public/`): the native writer, given the same input,
-  produces word-identical records apart from write times and the program name.
-- **Gridded import** is checked against HEC-Vortex 1.1.0 output on public NOAA products and
-  Vortex's own test resources, bit for bit where the fixtures say so.
+  library and by HEC Monolith (`fixtures/public/`): for the uncompressed records tested, the
+  native writer, given the same input, produces word-identical records apart from write
+  times and the program name.
+  DSS6 regular time-series merges and extensions into existing records are checked against
+  HEC Monolith and HEC's DSS6 C library. Uncompressed merged records are word-identical
+  apart from addresses and write stamps. Where HEC stored a block compressed, HEC keeps it
+  compressed and the native writer stores it uncompressed: their decoded values are
+  compared, and the representation differs (addresses, stamps, `KINDAT`, `KICOMP` and
+  `KINCHE`). Repeat-only compression (scheme 1) decodes to the same values. One deliberate
+  value difference is documented: a merge into a block HEC stored with delta compression
+  keeps the stored values outside the written window, where HEC re-quantizes the whole block
+  ([`docs/format/dss6.md` §9.4](docs/format/dss6.md#94-regular-merge-and-extend-into-existing-blocks)).
+- **Gridded import** is checked against HEC-Vortex 1.1.0 output on public NOAA, PRISM and
+  NSIDC products and Vortex's own test resources, bit for bit where the fixtures say so.
+  Where this package differs from Vortex on purpose, the difference is documented: SNODAS
+  times (Vortex's timing is the explicit option `snodas_times="vortex"`) and SNODAS missing
+  cells (masked here, kept as numbers by Vortex).
 - **Hostile input:** parsers bounds-check every offset and length and return errors; `dss-core`
   forbids `unsafe` code; fuzz and allocation-limit tests run in CI.
 
 This is qualification for the files and versions named, not a claim that every possible DSS
 record is covered. Comparison with HEC software does not imply HEC or USACE endorsement.
+
+## Performance
+
+Performance is qualified internally against HEC's DSS C library, pydsstools, hecdss, HEC Monolith and HEC-Vortex on a private corpus of production model files; those files and the detailed results are not published. The statements below summarize those evaluations. To measure on your own machine, run `benchmarks/bench_public.py`, which generates its own data and checks every result. Absolute times depend on storage, antivirus scanning and file layout.
+
+- **Reads and catalogs** are on par with HEC's C library and pydsstools. On very large DSS7 catalogs pydsstools is somewhat faster, because FAST-DSS validates and normalizes every pathname it returns.
+- **Compared with the Java path (HEC Monolith) and hecdss,** whole-dataset reads are many times faster, because FAST-DSS decodes records directly into NumPy arrays without a per-record Python or Java crossing.
+- **Gridded import** is on par with HEC-Vortex for continental grids and faster for smaller imports, with no JVM start-up. The grid tools and grid-to-point are slower than Vortex, because each output record is written separately.
+- **Writes are durable by default and therefore slower.** By default, FAST-DSS flushes to disk at the end of every write call, so that a killed process leaves a file HEC can read. The other tools leave flushing to the operating system. For bulk loads, write inside a `DssFile` session with `sync="none"`. Bulk series writes are then on par with the C-based tools. Writing many small records or paired-data records one call at a time remains noticeably slower than the C libraries, because of per-call overhead; reducing it is planned.
 
 ## Repository layout
 
@@ -132,6 +173,7 @@ record is covered. Comparison with HEC software does not imply HEC or USACE endo
 | `vendor/` | `hdf5-reader` and `netcdf-reader` 0.12.1 with local patches ([PATCHES.md](vendor/PATCHES.md)) |
 | `fixtures/public/` | Public and synthetic test files, each with its provenance in [README.md](fixtures/public/README.md) |
 | `docs/format/` | DSS6 and DSS7 format specifications |
+| `benchmarks/` | A reproducible cross-tool benchmark on generated data ([README.md](benchmarks/README.md)) |
 
 Some comments, test names and synthetic fixture pathnames carry development labels (`P20`,
 `P46`, ...) that date when a rule or test was added. They are labels only: the rules

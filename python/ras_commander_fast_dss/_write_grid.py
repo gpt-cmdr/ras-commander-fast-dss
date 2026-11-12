@@ -23,7 +23,7 @@ import numpy as np
 
 from . import _native
 from ._time import TimeLike, to_hec_seconds
-from ._write import _sync_flag
+from ._write import _sync_mode, _held
 
 __all__ = ["write_grid", "GRID_NODATA", "SHG_WKT"]
 
@@ -144,7 +144,7 @@ def write_grid(
     raw: bool = False,
     version: int = 7,
     allow_undetectable_readers: bool = True,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
 ) -> Dict[str, Any]:
     """Store one grid record in an existing DSS7 or DSS6 file.
 
@@ -215,13 +215,13 @@ def write_grid(
     data_source:
         HRAP grids: the data source (at most 12 characters on DSS6).
     sync:
-        Flush policy, as for :func:`ras_commander_fast_dss.write_timeseries`: ``True``
-        (default, unchanged) flushes at the transaction's existing flush points (the
-        data is flushed together with the end-of-file flag) and ends with one
-        ``sync_all``; ``False`` (opt-in) does not flush. ``False`` keeps the
-        ordering of completed writes and of the recovery marker when the writing process
-        dies, so the next write reconciles an interrupted one as with ``True``. No
-        power-loss claim is made for either mode. For a damaged DSS7 file use
+        Flush policy, as for :func:`ras_commander_fast_dss.write_timeseries`: ``"end"``
+        (default; ``True`` means the same) flushes once at the end of this call;
+        ``"step"`` also flushes at every flush point of the transaction (the default
+        before 0.1.2); ``"none"`` (or ``False``) does not flush. All three make the same
+        writes in the same order, so a write interrupted by the death of the writing
+        process is reconciled by the next write in the same way. No power-loss claim is
+        made for any mode. For a damaged DSS7 file use
         :func:`ras_commander_fast_dss.repair`.
 
     Returns
@@ -329,8 +329,9 @@ def write_grid(
         scale_factor=None if scale_factor is None else _f32(scale_factor, "scale_factor"),
         base=None if base is None else _f32(base, "base"),
         data_source=data_source, albers=albers_t, version=int(version),
-        allow_undetectable_readers=bool(allow_undetectable_readers), sync=_sync_flag(sync),
+        allow_undetectable_readers=bool(allow_undetectable_readers), sync=_sync_mode(sync),
         **kw,
+        **_held(),
     )
     if report.get("readers_undetected"):
         warnings.warn(

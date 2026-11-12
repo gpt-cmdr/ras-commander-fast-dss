@@ -21,9 +21,45 @@ use numpy::{IntoPyArray, PyArrayMethods};
 use pyo3::exceptions::{PyIndexError, PyOSError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
-use std::fs::File;
-use std::io::{self, Read};
+
+/// The `sync=` argument of every native writer: one of the names `"end"`
+/// (the default: one flush at the end of the write call), `"step"` (a flush at every flush
+/// point of the transaction, the default up to 0.1.1) and `"none"` (no flush); or a bool,
+/// where `True` is `"end"` and `False` is `"none"`.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct PySync(pub(crate) dss7::write::SyncMode);
+
+impl PySync {
+    pub(crate) const DEFAULT: PySync = PySync(dss7::write::SyncMode::End);
+}
+
+impl<'py> FromPyObject<'py> for PySync {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        use dss7::write::SyncMode;
+        if let Ok(b) = ob.downcast::<pyo3::types::PyBool>() {
+            return Ok(PySync(if b.is_true() {
+                SyncMode::End
+            } else {
+                SyncMode::None
+            }));
+        }
+        if let Ok(name) = ob.extract::<String>() {
+            if let Some(mode) = SyncMode::from_name(&name) {
+                return Ok(PySync(mode));
+            }
+        }
+        Err(pyo3::exceptions::PyTypeError::new_err(format!(
+            "sync must be \"end\", \"step\", \"none\", True or False, not {}",
+            ob.repr()?
+        )))
+    }
+}
+use std::fs::{File, OpenOptions};
+use std::io::{self, Read, Seek, SeekFrom};
 use std::sync::Mutex;
+
+// Identity of a session's held handle.
+mod ident;
 
 pyo3::import_exception!(ras_commander_fast_dss.exceptions, DssError);
 pyo3::import_exception!(ras_commander_fast_dss.exceptions, DssFormatError);
@@ -207,8 +243,15 @@ fn map_grid(path: &str, pathname: &str, e: GridError) -> BindErr {
 // ---------------------------------------------------------------------------------
 
 fn read_signature(path: &str) -> BResult<FileSignature> {
-    let mut head = vec![0u8; dss_core::header::MIN_HEADER_BYTES];
     let mut file = File::open(path).map_err(|e| BindErr::Os(e, path.to_string()))?;
+    read_signature_of(&mut file, path)
+}
+
+/// The signature read through an open handle, from byte 0 (a session's held handle).
+fn read_signature_of<R: Read + Seek>(file: &mut R, path: &str) -> BResult<FileSignature> {
+    let mut head = vec![0u8; dss_core::header::MIN_HEADER_BYTES];
+    file.seek(SeekFrom::Start(0))
+        .map_err(|e| BindErr::Os(e, path.to_string()))?;
     let mut n = 0;
     // Short reads are legal; fill as much of the header as the file has.
     loop {
@@ -794,13 +837,127 @@ enum Inner {
     Closed,
 }
 
-/// An open DSS6 or DSS7 file (read-only). Created by [`open`].
+/// An open DSS6 or DSS7 file. Created by [`open`] with a read-only handle.
+///
+/// A write through the session (a native writer called with
+/// `handle=`) opens **one** read+write handle and keeps it until `close()` or until the
+/// object is dropped. Later writes and every read use it: after a write, the read view is
+/// rebuilt from a duplicate of that handle (no new open of the file). Before each write
+/// and each rebuild, the handle's identity (Windows: volume serial + file index; Unix:
+/// device + inode) is compared with the file the path names now. On a mismatch, or when
+/// the path no longer exists, the handle is dropped and the path is opened again. After
+/// the write the identity is checked again: a write is acknowledged only if the path
+/// named the written file both before and after it. A rename, delete or replacement of
+/// the path while the write runs cannot be prevented (the DSS lock protects the file's
+/// contents, not its name); a completed write is then stored in the previous file and
+/// the call fails with `OSError`. A failed write raises its own error and
+/// drops the handle if the path no longer names its file. The writer's DSS version is
+/// checked on the held handle before writing. Locking is unchanged: each write still
+/// tests, takes and releases the lock.
 #[pyclass(frozen, module = "ras_commander_fast_dss._native", name = "NativeFile")]
 struct NativeFile {
     path: String,
-    sig: FileSignature,
     recover: bool,
-    inner: Mutex<Inner>,
+    state: Mutex<State>,
+}
+
+/// A session's read+write handle and the identity it was opened with.
+struct Held {
+    file: File,
+    id: ident::FileId,
+}
+
+/// Everything a `NativeFile` changes after it is opened.
+struct State {
+    /// Header facts of the current read view.
+    sig: FileSignature,
+    /// The read view: the read-only handle of `open`, or after a write a duplicate of the
+    /// held handle. `Closed` after `close()`, and while `stale` (dropped for a write).
+    inner: Inner,
+    /// The held read+write handle (after the first write through the session).
+    held: Option<Held>,
+    /// A write ran since the view was built: rebuild it before the next read.
+    stale: bool,
+    /// Number of times the read+write handle was opened (test hook `_held_opens`).
+    held_opens: u64,
+}
+
+impl State {
+    fn closed(&self) -> bool {
+        matches!(self.inner, Inner::Closed) && !self.stale
+    }
+
+    /// The held handle, after the identity check: reopened by path when the path names
+    /// another file or none.
+    fn ensure_held(&mut self, path: &str) -> io::Result<&File> {
+        // Replaced, renamed away or deleted (or the check itself failed): never write
+        // through a handle that may not be the file at the path.
+        self.check_held(path);
+        if self.held.is_none() {
+            let file = OpenOptions::new().read(true).write(true).open(path)?;
+            let id = ident::of_file(&file)?;
+            self.held_opens += 1;
+            self.held = Some(Held { file, id });
+        }
+        Ok(&self.held.as_ref().expect("held just set").file)
+    }
+
+    /// Whether the held handle (if any) is still the file the path names; drops it if not.
+    fn check_held(&mut self, path: &str) {
+        if let Some(h) = &self.held {
+            match ident::of_path(std::path::Path::new(path)) {
+                Ok(id) if id == h.id => {}
+                _ => self.held = None,
+            }
+        }
+    }
+
+    /// Rebuild the read view after a write: from a duplicate of the held handle
+    /// when it is still the file at the path, else from a new read-only open of the path
+    /// (a read never opens the file for writing).
+    fn refresh(&mut self, path: &str) -> BResult<()> {
+        if !self.stale {
+            return Ok(());
+        }
+        self.inner = Inner::Closed;
+        self.check_held(path);
+        let built = match &self.held {
+            Some(h) => match h.file.try_clone() {
+                Ok(mut dup) => read_signature_of(&mut dup, path)
+                    .and_then(|sig| view_of(dup, &sig, path).map(|inner| (sig, inner))),
+                Err(e) => Err(BindErr::Os(e, path.to_string())),
+            },
+            None => open_inner(path),
+        };
+        match built {
+            Ok((sig, inner)) => {
+                self.sig = sig;
+                self.inner = inner;
+                self.stale = false;
+                Ok(())
+            }
+            // Stays stale: the next access tries again.
+            Err(e) => Err(e),
+        }
+    }
+}
+
+/// A read view on an open handle (a duplicate of the session's held handle).
+fn view_of(file: File, sig: &FileSignature, path: &str) -> BResult<Inner> {
+    Ok(match sig.version {
+        DssVersion::V7 => Inner::V7 {
+            file: Box::new(Dss7File::new(file).map_err(|e| map_dss7(path, e))?),
+            catalog: None,
+            recover_catalog: None,
+        },
+        DssVersion::V6 => {
+            let src = FileSource::from_file(file).map_err(|e| BindErr::Os(e, path.to_string()))?;
+            Inner::V6 {
+                file: Box::new(Dss6File::new(src).map_err(|e| map_dss6(path, e))?),
+                index: None,
+            }
+        }
+    })
 }
 
 fn record_is_ts(t: i32) -> bool {
@@ -838,6 +995,16 @@ fn v7_indexed<'a>(
 }
 
 impl Inner {
+    /// DSS major version of the view (taken with the data, inside the state
+    /// lock, instead of a separate refresh under the GIL). `None` when closed.
+    fn major(&self) -> Option<u8> {
+        match self {
+            Inner::V6 { .. } => Some(6),
+            Inner::V7 { .. } => Some(7),
+            Inner::Closed => None,
+        }
+    }
+
     fn catalog(&mut self, recover: bool, path: &str, sel: CatalogSelect) -> BResult<CatalogData> {
         match self {
             Inner::V7 {
@@ -1224,26 +1391,174 @@ fn open(py: Python<'_>, path: &str, recover: bool) -> PyResult<NativeFile> {
         .map_err(BindErr::into_py)?;
     Ok(NativeFile {
         path: path.to_string(),
-        sig,
         recover,
-        inner: Mutex::new(inner),
+        state: Mutex::new(State {
+            sig,
+            inner,
+            held: None,
+            stale: false,
+            held_opens: 0,
+        }),
     })
 }
 
 impl NativeFile {
+    fn lock_state(&self) -> BResult<std::sync::MutexGuard<'_, State>> {
+        self.state
+            .lock()
+            .map_err(|_| BindErr::Dss("DSS file state poisoned by an earlier panic".into()))
+    }
+
     fn with_inner<T: Send>(
         &self,
         py: Python<'_>,
         f: impl FnOnce(&mut Inner, &str) -> BResult<T> + Send,
     ) -> PyResult<T> {
         py.allow_threads(|| {
-            let mut guard = self
-                .inner
-                .lock()
-                .map_err(|_| BindErr::Dss("DSS file state poisoned by an earlier panic".into()))?;
-            f(&mut guard, &self.path)
+            let mut st = self.lock_state()?;
+            st.refresh(&self.path)?;
+            f(&mut st.inner, &self.path)
         })
         .map_err(BindErr::into_py)
+    }
+
+    /// The header facts of the current view (rebuilt first after a write).
+    fn current_sig(&self) -> BResult<FileSignature> {
+        let mut st = self.lock_state()?;
+        st.refresh(&self.path)?;
+        Ok(st.sig.clone())
+    }
+
+    /// Run one write on the session's held read+write handle, opening it on
+    /// the first write and checking its identity on every later one. Once the handle is
+    /// ready, the read view is dropped (so the session keeps one handle) and rebuilt by
+    /// the next read, whatever the write's outcome. The writer tests, takes and releases
+    /// the lock on this handle exactly as a path write does on its own handle.
+    ///
+    /// If the read+write open fails (a read-only file, a refused share mode, a missing
+    /// path), nothing was written: the read view is kept when it is still the file at
+    /// the path (the first write's open), and dropped for a fresh read-only open when the
+    /// held handle had to be given up (the file was replaced, renamed or deleted).
+    fn session_write<T>(
+        &self,
+        want: u8,
+        write: impl FnOnce(&File) -> Result<T, dss7::write::WriteError>,
+    ) -> Result<T, dss7::write::WriteError> {
+        let mut st = self.state.lock().unwrap_or_else(|e| e.into_inner());
+        if st.closed() {
+            return Err(dss7::write::WriteError::BadInput(
+                "I/O operation on a closed DSS file".into(),
+            ));
+        }
+        let had = st.held.is_some();
+        if let Err(e) = st.ensure_held(&self.path) {
+            if had {
+                st.stale = true;
+                st.inner = Inner::Closed;
+            }
+            return Err(e.into());
+        }
+        st.stale = true;
+        st.inner = Inner::Closed;
+        race_hook(&self.path);
+        let held = st.held.as_ref().expect("held just ensured");
+        let id = held.id;
+        // The writer was chosen from a version read earlier (Python's
+        // `_write_version`, or the caller's `version=`). Check it against the header of
+        // the file the handle holds, read through the handle, before anything is
+        // written: a file replaced by the other DSS major version is refused here.
+        let got = read_signature_of(&mut &held.file, &self.path)
+            .map(|sig| match sig.version {
+                DssVersion::V6 => 6u8,
+                DssVersion::V7 => 7u8,
+            })
+            .map_err(|e| dss7::write::WriteError::BadInput(format!("{e:?}")))?;
+        if got != want {
+            return Err(dss7::write::WriteError::BadInput(format!(
+                "the file at this path is a DSS{got} file, not DSS{want}; it was replaced \
+                 since its version was read. Nothing was written"
+            )));
+        }
+        let out = match write(&held.file) {
+            Ok(out) => out,
+            Err(e) => {
+                // A failed write acknowledges nothing, so its own error is
+                // raised as it is. What it may have changed (a reconciliation it completed
+                // before failing) is in the file the handle holds. If the path no longer
+                // names that file, the handle is dropped so that the next write resolves
+                // the path again.
+                if !matches!(ident::of_path(std::path::Path::new(&self.path)), Ok(now) if now == id)
+                {
+                    st.held = None;
+                }
+                return Err(e);
+            }
+        };
+        // The check before the write and the DSS lock do not protect the
+        // pathname. Another process can rename, delete or replace it between the check
+        // and the write, and the write then lands in the file the handle holds, which the
+        // path no longer names. Checking again after the write bounds that window: a
+        // write is acknowledged only if the path named the written file both before and
+        // after it. Otherwise the data is already stored in the previous file (it is not
+        // rolled back), the handle is dropped, and the call fails.
+        match ident::of_path(std::path::Path::new(&self.path)) {
+            Ok(now) if now == id => Ok(out),
+            other => {
+                st.held = None;
+                let kind = match &other {
+                    Err(e) if e.kind() == io::ErrorKind::NotFound => io::ErrorKind::NotFound,
+                    _ => io::ErrorKind::Other,
+                };
+                Err(dss7::write::WriteError::Io(io::Error::new(
+                    kind,
+                    "the file at this path was replaced, renamed or deleted while the \
+                     write ran; the write was stored in the previous file, which the path \
+                     no longer names",
+                )))
+            }
+        }
+    }
+}
+
+/// Test hook, not a supported API: a one-shot namespace change that the
+/// next session write makes after its identity check and before it writes. `aside` is
+/// where the current file is renamed to; `replacement`, if given, is then copied to the
+/// path. Lets a test pin what a session write does when it loses that race.
+static RACE: Mutex<Option<(String, Option<String>)>> = Mutex::new(None);
+
+fn race_hook(path: &str) {
+    let action = RACE.lock().unwrap_or_else(|e| e.into_inner()).take();
+    if let Some((aside, replacement)) = action {
+        let _ = std::fs::rename(path, &aside);
+        if let Some(r) = replacement {
+            let _ = std::fs::copy(&r, path);
+        }
+    }
+}
+
+/// Test hook, not a supported API; see [`race_hook`].
+#[pyfunction]
+#[pyo3(signature = (aside, replacement=None))]
+fn _set_session_race(aside: String, replacement: Option<String>) {
+    *RACE.lock().unwrap_or_else(|e| e.into_inner()) = Some((aside, replacement));
+}
+
+/// Run a native write through the session `handle` when one is given (its held
+/// handle, through the `*_to` entry points), else by path as before.
+fn on_target<T>(
+    handle: Option<&NativeFile>,
+    path: &str,
+    want: u8,
+    by_path: impl FnOnce(&std::path::Path) -> Result<T, dss7::write::WriteError>,
+    by_file: impl FnOnce(&File) -> Result<T, dss7::write::WriteError>,
+) -> Result<T, dss7::write::WriteError> {
+    match handle {
+        None => by_path(std::path::Path::new(path)),
+        Some(nf) if nf.path != path => Err(dss7::write::WriteError::BadInput(format!(
+            "the handle is open on {:?}, not on {:?}",
+            nf.path, path
+        ))),
+        Some(nf) => nf.session_write(want, by_file),
     }
 }
 
@@ -1257,17 +1572,53 @@ impl NativeFile {
 
     /// DSS major version, 6 or 7.
     #[getter]
-    fn version(&self) -> u8 {
-        match self.sig.version {
+    fn version(&self, py: Python<'_>) -> u8 {
+        // After a write the view is rebuilt first, without the GIL; if that fails (the
+        // file is gone) the last known version is reported, and the next read raises.
+        let v = match py.allow_threads(|| self.current_sig()) {
+            Ok(sig) => sig.version,
+            Err(_) => {
+                self.state
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .sig
+                    .version
+            }
+        };
+        match v {
             DssVersion::V6 => 6,
             DssVersion::V7 => 7,
         }
     }
 
+    /// The DSS major version of the file the path names now, for choosing a writer.
+    /// Read through the held handle when its identity still matches
+    /// the path (no new open), else from the path's header. Does not rebuild the read view
+    /// and runs without the GIL. Raises `OSError` when the path cannot be read. The
+    /// session write checks the version again on its handle, so a version that changes
+    /// after this call is refused, not written with the wrong writer.
+    fn _write_version(&self, py: Python<'_>) -> PyResult<u8> {
+        py.allow_threads(|| -> BResult<u8> {
+            let mut st = self.lock_state()?;
+            st.check_held(&self.path);
+            let sig = match &st.held {
+                Some(h) => read_signature_of(&mut &h.file, &self.path)?,
+                None => read_signature(&self.path)?,
+            };
+            Ok(match sig.version {
+                DssVersion::V6 => 6,
+                DssVersion::V7 => 7,
+            })
+        })
+        .map_err(BindErr::into_py)
+    }
+
     /// Version string from the header (for example `7-HL` or `6-UF`).
     #[getter]
-    fn version_string(&self) -> &str {
-        &self.sig.version_string
+    fn version_string(&self, py: Python<'_>) -> PyResult<String> {
+        py.allow_threads(|| self.current_sig())
+            .map(|s| s.version_string)
+            .map_err(BindErr::into_py)
     }
 
     /// Whether the file was opened in recovery mode.
@@ -1279,22 +1630,57 @@ impl NativeFile {
     /// Whether `close()` has been called.
     #[getter]
     fn closed(&self) -> bool {
-        matches!(
-            *self.inner.lock().unwrap_or_else(|e| e.into_inner()),
-            Inner::Closed
-        )
+        self.state
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .closed()
     }
 
     /// Header summary as a dict (same keys as `file_signature`).
     fn signature<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        signature_dict(py, &self.sig)
+        let sig = py
+            .allow_threads(|| self.current_sig())
+            .map_err(BindErr::into_py)?;
+        signature_dict(py, &sig)
     }
 
-    /// Release the file handle. Further reads raise `ValueError`.
+    /// Release the file handles: the read view and, after a write, the held read+write
+    /// handle. Further reads and writes raise `ValueError`.
     fn close(&self, py: Python<'_>) {
         py.allow_threads(|| {
-            *self.inner.lock().unwrap_or_else(|e| e.into_inner()) = Inner::Closed;
+            let mut st = self.state.lock().unwrap_or_else(|e| e.into_inner());
+            st.inner = Inner::Closed;
+            st.held = None;
+            st.stale = false;
         });
+    }
+
+    /// Test hook, not a supported API: how many times this object opened its
+    /// read+write handle (0 before the first write; 1 for a session whose file was never
+    /// replaced, renamed or deleted).
+    #[getter]
+    fn _held_opens(&self) -> u64 {
+        self.state
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .held_opens
+    }
+
+    /// Test hook, not a supported API: whether the read view waits to be
+    /// rebuilt after a write (it is rebuilt by the next read, not by `_write_version`).
+    #[getter]
+    fn _view_stale(&self) -> bool {
+        self.state.lock().unwrap_or_else(|e| e.into_inner()).stale
+    }
+
+    /// Test hook, not a supported API: whether a read+write handle is held now.
+    #[getter]
+    fn _holds_write_handle(&self) -> bool {
+        self.state
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .held
+            .is_some()
     }
 
     /// Every catalog entry (all statuses), as a dict of parallel lists and arrays.
@@ -1342,9 +1728,11 @@ impl NativeFile {
     ) -> PyResult<Bound<'py, PyDict>> {
         let rec = self.recover;
         let pn = pathname.to_string();
-        let version = self.version();
         let nd = no_data_policy(refuse_no_data);
-        let data = self.with_inner(py, move |inner, path| inner.read_record(&pn, rec, path, nd))?;
+        let (data, version) = self.with_inner(py, move |inner, path| {
+            let v = inner.major().unwrap_or(7);
+            inner.read_record(&pn, rec, path, nd).map(|d| (d, v))
+        })?;
         data.into_py(py, version)
     }
 
@@ -1376,10 +1764,12 @@ impl NativeFile {
         };
         let rec = self.recover;
         let pn = pathname.to_string();
-        let version = self.version();
         let nd = no_data_policy(refuse_no_data);
-        let data = self.with_inner(py, move |inner, path| {
-            inner.read_dataset(&pn, window, trim_missing, rec, path, nd)
+        let (data, version) = self.with_inner(py, move |inner, path| {
+            let v = inner.major().unwrap_or(7);
+            inner
+                .read_dataset(&pn, window, trim_missing, rec, path, nd)
+                .map(|d| (d, v))
         })?;
         data.into_py(py, version)
     }
@@ -1495,11 +1885,14 @@ impl NativeFile {
     }
 
     fn __repr__(&self) -> String {
+        let st = self.state.lock().unwrap_or_else(|e| e.into_inner());
+        let v = match st.sig.version {
+            DssVersion::V6 => 6,
+            DssVersion::V7 => 7,
+        };
         format!(
             "<NativeFile {:?} DSS{} {}>",
-            self.path,
-            self.version(),
-            self.sig.version_string
+            self.path, v, st.sig.version_string
         )
     }
 
@@ -2056,6 +2449,9 @@ fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(read_record_at, m)?)?;
     // P20: DSS7 regular time-series writer.
     m.add_function(wrap_pyfunction!(create_dss7, m)?)?;
+    m.add_function(wrap_pyfunction!(_flush_count, m)?)?;
+    m.add_function(wrap_pyfunction!(_set_write_clock, m)?)?;
+    m.add_function(wrap_pyfunction!(_set_session_race, m)?)?;
     m.add_function(wrap_pyfunction!(repair_dss7, m)?)?;
     m.add_function(wrap_pyfunction!(write_rts, m)?)?;
     m.add_function(wrap_pyfunction!(rts_value_times, m)?)?;
@@ -2536,11 +2932,9 @@ fn with_inner_at<T: Send>(
     f: impl FnOnce(&mut Inner, &str) -> Result<T, AtErr> + Send,
 ) -> PyResult<T> {
     py.allow_threads(|| {
-        let mut guard = nf
-            .inner
-            .lock()
-            .map_err(|_| BindErr::Dss("DSS file state poisoned by an earlier panic".into()))?;
-        f(&mut guard, &nf.path)
+        let mut st = nf.lock_state()?;
+        st.refresh(&nf.path)?;
+        f(&mut st.inner, &nf.path)
     })
     .map_err(AtErr::into_py)
 }
@@ -2578,9 +2972,9 @@ fn read_record_at<'py>(
 ) -> PyResult<(Bound<'py, PyDict>, Bound<'py, PyDict>)> {
     let nf = file.get();
     let rec = nf.recover;
-    let version = nf.version();
-    let (p, ts) = with_inner_at(py, nf, move |inner, path| {
-        inner.read_ts_at(index, rec, path)
+    let (p, ts, version) = with_inner_at(py, nf, move |inner, path| {
+        let v = inner.major().unwrap_or(7);
+        inner.read_ts_at(index, rec, path).map(|(p, ts)| (p, ts, v))
     })?;
     Ok((p.into_py(py)?, ts.into_py(py, version)?))
 }
@@ -2737,11 +3131,16 @@ fn write_err(py: Python<'_>, path: &str, e: dss7::write::WriteError) -> PyErr {
 /// as unclassified in `not_copied`, not salvaged, so check `complete`. Returns the report
 /// as a dict.
 #[pyfunction]
-fn repair_dss7(py: Python<'_>, src: &str, dest: &str) -> PyResult<PyObject> {
+#[pyo3(signature = (src, dest, sync=PySync::DEFAULT))]
+fn repair_dss7(py: Python<'_>, src: &str, dest: &str, sync: PySync) -> PyResult<PyObject> {
     let (s, d) = (src.to_string(), dest.to_string());
     let r = py
         .allow_threads(move || {
-            dss7::write::repair_dss7(std::path::Path::new(&s), std::path::Path::new(&d))
+            dss7::write::repair_dss7_with(
+                std::path::Path::new(&s),
+                std::path::Path::new(&d),
+                sync.0,
+            )
         })
         .map_err(|e| {
             // Name the file the error is about: a missing source is not the destination.
@@ -2806,11 +3205,29 @@ fn repair_dss7(py: Python<'_>, src: &str, dest: &str) -> PyResult<PyObject> {
     Ok(out.into_any().unbind())
 }
 
-/// Create an empty DSS7 file (refuses an existing path with `FileExistsError`).
+/// Test and measurement hook, not a supported API: the number of flushes the
+/// native writers of this process have made so far.
 #[pyfunction]
-fn create_dss7(py: Python<'_>, path: &str) -> PyResult<()> {
+fn _flush_count() -> u64 {
+    dss7::write::flush_count()
+}
+
+/// Test hook, not a supported API: fix the write-time stamp of every native
+/// writer of this process (milliseconds since 1970 UTC), or `None` for the system clock.
+#[pyfunction]
+#[pyo3(signature = (ms=None))]
+fn _set_write_clock(ms: Option<i64>) {
+    dss7::write::set_write_clock(ms)
+}
+
+/// Create an empty DSS7 file (refuses an existing path with `FileExistsError`).
+/// `sync` is the flush policy (`"end"`, `"step"`, `"none"`, or a bool): only `"none"`
+/// skips the flush of the new file.
+#[pyfunction]
+#[pyo3(signature = (path, sync=PySync::DEFAULT))]
+fn create_dss7(py: Python<'_>, path: &str, sync: PySync) -> PyResult<()> {
     let p = path.to_string();
-    py.allow_threads(move || dss7::write::create_dss7(std::path::Path::new(&p)))
+    py.allow_threads(move || dss7::write::create_dss7_with(std::path::Path::new(&p), sync.0))
         .map_err(|e| write_err(py, path, e))
 }
 
@@ -2818,7 +3235,7 @@ fn create_dss7(py: Python<'_>, path: &str) -> PyResult<()> {
 #[pyfunction]
 #[pyo3(signature = (path, pathname, start, values, units, data_type, quality=None,
                     time_zone=None, precision=-1, allow_undetectable_readers=true,
-                    sync=true))]
+                    sync=PySync::DEFAULT, handle=None))]
 #[allow(clippy::too_many_arguments)]
 fn write_rts<'py>(
     py: Python<'py>,
@@ -2832,7 +3249,8 @@ fn write_rts<'py>(
     time_zone: Option<&str>,
     precision: i32,
     allow_undetectable_readers: bool,
-    sync: bool,
+    sync: PySync,
+    handle: Option<Bound<'py, NativeFile>>,
 ) -> PyResult<Bound<'py, PyDict>> {
     enum Owned {
         F32(Vec<f32>),
@@ -2855,6 +3273,8 @@ fn write_rts<'py>(
         data_type.as_bytes().to_vec(),
     );
     let tz: Option<Vec<u8>> = time_zone.map(|t| t.as_bytes().to_vec());
+    // The session's held handle when called from `DssFile`.
+    let held: Option<&NativeFile> = handle.as_ref().map(|h| h.get());
     let result = py.allow_threads(move || {
         let vals = match &owned {
             Owned::F32(v) => dss7::write::RtsValues::F32(v),
@@ -2866,8 +3286,14 @@ fn write_rts<'py>(
         input.precision = precision;
         let mut opts = dss7::write::WriteOptions::default();
         opts.lock_policy.allow_undetectable_readers = allow_undetectable_readers;
-        opts.sync = sync;
-        dss7::write::write_rts(std::path::Path::new(&p), &input, &opts)
+        opts.sync = sync.0;
+        on_target(
+            held,
+            &p,
+            7,
+            |q| dss7::write::write_rts(q, &input, &opts),
+            |f| dss7::write::write_rts_to(f, &input, &opts),
+        )
     });
     let r = result.map_err(|e| write_err(py, path, e))?;
     let d = PyDict::new(py);
@@ -2917,7 +3343,7 @@ fn rts_value_times<'py>(
 #[pyfunction]
 #[pyo3(signature = (path, pathname, times, values, units, data_type, quality=None,
                     time_zone=None, precision=-1, time_granularity=None,
-                    allow_undetectable_readers=true, sync=true))]
+                    allow_undetectable_readers=true, sync=PySync::DEFAULT, handle=None))]
 #[allow(clippy::too_many_arguments)]
 fn write_its<'py>(
     py: Python<'py>,
@@ -2932,7 +3358,8 @@ fn write_its<'py>(
     precision: i32,
     time_granularity: Option<i64>,
     allow_undetectable_readers: bool,
-    sync: bool,
+    sync: PySync,
+    handle: Option<Bound<'py, NativeFile>>,
 ) -> PyResult<Bound<'py, PyDict>> {
     enum Owned {
         F32(Vec<f32>),
@@ -2956,6 +3383,8 @@ fn write_its<'py>(
         data_type.as_bytes().to_vec(),
     );
     let tz: Option<Vec<u8>> = time_zone.map(|t| t.as_bytes().to_vec());
+    // The session's held handle when called from `DssFile`.
+    let held: Option<&NativeFile> = handle.as_ref().map(|h| h.get());
     let result = py.allow_threads(move || {
         let vals = match &owned {
             Owned::F32(v) => dss7::write::RtsValues::F32(v),
@@ -2968,8 +3397,14 @@ fn write_its<'py>(
         input.time_granularity = time_granularity;
         let mut opts = dss7::write::WriteOptions::default();
         opts.lock_policy.allow_undetectable_readers = allow_undetectable_readers;
-        opts.sync = sync;
-        dss7::write::write_its(std::path::Path::new(&p), &input, &opts)
+        opts.sync = sync.0;
+        on_target(
+            held,
+            &p,
+            7,
+            |q| dss7::write::write_its(q, &input, &opts),
+            |f| dss7::write::write_its_to(f, &input, &opts),
+        )
     });
     let r = result.map_err(|e| write_err(py, path, e))?;
     let d = PyDict::new(py);
@@ -3051,18 +3486,22 @@ fn report_dict6<'py>(
 }
 
 /// Create an empty DSS6 file (refuses an existing path with `FileExistsError`).
+/// `sync` as for `create_dss7`.
 #[pyfunction]
-fn create_dss6(py: Python<'_>, path: &str) -> PyResult<()> {
+#[pyo3(signature = (path, sync=PySync::DEFAULT))]
+fn create_dss6(py: Python<'_>, path: &str, sync: PySync) -> PyResult<()> {
     let p = path.to_string();
-    py.allow_threads(move || dss_core::dss6::write::create_dss6(std::path::Path::new(&p)))
-        .map_err(|e| write_err(py, path, e))
+    py.allow_threads(move || {
+        dss_core::dss6::write::create_dss6_with(std::path::Path::new(&p), sync.0)
+    })
+    .map_err(|e| write_err(py, path, e))
 }
 
 /// Store one regular-interval series in a DSS6 file; returns the write report as a dict.
 #[pyfunction]
 #[pyo3(signature = (path, pathname, start, values, units, data_type, quality=None,
                     time_zone=None, precision=-1, allow_undetectable_readers=true,
-                    sync=true))]
+                    sync=PySync::DEFAULT, handle=None))]
 #[allow(clippy::too_many_arguments)]
 fn write_rts6<'py>(
     py: Python<'py>,
@@ -3076,7 +3515,8 @@ fn write_rts6<'py>(
     time_zone: Option<&str>,
     precision: i32,
     allow_undetectable_readers: bool,
-    sync: bool,
+    sync: PySync,
+    handle: Option<Bound<'py, NativeFile>>,
 ) -> PyResult<Bound<'py, PyDict>> {
     let owned = values_owned6(values)?;
     let q: Option<Vec<i32>> = quality.map(|a| a.as_array().to_vec());
@@ -3087,6 +3527,8 @@ fn write_rts6<'py>(
         data_type.as_bytes().to_vec(),
     );
     let tz: Option<Vec<u8>> = time_zone.map(|t| t.as_bytes().to_vec());
+    // The session's held handle when called from `DssFile`.
+    let held: Option<&NativeFile> = handle.as_ref().map(|h| h.get());
     let result = py.allow_threads(move || {
         let mut input = dss7::write::RtsInput::new(&pn, start, values_ref6(&owned), &u, &dt);
         input.quality = q.as_deref();
@@ -3094,8 +3536,14 @@ fn write_rts6<'py>(
         input.precision = precision;
         let mut opts = dss7::write::WriteOptions::default();
         opts.lock_policy.allow_undetectable_readers = allow_undetectable_readers;
-        opts.sync = sync;
-        dss_core::dss6::write::write_rts6(std::path::Path::new(&p), &input, &opts)
+        opts.sync = sync.0;
+        on_target(
+            held,
+            &p,
+            6,
+            |q| dss_core::dss6::write::write_rts6(q, &input, &opts),
+            |f| dss_core::dss6::write::write_rts6_to(f, &input, &opts),
+        )
     });
     let r = result.map_err(|e| write_err(py, path, e))?;
     report_dict6(py, &r)
@@ -3119,7 +3567,7 @@ fn rts6_value_times<'py>(
 /// minutes); `mode` is "replace" (zsitsi6 INFLAG 1) or "merge" (INFLAG 0).
 #[pyfunction]
 #[pyo3(signature = (path, pathname, times, values, units, data_type, quality=None,
-                    mode="replace", allow_undetectable_readers=true, sync=true))]
+                    mode="replace", allow_undetectable_readers=true, sync=PySync::DEFAULT, handle=None))]
 #[allow(clippy::too_many_arguments)]
 fn write_its6<'py>(
     py: Python<'py>,
@@ -3132,7 +3580,8 @@ fn write_its6<'py>(
     quality: Option<numpy::PyReadonlyArray1<'py, i32>>,
     mode: &str,
     allow_undetectable_readers: bool,
-    sync: bool,
+    sync: PySync,
+    handle: Option<Bound<'py, NativeFile>>,
 ) -> PyResult<Bound<'py, PyDict>> {
     let mode = match mode {
         "replace" => dss_core::dss6::write::ItsMode::Replace,
@@ -3152,6 +3601,8 @@ fn write_its6<'py>(
         units.as_bytes().to_vec(),
         data_type.as_bytes().to_vec(),
     );
+    // The session's held handle when called from `DssFile`.
+    let held: Option<&NativeFile> = handle.as_ref().map(|h| h.get());
     let result = py.allow_threads(move || {
         let input = dss_core::dss6::write::ItsInput {
             pathname: &pn,
@@ -3164,8 +3615,14 @@ fn write_its6<'py>(
         };
         let mut opts = dss7::write::WriteOptions::default();
         opts.lock_policy.allow_undetectable_readers = allow_undetectable_readers;
-        opts.sync = sync;
-        dss_core::dss6::write::write_its6(std::path::Path::new(&p), &input, &opts)
+        opts.sync = sync.0;
+        on_target(
+            held,
+            &p,
+            6,
+            |q| dss_core::dss6::write::write_its6(q, &input, &opts),
+            |f| dss_core::dss6::write::write_its6_to(f, &input, &opts),
+        )
     });
     let r = result.map_err(|e| write_err(py, path, e))?;
     report_dict6(py, &r)
@@ -3185,7 +3642,7 @@ fn write_its6<'py>(
 #[pyo3(signature = (path, pathname, ordinates, values, number_curves, units_independent,
                     type_independent, units_dependent, type_dependent, labels=None,
                     independent_is_x_axis=1, x_precision=-1, y_precision=-1, time_zone=None,
-                    version=7, allow_undetectable_readers=true, sync=true))]
+                    version=7, allow_undetectable_readers=true, sync=PySync::DEFAULT, handle=None))]
 #[allow(clippy::too_many_arguments)]
 fn write_pd<'py>(
     py: Python<'py>,
@@ -3205,7 +3662,8 @@ fn write_pd<'py>(
     time_zone: Option<&str>,
     version: i32,
     allow_undetectable_readers: bool,
-    sync: bool,
+    sync: PySync,
+    handle: Option<Bound<'py, NativeFile>>,
 ) -> PyResult<Bound<'py, PyDict>> {
     let o = values_owned6(ordinates)?;
     let v = values_owned6(values)?;
@@ -3232,6 +3690,8 @@ fn write_pd<'py>(
     .collect();
     let ls: Option<Vec<Vec<u8>>> = labels.map(|l| l.into_iter().map(|x| x.into_bytes()).collect());
     let tz: Option<Vec<u8>> = time_zone.map(|t| t.as_bytes().to_vec());
+    // The session's held handle when called from `DssFile`.
+    let held: Option<&NativeFile> = handle.as_ref().map(|h| h.get());
     let result = py.allow_threads(move || {
         let data = match (&o, &v) {
             ((Some(a), _), (Some(b), _)) => dss7::write::PdArrays::F32 {
@@ -3263,11 +3723,23 @@ fn write_pd<'py>(
         input.time_zone = tz.as_deref();
         let mut opts = dss7::write::WriteOptions::default();
         opts.lock_policy.allow_undetectable_readers = allow_undetectable_readers;
-        opts.sync = sync;
+        opts.sync = sync.0;
         if version == 6 {
-            dss_core::dss6::write::write_pd6(std::path::Path::new(&p), &input, &opts)
+            on_target(
+                held,
+                &p,
+                6,
+                |q| dss_core::dss6::write::write_pd6(q, &input, &opts),
+                |f| dss_core::dss6::write::write_pd6_to(f, &input, &opts),
+            )
         } else {
-            dss7::write::write_pd(std::path::Path::new(&p), &input, &opts)
+            on_target(
+                held,
+                &p,
+                7,
+                |q| dss7::write::write_pd(q, &input, &opts),
+                |f| dss7::write::write_pd_to(f, &input, &opts),
+            )
         }
     });
     let r = result.map_err(|e| write_err(py, path, e))?;
@@ -3297,7 +3769,7 @@ type AlbersTuple = (i32, String, f32, f32, f32, f32, f32, f32);
                     albers=None, srs_name="", srs_definition="", srs_definition_type=0,
                     null_value=-f32::MAX, time_zone_id="UTC", time_zone_raw_offset=0,
                     is_interval=true, version=7, allow_undetectable_readers=true,
-                    sync=true, validate_only=false))]
+                    sync=PySync::DEFAULT, validate_only=false, handle=None))]
 #[allow(clippy::too_many_arguments)]
 fn write_grid<'py>(
     py: Python<'py>,
@@ -3329,8 +3801,9 @@ fn write_grid<'py>(
     is_interval: bool,
     version: u8,
     allow_undetectable_readers: bool,
-    sync: bool,
+    sync: PySync,
     validate_only: bool,
+    handle: Option<Bound<'py, NativeFile>>,
 ) -> PyResult<Bound<'py, PyDict>> {
     use dss7::write::{
         AlbersParameters, GridCompression, GridInput, GridProjection, SpecifiedReference,
@@ -3386,6 +3859,8 @@ fn write_grid<'py>(
         pathname.as_bytes().to_vec(),
         units.as_bytes().to_vec(),
     );
+    // The session's held handle when called from `DssFile`.
+    let held: Option<&NativeFile> = handle.as_ref().map(|h| h.get());
     let result = py.allow_threads(move || {
         let input = GridInput {
             pathname: &pn,
@@ -3413,12 +3888,23 @@ fn write_grid<'py>(
         }
         let mut opts = dss7::write::WriteOptions::default();
         opts.lock_policy.allow_undetectable_readers = allow_undetectable_readers;
-        opts.sync = sync;
-        let path = std::path::Path::new(&p);
+        opts.sync = sync.0;
         let r = if version == 6 {
-            dss_core::dss6::write::write_grid6(path, &input, &opts)?
+            on_target(
+                held,
+                &p,
+                6,
+                |q| dss_core::dss6::write::write_grid6(q, &input, &opts),
+                |f| dss_core::dss6::write::write_grid6_to(f, &input, &opts),
+            )?
         } else {
-            dss7::write::write_grid(path, &input, &opts)?
+            on_target(
+                held,
+                &p,
+                7,
+                |q| dss7::write::write_grid(q, &input, &opts),
+                |f| dss7::write::write_grid_to(f, &input, &opts),
+            )?
         };
         Ok((plan, Some(r)))
     });
@@ -3456,7 +3942,7 @@ fn write_grid<'py>(
 #[pyfunction]
 #[pyo3(signature = (path, pathname, start, depths, values, depth_units, value_units,
                     data_type, quality=None, time_zone=None, precision=-1,
-                    allow_undetectable_readers=true, sync=true))]
+                    allow_undetectable_readers=true, sync=PySync::DEFAULT, handle=None))]
 #[allow(clippy::too_many_arguments)]
 fn write_profile<'py>(
     py: Python<'py>,
@@ -3472,7 +3958,8 @@ fn write_profile<'py>(
     time_zone: Option<&str>,
     precision: i32,
     allow_undetectable_readers: bool,
-    sync: bool,
+    sync: PySync,
+    handle: Option<Bound<'py, NativeFile>>,
 ) -> PyResult<Bound<'py, PyDict>> {
     let d = values_owned6(depths)?;
     let v = values_owned6(values)?;
@@ -3491,6 +3978,8 @@ fn write_profile<'py>(
     let vu = value_units.as_bytes().to_vec();
     let ty = data_type.as_bytes().to_vec();
     let tz: Option<Vec<u8>> = time_zone.map(|t| t.as_bytes().to_vec());
+    // The session's held handle when called from `DssFile`.
+    let held: Option<&NativeFile> = handle.as_ref().map(|h| h.get());
     let result = py.allow_threads(move || {
         let data = match (&d, &v) {
             ((Some(a), _), (Some(b), _)) => dss7::write::ProfileArrays::F32 {
@@ -3512,8 +4001,14 @@ fn write_profile<'py>(
         input.precision = precision;
         let mut opts = dss7::write::WriteOptions::default();
         opts.lock_policy.allow_undetectable_readers = allow_undetectable_readers;
-        opts.sync = sync;
-        dss7::write::write_profile(std::path::Path::new(&p), &input, &opts)
+        opts.sync = sync.0;
+        on_target(
+            held,
+            &p,
+            7,
+            |q| dss7::write::write_profile(q, &input, &opts),
+            |f| dss7::write::write_profile_to(f, &input, &opts),
+        )
     });
     let r = result.map_err(|e| write_err(py, path, e))?;
     report_dict6(py, &r)
@@ -3525,7 +4020,7 @@ fn write_profile<'py>(
                     coordinate_id=None, horizontal_units=None, horizontal_datum=None,
                     vertical_units=None, vertical_datum=None, time_zone=None,
                     supplemental=None, keep_existing=true, version=7,
-                    allow_undetectable_readers=true, sync=true))]
+                    allow_undetectable_readers=true, sync=PySync::DEFAULT, handle=None))]
 #[allow(clippy::too_many_arguments)]
 fn write_location<'py>(
     py: Python<'py>,
@@ -3545,7 +4040,8 @@ fn write_location<'py>(
     keep_existing: bool,
     version: i32,
     allow_undetectable_readers: bool,
-    sync: bool,
+    sync: PySync,
+    handle: Option<Bound<'py, NativeFile>>,
 ) -> PyResult<Bound<'py, PyDict>> {
     if version != 6 && version != 7 {
         return Err(PyValueError::new_err(format!(
@@ -3554,6 +4050,8 @@ fn write_location<'py>(
     }
     let p = path.to_string();
     let pn = pathname.as_bytes().to_vec();
+    // The session's held handle when called from `DssFile`.
+    let held: Option<&NativeFile> = handle.as_ref().map(|h| h.get());
     let result = py.allow_threads(move || {
         let input = dss7::write::LocationInput {
             pathname: &pn,
@@ -3572,11 +4070,23 @@ fn write_location<'py>(
         };
         let mut opts = dss7::write::WriteOptions::default();
         opts.lock_policy.allow_undetectable_readers = allow_undetectable_readers;
-        opts.sync = sync;
+        opts.sync = sync.0;
         if version == 6 {
-            dss_core::dss6::write::write_location6(std::path::Path::new(&p), &input, &opts)
+            on_target(
+                held,
+                &p,
+                6,
+                |q| dss_core::dss6::write::write_location6(q, &input, &opts),
+                |f| dss_core::dss6::write::write_location6_to(f, &input, &opts),
+            )
         } else {
-            dss7::write::write_location(std::path::Path::new(&p), &input, &opts)
+            on_target(
+                held,
+                &p,
+                7,
+                |q| dss7::write::write_location(q, &input, &opts),
+                |f| dss7::write::write_location_to(f, &input, &opts),
+            )
         }
     });
     let r = result.map_err(|e| write_err(py, path, e))?;
@@ -3631,7 +4141,7 @@ fn variants_of<'a>(
 #[pyfunction]
 #[pyo3(signature = (path, pathname, start, values, units, data_type, quality=None,
                     quality_element_size=1, inotes=None, inote_element_size=0, cnotes=None,
-                    time_zone=None, precision=-1, allow_undetectable_readers=true, sync=true))]
+                    time_zone=None, precision=-1, allow_undetectable_readers=true, sync=PySync::DEFAULT, handle=None))]
 #[allow(clippy::too_many_arguments)]
 fn write_rts_variants<'py>(
     py: Python<'py>,
@@ -3649,7 +4159,8 @@ fn write_rts_variants<'py>(
     time_zone: Option<&str>,
     precision: i32,
     allow_undetectable_readers: bool,
-    sync: bool,
+    sync: PySync,
+    handle: Option<Bound<'py, NativeFile>>,
 ) -> PyResult<Bound<'py, PyDict>> {
     let owned = values_owned6(values)?;
     let q: Option<Vec<i32>> = quality.map(|a| a.as_array().to_vec());
@@ -3665,14 +4176,22 @@ fn write_rts_variants<'py>(
         .as_ref()
         .map(|c| c.iter().map(Vec::as_slice).collect());
     let v = variants_of(&q, quality_element_size, &n, inote_element_size, &refs)?;
+    // The session's held handle when called from `DssFile`.
+    let held: Option<&NativeFile> = handle.as_ref().map(|h| h.get());
     let result = py.allow_threads(|| {
         let mut input = dss7::write::RtsInput::new(&pn, start, values_ref6(&owned), &u, &dt);
         input.time_zone = tz.as_deref();
         input.precision = precision;
         let mut opts = dss7::write::WriteOptions::default();
         opts.lock_policy.allow_undetectable_readers = allow_undetectable_readers;
-        opts.sync = sync;
-        dss7::write::write_rts_variants(std::path::Path::new(&p), &input, &v, &opts)
+        opts.sync = sync.0;
+        on_target(
+            held,
+            &p,
+            7,
+            |q| dss7::write::write_rts_variants(q, &input, &v, &opts),
+            |f| dss7::write::write_rts_variants_to(f, &input, &v, &opts),
+        )
     });
     let r = result.map_err(|e| write_err(py, path, e))?;
     report_dict_p38(py, &r, 7)
@@ -3683,7 +4202,7 @@ fn write_rts_variants<'py>(
 #[pyo3(signature = (path, pathname, times, values, units, data_type, quality=None,
                     quality_element_size=1, inotes=None, inote_element_size=0, cnotes=None,
                     time_zone=None, precision=-1, time_granularity=None,
-                    allow_undetectable_readers=true, sync=true))]
+                    allow_undetectable_readers=true, sync=PySync::DEFAULT, handle=None))]
 #[allow(clippy::too_many_arguments)]
 fn write_its_variants<'py>(
     py: Python<'py>,
@@ -3702,7 +4221,8 @@ fn write_its_variants<'py>(
     precision: i32,
     time_granularity: Option<i64>,
     allow_undetectable_readers: bool,
-    sync: bool,
+    sync: PySync,
+    handle: Option<Bound<'py, NativeFile>>,
 ) -> PyResult<Bound<'py, PyDict>> {
     let owned = values_owned6(values)?;
     let t: Vec<i64> = times.as_array().to_vec();
@@ -3719,6 +4239,8 @@ fn write_its_variants<'py>(
         .as_ref()
         .map(|c| c.iter().map(Vec::as_slice).collect());
     let v = variants_of(&q, quality_element_size, &n, inote_element_size, &refs)?;
+    // The session's held handle when called from `DssFile`.
+    let held: Option<&NativeFile> = handle.as_ref().map(|h| h.get());
     let result = py.allow_threads(|| {
         let mut input = dss7::write::ItsInput::new(&pn, &t, values_ref6(&owned), &u, &dt);
         input.time_zone = tz.as_deref();
@@ -3726,8 +4248,14 @@ fn write_its_variants<'py>(
         input.time_granularity = time_granularity;
         let mut opts = dss7::write::WriteOptions::default();
         opts.lock_policy.allow_undetectable_readers = allow_undetectable_readers;
-        opts.sync = sync;
-        dss7::write::write_its_variants(std::path::Path::new(&p), &input, &v, &opts)
+        opts.sync = sync.0;
+        on_target(
+            held,
+            &p,
+            7,
+            |q| dss7::write::write_its_variants(q, &input, &v, &opts),
+            |f| dss7::write::write_its_variants_to(f, &input, &v, &opts),
+        )
     });
     let r = result.map_err(|e| write_err(py, path, e))?;
     report_dict_p38(py, &r, 7)
@@ -3737,7 +4265,8 @@ fn write_its_variants<'py>(
 #[pyfunction]
 #[pyo3(signature = (path, pathname, values, units, data_type, times=None, time_zone=None,
                     precision=-1, time_granularity=None, version=7,
-                    allow_undetectable_readers=true, sync=true))]
+                    allow_undetectable_readers=true, sync=PySync::DEFAULT, handle=None,
+                    allow_unconfirmed_dss6_irregular_pattern=false))]
 #[allow(clippy::too_many_arguments)]
 fn write_pattern<'py>(
     py: Python<'py>,
@@ -3752,7 +4281,9 @@ fn write_pattern<'py>(
     time_granularity: Option<i64>,
     version: u8,
     allow_undetectable_readers: bool,
-    sync: bool,
+    sync: PySync,
+    handle: Option<Bound<'py, NativeFile>>,
+    allow_unconfirmed_dss6_irregular_pattern: bool,
 ) -> PyResult<Bound<'py, PyDict>> {
     let owned = values_owned6(values)?;
     let t: Option<Vec<i64>> = times.map(|a| a.as_array().to_vec());
@@ -3763,6 +4294,8 @@ fn write_pattern<'py>(
         data_type.as_bytes().to_vec(),
     );
     let tz: Option<Vec<u8>> = time_zone.map(|t| t.as_bytes().to_vec());
+    // The session's held handle when called from `DssFile`.
+    let held: Option<&NativeFile> = handle.as_ref().map(|h| h.get());
     let result = py.allow_threads(move || {
         let mut input = dss7::write::PatternInput::new(&pn, values_ref6(&owned), &u, &dt);
         input.times = t.as_deref();
@@ -3771,12 +4304,30 @@ fn write_pattern<'py>(
         input.time_granularity = time_granularity;
         let mut opts = dss7::write::WriteOptions::default();
         opts.lock_policy.allow_undetectable_readers = allow_undetectable_readers;
-        opts.sync = sync;
-        let f = std::path::Path::new(&p);
+        opts.sync = sync.0;
         if version == 6 {
-            dss_core::dss6::write::write_pattern6(f, &input, &opts)
+            // P66: irregular patterns only on explicit opt-in, on both the path and the
+            // held-handle routes.
+            let irregular = if allow_unconfirmed_dss6_irregular_pattern {
+                dss_core::dss6::write::Dss6IrregularPattern::AllowUnconfirmed
+            } else {
+                dss_core::dss6::write::Dss6IrregularPattern::Refuse
+            };
+            on_target(
+                held,
+                &p,
+                6,
+                |q| dss_core::dss6::write::write_pattern6_with(q, &input, &opts, irregular),
+                |f| dss_core::dss6::write::write_pattern6_to_with(f, &input, &opts, irregular),
+            )
         } else {
-            dss7::write::write_pattern(f, &input, &opts)
+            on_target(
+                held,
+                &p,
+                7,
+                |q| dss7::write::write_pattern(q, &input, &opts),
+                |f| dss7::write::write_pattern_to(f, &input, &opts),
+            )
         }
     });
     let r = result.map_err(|e| write_err(py, path, e))?;

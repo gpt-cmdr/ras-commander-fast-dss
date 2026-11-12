@@ -53,7 +53,7 @@ fn request(input: &Path, output: &Path, variable: &str, version: u8) -> ImportRe
     r.parts.b = "PANHANDLE".into();
     r.parts.f = "AORC".into();
     r.version = Some(version);
-    r.sync = false;
+    r.sync = dss_core::dss7::write::SyncMode::None;
     // A latitude and longitude grid's corner is not on whole cells of its own size, which the
     // importer refuses unless a warp states an extent (`to_shg`) or Vortex's rounding is asked for.
     r.align = Align::Vortex;

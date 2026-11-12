@@ -31,7 +31,7 @@ use crate::frame::{Crs, DataType, FrameTime, GeoTransform, GridFrameParts, Named
 use crate::units::{CPartSource, Conversion, RecordMeaning, Variable};
 use crate::warp::Align;
 use dss_core::dss7::write::{AlbersParameters, GridProjection, SpecifiedReference};
-use dss_core::dss7::write::{FaultPoint, WriteError, WriteOptions};
+use dss_core::dss7::write::{FaultPoint, SyncMode, WriteError, WriteOptions};
 use dss_core::grid_write::{self, GridCompression, GridInput, GRID_NODATA};
 use std::path::Path;
 
@@ -404,10 +404,38 @@ fn flip_rows(cells: &mut [f32], nx: usize, ny: usize) {
 pub struct SinkOptions {
     /// The file's DSS version, 6 or 7.
     pub version: u8,
-    pub sync: bool,
+    /// The flush policy of this one record. A run that stores several records passes
+    /// [`record_sync`] of its own policy and ends with [`end_sync`].
+    pub sync: SyncMode,
     pub allow_undetectable_readers: bool,
     /// Crash simulation, for tests.
     pub fault: Option<FaultPoint>,
+}
+
+/// The flush policy each record of a multi-record run gets: [`SyncMode::End`] means one
+/// flush at the end of the run ([`end_sync`]), so its records are written without one.
+pub fn record_sync(run: SyncMode) -> SyncMode {
+    run.batched().0
+}
+
+/// The end of a multi-record run: in [`SyncMode::End`], flush `output` once
+/// (one flush at the end of each public write call). It runs after a failed run too, since
+/// the records acknowledged before the failure stay in the file. A flush failure after a
+/// successful run is reported through `failed`, which receives what the run returned.
+pub fn end_sync<T, E>(
+    run: SyncMode,
+    output: &Path,
+    result: Result<T, E>,
+    failed: impl FnOnce(WriteError, T) -> E,
+) -> Result<T, E> {
+    if !run.batched().1 {
+        return result;
+    }
+    let flushed = dss_core::dss7::write::sync_path(output);
+    match (result, flushed) {
+        (Ok(done), Err(e)) => Err(failed(e.into(), done)),
+        (result, _) => result,
+    }
 }
 
 /// What one write did.

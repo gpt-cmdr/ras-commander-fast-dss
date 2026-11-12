@@ -48,7 +48,13 @@ fn hex(s: &str) -> Vec<u64> {
         .collect()
 }
 
-fn store(file: &str, spec: &str, version: u8, fault: Option<WriteStep>, sync: bool) -> i32 {
+fn store(
+    file: &str,
+    spec: &str,
+    version: u8,
+    fault: Option<WriteStep>,
+    sync: dss_core::dss7::write::SyncMode,
+) -> i32 {
     let text = std::fs::read_to_string(spec).expect("spec");
     let mut rc = 0;
     let mut first = true;
@@ -138,7 +144,7 @@ fn main() {
         }
         Some("store") => {
             let mut fault = None;
-            let mut sync = true;
+            let mut sync = dss_core::dss7::write::SyncMode::default();
             let mut i = 5;
             while i < a.len() {
                 match a[i].as_str() {
@@ -146,7 +152,7 @@ fn main() {
                         fault = Some(step(&a[i + 1]).expect("step name"));
                         i += 1;
                     }
-                    "--no-sync" => sync = false,
+                    "--no-sync" => sync = dss_core::dss7::write::SyncMode::None,
                     other => panic!("unknown option {other}"),
                 }
                 i += 1;

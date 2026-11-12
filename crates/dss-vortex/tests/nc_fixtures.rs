@@ -357,7 +357,7 @@ fn every_frame_is_its_step_or_a_type_its_window_cannot_hold() {
     }
     assert_eq!(
         (frames, period_on_instant, instant_on_period, fractions),
-        (139, 3, 4, 2)
+        (141, 3, 4, 2)
     );
 }
 
@@ -387,4 +387,20 @@ fn a_frame_differing_from_its_step_is_noticed() {
     assert!(frame_disagrees(&moved, &frame)
         .unwrap()
         .starts_with("variable"));
+}
+
+/// `scaleGrid` converts km to m through indriya, by `Double.toString`'s decimal. On this file's 1.001 km axes,
+/// `x * 1000.0` gives 1000.9999999999999 and 500.49999999999994; Vortex 1.1.0 and 0.13.3 report 1001
+/// and 500.5, recorded in expected.json.
+#[test]
+fn kilometre_axes_scale_as_indriya_does() {
+    let file = NetcdfFile::open(&dir().join("lambert_km_decimal.nc")).unwrap();
+    let frame = file.variable("data").unwrap().frame(0).unwrap();
+    let t = frame.parts().transform;
+    assert_eq!(
+        t,
+        GeoTransform::axis_aligned(500.5, 1001.0, 1503.4999999999998, -1001.0)
+    );
+    assert_eq!(1.001_f64 * 1000.0, 1000.9999999999999);
+    assert_eq!(0.5005_f64 * 1000.0, 500.49999999999994);
 }

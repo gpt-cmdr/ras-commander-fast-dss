@@ -198,7 +198,7 @@ fn zeroed_info_block_reported_and_lookup_errors() {
     let mut spec = standard_spec();
     spec.recs
         .push(Rec::live("/BASIN/ZERO/FLOW/01Jan2020/1Hour/RUN/", 100).zero_info());
-    spec.number_records = Some(50); // header ahead of the walk, as in P02 anomaly 2
+    spec.number_records = Some(50); // header ahead of the walk, an interrupted-write signature (dss7.md §6.4)
     let built = build(&spec);
     let mut f = Dss7File::from_bytes(&built.bytes).unwrap();
     let cat = f.catalog_with(&full()).unwrap();

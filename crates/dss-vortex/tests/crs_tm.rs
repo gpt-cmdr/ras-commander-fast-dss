@@ -342,7 +342,7 @@ fn a_sphere_nad27_and_a_malformed_definition_are_refused() {
         Transformer::new(&geographic, &on_sphere, DatumPolicy::Refuse),
         Err(VortexError::Unsupported { .. })
     ));
-    // NAD27 is as P43 decided: refused unless the caller accepts no shift.
+    // NAD27 to NAD83 is refused unless the caller accepts no datum shift.
     let nad27 = "GEOGCS[\"NAD27\",DATUM[\"North_American_Datum_1927\",SPHEROID[\"Clarke 1866\",6378206.4,294.978698213898]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433]]";
     let utm27 = CrsDef::parse_wkt(&tm(nad27, UTM15, METRE)).unwrap();
     let nad83 = CrsDef::parse_wkt(NAD83).unwrap();

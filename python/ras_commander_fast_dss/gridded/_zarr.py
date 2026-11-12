@@ -15,11 +15,13 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 import numpy as np
 
 from .. import _native
+from .._write import _sync_mode
 from ._import import (
     ImportResult,
     PathLike,
     _bounds,
     _parts,
+    _threads,
     _warn_accumulation,
     _warn_readers,
 )
@@ -176,8 +178,8 @@ def import_zarr(
     align: str = "refuse",
     window_rule: str = "refuse",
     duplicates: str = "refuse",
-    threads: int = 1,
-    sync: bool = True,
+    threads: Optional[int] = None,
+    sync: Union[bool, str] = "end",
     allow_undetectable_readers: bool = True,
     progress: Optional[Callable[[Dict[str, Any]], Any]] = None,
     limits: Optional[Mapping[str, Any]] = None,
@@ -208,8 +210,7 @@ def import_zarr(
         raise ValueError("no inputs")
     if isinstance(version, bool) or version not in (None, 6, 7):
         raise ValueError(f"version must be 6 or 7, not {version!r}")
-    if isinstance(threads, bool) or int(threads) < 1:
-        raise ValueError(f"threads must be at least 1, not {threads!r}")
+    threads = _threads(threads)
     span = _span(times)
     box = _bounds(envelope)
     out = str(Path(os.fspath(output)))
@@ -231,8 +232,8 @@ def import_zarr(
         align=align,
         window_rule=window_rule,
         duplicates=duplicates,
-        threads=int(threads),
-        sync=bool(sync),
+        threads=threads,
+        sync=_sync_mode(sync),
         allow_undetectable_readers=bool(allow_undetectable_readers),
         progress=progress,
         limits=_limits(limits, strict),

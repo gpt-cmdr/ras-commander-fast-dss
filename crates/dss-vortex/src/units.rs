@@ -758,6 +758,155 @@ pub fn record_meaning(
     })
 }
 
+/// Vortex's km to m, as `NetcdfDataReader.scaleGrid` does it.
+///
+/// The path, read from the class files of Vortex 0.13.3 and 1.1.0 and the sources of indriya 2.1.4
+/// (the `indriya-2.1.4.jar` both Vortex builds ship):
+///
+/// - `NetcdfDataReader.scaleGrid` gets `Unit.getConverterToAny(METRE)` and calls
+///   `UnitConverter.convert(double)` on origin x, origin y, dx and dy, with no exception handling.
+/// - That converter is `PowerOfIntConverter(10, 3)`. `AbstractConverter.convert(double)` returns
+///   `convertWhenNotIdentity(value).doubleValue()`; `PowerOfIntConverter.convertWhenNotIdentity` is
+///   `Calculator.of(rationalFactor).multiply(value).peek()`.
+/// - `Calculator.load` narrows the factor, `RationalNumber` 1000/1, to the `Integer` 1000.
+///   `Calculator.multiply` narrows the value first (`DefaultNumberSystem.narrow`): a non-finite
+///   double throws `IllegalArgumentException` ("Unsupported number value"), which `scaleGrid` does
+///   not catch, so Vortex fails on that grid; zero stays a `Double`; a nonzero integral double
+///   becomes the integer of `BigDecimal.valueOf(x)`; any other double stays a `Double`.
+/// - `DefaultNumberSystem.multiplyWideAndNarrow`: a `Double` times an integer is
+///   `BigDecimal.valueOf(x).multiply(BigDecimal.valueOf(1000))`; two integers multiply exactly.
+///   `peek` narrows the exact product, and its `doubleValue()` (BigDecimal, BigInteger, long or int)
+///   rounds it to the nearest double.
+///
+/// `BigDecimal.valueOf(double)` is `new BigDecimal(Double.toString(x))`. So the result is the exact
+/// decimal `Double.toString` chooses, times 1000, rounded to nearest-even. A zero of either sign gives
+/// `+0.0`: `BigDecimal.valueOf(-0.0)` is 0.
+///
+/// `Double.toString` on Java 19 and later (both Vortex builds run Java 21) chooses its decimal by the
+/// JDK 19 specification (JDK-4511638). R is the set of decimals that round to `x`, and m the minimal
+/// length in R. T is the decimals in R of length m, or of length 1 or 2 when m is 1. The choice is the
+/// member of T closest to `x`, and of two, the one whose least significant digit is even.
+///
+/// That is not Rust's `{:e}`. On the tie -2038912644165383.25, Rust gives ...833 and Java ...832; on
+/// the smallest subnormal, Rust gives `5e-324` and Java `4.9E-324`. [`java_decimal`] implements the
+/// specification from the exact decimal expansion. It was checked against indriya itself, in both
+/// Vortex runtimes, on 1,867,099 inputs.
+///
+/// Returns `None` where indriya throws, for NaN and either infinity; callers refuse that grid, as
+/// Vortex fails on it. A result past the double range is infinite, as `BigDecimal.doubleValue()` is.
+pub(crate) fn km_to_m(km: f64) -> Option<f64> {
+    if !km.is_finite() {
+        return None;
+    }
+    if km == 0.0 {
+        return Some(0.0);
+    }
+    let (digits, exponent) = java_decimal(km.abs());
+    let sign = if km < 0.0 { "-" } else { "" };
+    format!("{sign}{digits}e{}", exponent + 3).parse().ok()
+}
+
+/// [`km_to_m`], with a typed refusal where Vortex fails.
+pub(crate) fn km_to_m_or_refuse(km: f64, what: &str) -> Result<f64, VortexError> {
+    km_to_m(km).ok_or_else(|| VortexError::Refused {
+        what: what.to_string(),
+        reason: format!(
+            "a grid value of {km} km. indriya's converter throws IllegalArgumentException on a \
+             value that is not finite, so Vortex fails to read this grid"
+        ),
+    })
+}
+
+/// The decimal `Double.toString(v)` stands for, for a finite `v > 0`, as `(digits, exponent)` with
+/// value `digits * 10^exponent`. The rule is in [`km_to_m`].
+fn java_decimal(v: f64) -> (String, i32) {
+    // The exact expansion. A double has at most 767 significant digits, so 800 places after the
+    // point reach its last nonzero digit, and Rust's fixed-precision formatting is exact.
+    let exact = format!("{v:.800e}");
+    let (mantissa, exponent) = exact.split_once('e').unwrap_or((exact.as_str(), "0"));
+    let exponent: i32 = exponent.parse().unwrap_or(0);
+    let all: Vec<u8> = mantissa.bytes().filter(u8::is_ascii_digit).collect();
+    let end = all.iter().rposition(|&d| d != b'0').map_or(1, |i| i + 1);
+    let significant = &all[..end];
+    // v = 0.d1 d2 ... * 10^point
+    let point = exponent + 1;
+    let rounds_to_v = |digits: &[u8], scale: i32| -> bool {
+        let text = format!("{}e{scale}", String::from_utf8_lossy(digits));
+        text.parse::<f64>().is_ok_and(|p| p == v)
+    };
+    let mut n = 1;
+    while n <= 17 {
+        if let Some(found) = nearest_in_r(significant, point, n, &rounds_to_v) {
+            if n == 1 {
+                // m = 1: T holds the decimals of length 1 or 2, all on the 2-digit grid.
+                return nearest_in_r(significant, point, 2, &rounds_to_v).unwrap_or(found);
+            }
+            return found;
+        }
+        n += 1;
+    }
+    // Not reached: 17 significant digits always round-trip a double.
+    (
+        String::from_utf8_lossy(significant).into_owned(),
+        point - significant.len() as i32,
+    )
+}
+
+/// On the grid of `n`-digit decimals, the member of R closest to the exact value, with ties to the
+/// even last digit, or `None` when neither neighbour is in R. `significant` holds the exact value's
+/// digits as `0.d1 d2 ... * 10^point`, with no trailing zero. R is an interval holding the value, so
+/// if any `n`-digit decimal is in R, one of the two neighbours is.
+fn nearest_in_r(
+    significant: &[u8],
+    point: i32,
+    n: usize,
+    in_r: &dyn Fn(&[u8], i32) -> bool,
+) -> Option<(String, i32)> {
+    use std::cmp::Ordering;
+    let scale = point - n as i32;
+    if significant.len() <= n {
+        // Exact at this length, so at distance 0.
+        let mut digits = significant.to_vec();
+        digits.resize(n, b'0');
+        return in_r(&digits, scale)
+            .then(|| (String::from_utf8_lossy(&digits).into_owned(), scale));
+    }
+    let lower = significant[..n].to_vec();
+    let rest = &significant[n..];
+    let mut upper = lower.clone();
+    let mut carry = true;
+    for d in upper.iter_mut().rev() {
+        if *d == b'9' {
+            *d = b'0';
+        } else {
+            *d += 1;
+            carry = false;
+            break;
+        }
+    }
+    if carry {
+        // 99...9 + 1: one more digit at the same scale.
+        upper.insert(0, b'1');
+    }
+    // The rest against half a unit in the last place. `rest` has no trailing zero.
+    let half = match rest[0].cmp(&b'5') {
+        Ordering::Equal if rest.len() > 1 => Ordering::Greater,
+        other => other,
+    };
+    let pick_upper = match (in_r(&lower, scale), in_r(&upper, scale)) {
+        (false, false) => return None,
+        (true, false) => false,
+        (false, true) => true,
+        (true, true) => match half {
+            Ordering::Less => false,
+            Ordering::Greater => true,
+            Ordering::Equal => lower.last().is_some_and(|d| (d - b'0') % 2 == 1),
+        },
+    };
+    let digits = if pick_upper { upper } else { lower };
+    Some((String::from_utf8_lossy(&digits).into_owned(), scale))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -941,5 +1090,155 @@ mod tests {
                 .units,
             "MM"
         );
+    }
+
+    #[test]
+    fn kilometres_scale_through_java_double_to_string() {
+        // The 2002 Stage IV x spacing: Vortex reports ...316, `* 1000.0` gives ...317.
+        let km = 4.762000186862316_f64;
+        assert_eq!(km_to_m(km), Some(4762.000186862316));
+        assert_ne!(km * 1000.0, 4762.000186862316);
+        assert_eq!(km_to_m(-1904.9200439453125), Some(-1904920.0439453125));
+        assert_eq!(km_to_m(4.763), Some(4763.0));
+        // 1.001 km: `1.001 * 1000.0` is 1000.9999999999999; the decimal 1.001 times 1000 is 1001.
+        assert_eq!(1.001_f64 * 1000.0, 1000.9999999999999);
+        assert_eq!(km_to_m(1.001), Some(1001.0));
+        assert_eq!(km_to_m(-1.001), Some(-1001.0));
+    }
+
+    /// Hard rounding cases, confirmed through indriya's
+    /// `convert(double)`: input bits, `Double.toString`, indriya's result bits.
+    #[test]
+    fn hard_rounding_cases_match_indriya() {
+        let cases: [(u64, &str, u64); 4] = [
+            (
+                0xc31cf9855f88bc1d,
+                "-2.0389126441653832E15",
+                0xc3bc4bac3f4b87b4,
+            ),
+            (
+                0x43014124bd3f0372,
+                "6.070875817165902E14",
+                0x43a0d99de0cf895d,
+            ),
+            (0x0000000000000001, "4.9E-324", 0x00000000000003e0),
+            (
+                0xc3191a885d5c9be9,
+                "-1.7665118504977862E15",
+                0xc3b883e92b2c7041,
+            ),
+        ];
+        for (input, text, expected) in cases {
+            let x = f64::from_bits(input);
+            let (digits, _) = java_decimal(x.abs());
+            assert_eq!(
+                digits.trim_end_matches('0'),
+                java_digits(text),
+                "{input:016x}"
+            );
+            assert_eq!(km_to_m(x).map(f64::to_bits), Some(expected), "{input:016x}");
+        }
+    }
+
+    #[test]
+    fn signed_zero_and_non_finite_follow_indriya() {
+        // BigDecimal.valueOf(-0.0) is 0, so both zeros give +0.0.
+        assert_eq!(km_to_m(0.0).map(f64::to_bits), Some(0));
+        assert_eq!(km_to_m(-0.0).map(f64::to_bits), Some(0));
+        // DefaultNumberSystem.narrow throws IllegalArgumentException; scaleGrid does not catch it.
+        assert_eq!(km_to_m(f64::NAN), None);
+        assert_eq!(km_to_m(f64::INFINITY), None);
+        assert_eq!(km_to_m(f64::NEG_INFINITY), None);
+        assert!(matches!(
+            km_to_m_or_refuse(f64::NAN, "grid"),
+            Err(VortexError::Refused { .. })
+        ));
+        assert_eq!(
+            km_to_m_or_refuse(-0.0, "grid").map(f64::to_bits).ok(),
+            Some(0)
+        );
+        // BigDecimal.doubleValue() past the range is infinite.
+        assert_eq!(km_to_m(f64::MAX), Some(f64::INFINITY));
+    }
+
+    /// Every case in `tests/data/km_to_m_indriya.txt.gz`, and every case of the full run when
+    /// `KM_TO_M_INDRIYA_FULL` names its file. indriya answered the inputs in the Java 21 runtimes
+    /// of Vortex 0.13.3 and 1.1.0 (`tests/data/README.md` states how). Each case checks the
+    /// result bits (or the refusal) and the digits of `Double.toString`. The data file is in the
+    /// source repository but not in the Python sdist; without it the test is skipped.
+    #[test]
+    fn every_case_matches_indriya() {
+        use std::io::Read;
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/km_to_m_indriya.txt.gz");
+        if !path.is_file() {
+            eprintln!(
+                "skipped: {} is not present (not shipped in the sdist)",
+                path.display()
+            );
+            return;
+        }
+        let mut text = String::new();
+        flate2::read::GzDecoder::new(std::fs::File::open(&path).unwrap())
+            .read_to_string(&mut text)
+            .unwrap();
+        let (n, bad) = check_indriya(&text);
+        assert!(n >= 80_000, "only {n} cases");
+        assert!(
+            bad.is_empty(),
+            "{} of {n} differ: {:?}",
+            bad.len(),
+            &bad[..bad.len().min(10)]
+        );
+        if let Ok(full) = std::env::var("KM_TO_M_INDRIYA_FULL") {
+            let text = std::fs::read_to_string(full).unwrap();
+            let (n, bad) = check_indriya(&text);
+            assert!(n >= 1_800_000, "only {n} cases");
+            assert!(
+                bad.is_empty(),
+                "{} of {n} differ: {:?}",
+                bad.len(),
+                &bad[..bad.len().min(10)]
+            );
+        }
+    }
+
+    fn check_indriya(text: &str) -> (usize, Vec<String>) {
+        let (mut n, mut bad) = (0, Vec::new());
+        for line in text
+            .lines()
+            .filter(|l| !l.starts_with('#') && !l.is_empty())
+        {
+            let fields: Vec<&str> = line.split_whitespace().collect();
+            let [input, java_text, result] = fields[..] else {
+                bad.push(format!("malformed: {line}"));
+                continue;
+            };
+            let x = f64::from_bits(u64::from_str_radix(input, 16).unwrap());
+            let ours = km_to_m(x);
+            let result_ok = match result.strip_prefix("ERR:") {
+                Some(class) => ours.is_none() && class == "java.lang.IllegalArgumentException",
+                None => ours.map(f64::to_bits) == u64::from_str_radix(result, 16).ok(),
+            };
+            let text_ok = !x.is_finite()
+                || x == 0.0
+                || java_decimal(x.abs()).0.trim_end_matches('0') == java_digits(java_text);
+            if !(result_ok && text_ok) {
+                bad.push(line.to_string());
+            }
+            n += 1;
+        }
+        (n, bad)
+    }
+
+    /// The significant digits of a `Double.toString` text: no sign, point, exponent, or leading and
+    /// trailing zeros.
+    fn java_digits(text: &str) -> String {
+        let mantissa = text.split(['E', 'e']).next().unwrap_or("");
+        let digits: String = mantissa.chars().filter(char::is_ascii_digit).collect();
+        digits
+            .trim_start_matches('0')
+            .trim_end_matches('0')
+            .to_string()
     }
 }

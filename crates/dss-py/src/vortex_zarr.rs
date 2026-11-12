@@ -312,7 +312,7 @@ fn read_zarr<'py>(
                     envelope_crs=None, shapefile=None, target_crs=None, cell_size=None,
                     method="bilinear", part_a="", part_b="", part_c=None, part_f="", units=None,
                     data_type=None, version=None, align="refuse", window_rule="refuse",
-                    duplicates="refuse", threads=1, sync=true, allow_undetectable_readers=true,
+                    duplicates="refuse", threads=None, sync=crate::PySync::DEFAULT, allow_undetectable_readers=true,
                     progress=None, limits=None, stop=None))]
 #[allow(clippy::too_many_arguments)]
 fn import_zarr<'py>(
@@ -338,8 +338,8 @@ fn import_zarr<'py>(
     align: &str,
     window_rule: &str,
     duplicates: &str,
-    threads: usize,
-    sync: bool,
+    threads: Option<usize>,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
     progress: Option<PyObject>,
     limits: Option<&Bound<'py, PyDict>>,

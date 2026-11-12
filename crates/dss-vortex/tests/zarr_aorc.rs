@@ -47,7 +47,7 @@ fn import(root: &Path, rule: WindowRule) -> Result<Vec<ImportedRecord>, ImportEr
     );
     r.parts.a = "A".into();
     r.parts.f = "F".into();
-    r.sync = false;
+    r.sync = dss_core::dss7::write::SyncMode::None;
     r.align = Align::Vortex;
     r.window_rule = rule;
     zarr::import_stores(&r, &StoreSelection::default(), &mut |_| {

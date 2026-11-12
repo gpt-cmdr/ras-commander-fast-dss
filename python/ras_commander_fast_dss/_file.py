@@ -232,13 +232,81 @@ class DssFile:
             rating = f.read_paired_data("/BASIN/LOC/STAGE-FLOW///RATING/")
             grid = f.read_grid("/SHG/BASIN/PRECIP/01JAN2020:0000/01JAN2020:0100/RADAR/")
 
-    The file is never written, locked, or created; HEC software may hold it open.
+    Reading never writes, locks or creates anything; HEC software may hold the file
+    open. The file is opened read-only.
+
+    **Writing through the object.** The first ``write_*`` call opens
+    one read+write handle on the file, and the object keeps it until :meth:`close`, the
+    end of the ``with`` block, or garbage collection. Later writes and all reads use that
+    handle, so consecutive writes do not each open the file again. Each write still tests,
+    takes and releases the HEC lock exactly as the module-level writers do, and the file
+    is unlocked between writes. Before each write, and before the first read after a write,
+    the handle is checked against the file the path names now (Windows: volume serial
+    number and file index; Unix: device and inode). If the file was replaced or renamed
+    away, the handle is dropped and the path is opened again; if the path no longer
+    exists, the write raises ``FileNotFoundError`` as a module-level write would.
+
+    The write's DSS version comes from the file the path names at the call. The session
+    checks it again on its handle before writing; a file replaced in between by one of
+    the other DSS major version is refused with ``ValueError``, and nothing is written.
+
+    The identity check is repeated after each write, and a completed write is
+    acknowledged only if the path named the written file both before and after it.
+    Nothing can stop another process from renaming, deleting or replacing the path
+    *while* a write runs, because the DSS lock protects the file's contents, not its name.
+    If that happens and the write completes, the record is stored in the previous file,
+    which the path no longer names (it is not rolled back), and the call raises
+    ``OSError`` (``FileNotFoundError`` if nothing is at the path any more). Readers of the
+    path see the replacement if there is one, or get ``FileNotFoundError`` after a rename
+    away or a delete. If the write itself fails (for example ``DssLockedError``), its own
+    error is raised and nothing is acknowledged. Anything it changed before failing (a
+    reconciliation it completed) is in the file the handle holds, and the handle is
+    dropped if the path no longer names that file. Renaming, deleting or replacing a file
+    that a session is writing must be coordinated with the session, for example by
+    closing it first. On Windows, ``os.replace`` onto the file is refused while the
+    handle is held.
     """
 
     def __init__(self, path: PathLike, *, recover: bool = False) -> None:
         self._path = Path(os.fspath(path))
+        # The native file: a read-only handle, plus a held read+write handle after the
+        # first write through this object.
         self._native = _native.open(str(self._path), bool(recover))
+        self._recover = bool(self._native.recover)
         self._resolved_path = _safe_resolve(self._path.absolute())
+
+    def _begin_write(self) -> None:
+        """Prepare a write through this object's held handle."""
+        if self.closed:
+            raise ValueError("I/O operation on a closed DssFile")
+        # Every per-object cache derived from the file's contents is dropped before the
+        # write, so it is rebuilt even when the write fails part way. The only one is the
+        # DSS6 dataset-location index of `_p15_ts_blocks` (up to 0.1.1 the writes
+        # cleared a misspelled `_p15_block_index`, which no code reads).
+        self.__dict__.pop("_p15_ts_index", None)
+
+    def _write_version(self) -> int:
+        """DSS major version for a write's default ``version``: the version
+        of the file the path names now, without rebuilding the read view; the session write
+        checks it again on its handle before writing."""
+        if self.closed:
+            raise ValueError("I/O operation on a closed DssFile")
+        return int(self._native._write_version())
+
+    def _session_write(self, write, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+        """Run a module-level writer on this object's held native handle.
+
+        The native write uses the ``*_to`` entry points on the held handle; the native
+        object rebuilds its read view before the next read, so reads see the write.
+        """
+        from ._write import _SESSION
+
+        self._begin_write()
+        token = _SESSION.set(self._native)
+        try:
+            return write(self._path, *args, **kwargs)
+        finally:
+            _SESSION.reset(token)
 
     # -- file facts -------------------------------------------------------------------
 
@@ -260,7 +328,7 @@ class DssFile:
     @property
     def recover(self) -> bool:
         """Whether the file was opened in DSS7 recovery mode."""
-        return self._native.recover
+        return self._recover
 
     @property
     def closed(self) -> bool:
@@ -272,7 +340,8 @@ class DssFile:
         return dict(self._native.signature())
 
     def close(self) -> None:
-        """Release the file handle. Reads after this raise ``ValueError``."""
+        """Release the file handles (the read handle and, after a write, the held
+        read+write handle). Reads and writes after this raise ``ValueError``."""
         self._native.close()
 
     def __enter__(self) -> "DssFile":
@@ -282,7 +351,14 @@ class DssFile:
         self.close()
 
     def __repr__(self) -> str:
-        state = "closed" if self.closed else self.version_string
+        if self.closed:
+            state = "closed"
+        else:
+            try:
+                state = self.version_string
+            except OSError:
+                # The file was deleted or renamed after a write through this object.
+                state = "unavailable"
         return f"<DssFile {str(self._path)!r} DSS{self.version} {state}>"
 
     # -- catalog ----------------------------------------------------------------------
@@ -985,75 +1061,45 @@ class DssFile:
     def write_timeseries(self, pathname: str, values: Any, **kwargs: Any) -> Dict[str, Any]:
         """Store a regular- or irregular-interval series in this DSS7 file.
 
-        Same arguments and result as :func:`ras_commander_fast_dss.write_timeseries`. The write
-        uses its own handle and lock; this object's read handle is closed for the write
-        and reopened afterwards, so later reads see the new records.
+        Same arguments and result as :func:`ras_commander_fast_dss.write_timeseries`. The
+        write goes through this object's held read+write handle (see the class
+        notes) and takes and releases the lock as a module-level write does; later reads
+        through this object see the new records.
         """
         from ._write import write_timeseries as _write_timeseries
 
-        if self.closed:
-            raise ValueError("I/O operation on a closed DssFile")
         # P22: write in the open file's DSS version unless the caller says otherwise.
-        kwargs.setdefault("version", self.version)
-        recover = self.recover
-        self._native.close()
-        try:
-            return _write_timeseries(self._path, pathname, values, **kwargs)
-        finally:
-            self._native = _native.open(str(self._path), bool(recover))
+        kwargs.setdefault("version", self._write_version())
+        return self._session_write(_write_timeseries, pathname, values, **kwargs)
 
     def write_paired_data(self, pathname: str, x: Any, y: Any, **kwargs: Any) -> Dict[str, Any]:
         """Store one paired-data record in this file, in the file's DSS version.
 
-        Same arguments and result as :func:`ras_commander_fast_dss.write_paired_data`. The read
-        handle is closed for the write and reopened afterwards, as for
-        :meth:`write_timeseries`.
+        Same arguments and result as :func:`ras_commander_fast_dss.write_paired_data`,
+        through this object's held handle, as for :meth:`write_timeseries`.
         """
         from ._write_pd import write_paired_data as _write_paired_data
 
-        if self.closed:
-            raise ValueError("I/O operation on a closed DssFile")
-        kwargs.setdefault("version", self.version)
-        recover = self.recover
-        self._native.close()
-        try:
-            return _write_paired_data(self._path, pathname, x, y, **kwargs)
-        finally:
-            self._native = _native.open(str(self._path), bool(recover))
+        kwargs.setdefault("version", self._write_version())
+        return self._session_write(_write_paired_data, pathname, x, y, **kwargs)
 
     # -- P39: profile and location writers --------------------------------------------
 
     def write_profile(self, pathname: str, depths: Any, values: Any, **kwargs: Any) -> Dict[str, Any]:
         """Store a regular profile in this file. Same arguments and result as
-        :func:`ras_commander_fast_dss.write_profile`; the read handle is closed for the
-        write and reopened afterwards."""
+        :func:`ras_commander_fast_dss.write_profile`, through this object's held handle,
+        as for :meth:`write_timeseries`."""
         from ._write_profile_location import write_profile as _write_profile
 
-        if self.closed:
-            raise ValueError("I/O operation on a closed DssFile")
-        recover = self.recover
-        self._native.close()
-        try:
-            return _write_profile(self._path, pathname, depths, values, **kwargs)
-        finally:
-            self._native = _native.open(str(self._path), bool(recover))
+        return self._session_write(_write_profile, pathname, depths, values, **kwargs)
 
     def write_location(self, pathname: str, **kwargs: Any) -> Dict[str, Any]:
         """Store location data in this file. Same arguments and result as
-        :func:`ras_commander_fast_dss.write_location`; the read handle is closed for the
-        write and reopened afterwards."""
+        :func:`ras_commander_fast_dss.write_location`, through this object's held handle,
+        as for :meth:`write_timeseries`."""
         from ._write_profile_location import write_location as _write_location
 
-        if self.closed:
-            raise ValueError("I/O operation on a closed DssFile")
-        recover = self.recover
-        self._native.close()
-        try:
-            return _write_location(self._path, pathname, **kwargs)
-        finally:
-            self._native = _native.open(str(self._path), bool(recover))
-            if hasattr(self, "_p15_block_index"):
-                self._p15_block_index = None
+        return self._session_write(_write_location, pathname, **kwargs)
 
     # -- P24: grid writer -------------------------------------------------------------
 
@@ -1061,20 +1107,13 @@ class DssFile:
         """Store one grid record in this file.
 
         Same arguments and result as :func:`ras_commander_fast_dss.write_grid`; ``version``
-        defaults to this file's DSS version. The write uses its own handle and lock;
-        this object's read handle is closed for the write and reopened afterwards.
+        defaults to this file's DSS version. The write goes through this object's held
+        handle, as for :meth:`write_timeseries`.
         """
         from ._write_grid import write_grid as _write_grid
 
-        if self.closed:
-            raise ValueError("I/O operation on a closed DssFile")
-        kwargs.setdefault("version", self.version)
-        recover = self.recover
-        self._native.close()
-        try:
-            return _write_grid(self._path, pathname, data, **kwargs)
-        finally:
-            self._native = _native.open(str(self._path), bool(recover))
+        kwargs.setdefault("version", self._write_version())
+        return self._session_write(_write_grid, pathname, data, **kwargs)
 
 
 def _location_key(d: Optional[Dict[str, Any]]) -> Optional[tuple]:

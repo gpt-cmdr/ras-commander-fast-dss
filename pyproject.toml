@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "ras-commander-fast-dss"
-version = "0.1.1"
+version = "0.1.2"
 description = "Native (Rust) HEC-DSS engine for ras-commander and hms-commander: DSS6 and DSS7 read and write without Java"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -51,6 +51,10 @@ include = [
     { path = "vendor/PATCHES.md", format = "sdist" },
     { path = "THIRD_PARTY_NOTICES.md", format = "sdist" },
     { path = "licenses/**/*", format = "sdist" },
+]
+# The km to m test data (2.3 MB) stays in the source repository only; its test skips without it.
+exclude = [
+    { path = "crates/dss-vortex/tests/data/km_to_m_indriya.txt.gz", format = "sdist" },
 ]
 
 [tool.pytest.ini_options]

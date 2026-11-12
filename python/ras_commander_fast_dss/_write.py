@@ -16,6 +16,7 @@ held while writing.
 
 from __future__ import annotations
 
+import contextvars
 import os
 import warnings
 from pathlib import Path
@@ -36,6 +37,33 @@ HEC_UNDEFINED_FLOAT = float(-np.finfo(np.float32).max)
 
 _EPOCH = np.datetime64("1899-12-31T00:00:00", "s")
 
+#: The native file of the ``DssFile`` whose ``write_*`` method is
+#: running in this context. While it is set, the module-level writers pass it to the
+#: native writer (``handle=``), which writes through that object's held read+write
+#: handle instead of opening the path. Threads start with it unset.
+_SESSION: "contextvars.ContextVar[Any]" = contextvars.ContextVar(
+    "ras_commander_fast_dss_session", default=None
+)
+
+
+def _held() -> Dict[str, Any]:
+    """``{"handle": native}`` inside a ``DssFile`` write, else ``{}``."""
+    h = _SESSION.get()
+    return {} if h is None else {"handle": h}
+
+
+def _file_version(dss_file: PathLike) -> int:
+    """DSS major version of ``dss_file``: inside a ``DssFile`` write, the version of the file
+    the path names now (``NativeFile._write_version``: the held handle when it is still that
+    file, so no new open); else from the file's header."""
+    h = _SESSION.get()
+    if h is not None:
+        # The version of the file the path names now (through the held
+        # handle when it still matches, else from the path), not the read view's; the
+        # session write then checks it again on its handle before writing.
+        return int(h._write_version())
+    return int(_native.file_signature(os.fspath(dss_file))["version"])
+
 
 def _check_version(version: int) -> None:
     if version == 6:
@@ -44,7 +72,7 @@ def _check_version(version: int) -> None:
         raise ValueError(f"version must be 7, not {version!r}")
 
 
-def create(path: PathLike, version: int = 7) -> Path:
+def create(path: PathLike, version: int = 7, *, sync: Union[bool, str] = "end") -> Path:
     """Create an empty DSS7 file and return its path.
 
     The header defaults are those of an empty file created by HEC's ``hecdss`` 0.1.33
@@ -53,18 +81,22 @@ def create(path: PathLike, version: int = 7) -> Path:
 
     ``version=6`` creates an empty DSS6 file with the layout HEC Monolith 3.3.27 gives a
     new DSS6 file (version string ``6-YO``, 2048 hash codes, 32 bins of 127 words a block).
+
+    ``sync`` is the flush policy of :func:`write_timeseries`. The new file is written by
+    one write and, by default, flushed once before this returns; ``"step"`` does the
+    same, and only ``"none"`` (or ``False``) skips the flush.
     """
+    sync = _sync_mode(sync)
     if version == 6:
-        return _create6(path)
+        return _create6(path, sync)
     _check_version(version)
     p = Path(os.fspath(path))
-    _native.create_dss7(str(p))
+    _native.create_dss7(str(p), sync=sync)
     return p
 
 
-def repair(src: PathLike, dest: PathLike) -> dict:
-    """Copy the readable records of the DSS7 file ``src`` that its discovery procedure
-    reaches into a new DSS7 file ``dest``, and report what was not copied.
+def repair(src: PathLike, dest: PathLike, *, sync: Union[bool, str] = "end") -> dict:
+    """Copy every readable record of the DSS7 file ``src`` into a new DSS7 file ``dest``.
 
     This is the safe path for a damaged file. Native writes reconcile an interrupted
     write exactly when the file was consistent before it; independent extra damage is
@@ -121,8 +153,16 @@ def repair(src: PathLike, dest: PathLike) -> dict:
     ``src_interrupted_write`` and ``complete`` (true exactly when no ledger entry is
     ``"not_copied"``). Whether hidden records come back is reported, not guaranteed; a
     complete copy is not an integrity certificate for ``src``.
+
+    ``sync`` is the flush policy of :func:`write_timeseries`. ``dest`` is
+    built under a temporary name no reader sees until it is published, so ``"end"`` (the
+    default) and ``"step"`` both flush it **once**, after its last record and before it is
+    verified and published; ``"none"`` (or ``False``) does not flush. In every mode it is
+    published only after every selected record was written and verified. No power-loss
+    claim is made for any mode.
     """
-    return _native.repair_dss7(str(Path(os.fspath(src))), str(Path(os.fspath(dest))))
+    sync = _sync_mode(sync)
+    return _native.repair_dss7(str(Path(os.fspath(src))), str(Path(os.fspath(dest))), sync=sync)
 
 
 def _values_array(values: Any, value_type: str, raw: bool) -> np.ndarray:
@@ -233,12 +273,24 @@ def _precision(precision: Any) -> int:
     return int(precision)
 
 
-def _sync_flag(sync: Any) -> bool:
-    """The ``sync=`` flush policy of the public writers: a bool, nothing else,
-    so a string such as ``"false"`` cannot weaken the default by accident."""
-    if not isinstance(sync, (bool, np.bool_)):
-        raise TypeError(f"sync must be True or False, not {sync!r}")
-    return bool(sync)
+#: The names of the flush policies the writers accept as ``sync=``.
+SYNC_MODES = ("end", "step", "none")
+
+
+def _sync_mode(sync: Any) -> str:
+    """The ``sync=`` flush policy of the public writers as one of :data:`SYNC_MODES`.
+
+    ``"end"`` (the default since 0.1.2), ``"step"`` and ``"none"`` are the
+    three policies; ``True`` means ``"end"`` and ``False`` means ``"none"``. Nothing else
+    is accepted, so a string such as ``"false"`` cannot weaken the default by accident.
+    """
+    if isinstance(sync, (bool, np.bool_)):
+        return "end" if sync else "none"
+    if isinstance(sync, str):
+        if sync in SYNC_MODES:
+            return sync
+        raise ValueError(f'sync must be "end", "step", "none", True or False, not {sync!r}')
+    raise TypeError(f'sync must be "end", "step", "none", True or False, not {sync!r}')
 
 
 def write_timeseries(
@@ -259,7 +311,8 @@ def write_timeseries(
     allow_undetectable_readers: bool = True,
     time_granularity: Optional[int] = None,
     notes: Any = None,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
+    allow_unconfirmed_dss6_irregular_pattern: bool = False,
 ) -> Dict[str, Any]:
     """Store a regular- or irregular-interval time series in an existing DSS7 file.
 
@@ -314,38 +367,49 @@ def write_timeseries(
         ``IR-Century``) and 1 otherwise. Every time must be a whole multiple of an
         explicit granularity; nothing is rounded.
     sync:
-        Flush policy. ``True`` (the default, unchanged): the writer calls
-        ``fsync`` at the transaction's existing flush points, after each write that a
-        later write of the same record depends on: the record data together with the
-        end-of-file flag (the data step has no flush of its own; its writes are flushed
-        with the end-of-file flag), the allocation header and in-progress marker, a new
-        bin block's chain word, a catalog entry's body before the word that publishes it
-        and that word itself, the counters, the link, the activation or retirement, and
-        the cleared marker. A step with nothing to write flushes nothing, and the write
-        ends with one ``sync_all``. This describes the flush points; it is not a flush
-        at every step.
+        Flush policy: when the write is forced to storage (``fsync``). One of three
+        names; a bool is also accepted.
 
-        ``False`` (opt-in): no flushes. Every write still reaches the operating system in
-        the same order, and the in-progress marker and the reconciliation by the next
-        write work as before. What it keeps: under **process death** (the writing
-        process killed at any point), the ordering of completed writes and of the
-        recovery marker, so an interrupted write leaves the same states as with ``True``
-        and the next write reconciles it the same way (killed-process matrix in
-        ``crates/dss-core/tests/p64_kill.rs``). What it gives up: nothing is forced to
-        storage, so after a power loss or an operating-system crash this write, and
-        earlier unflushed ones, may be missing, torn or out of order. **No power-loss
-        claim is made for either mode.** A normal write never repairs damage it did not
-        cause; for a damaged DSS7 file the recovery path is :func:`repair`, which copies
-        the readable records its discovery procedure reaches into a new file and reports
-        what it did not copy (check ``complete``). Suited to scratch or regenerable files.
+        ``"end"`` (the default since 0.1.2; ``True`` means the same): one flush at the
+        end of this call, before the write lock is released and the call returns. Nothing
+        is flushed between the steps of the transaction.
+
+        ``"step"``: a flush at every flush point of the transaction as well: after the
+        record data together with the end-of-file flag (the data step has no flush of its
+        own), the allocation header and in-progress marker, a new bin block's chain word,
+        a catalog entry's body before the word that publishes it and that word itself,
+        the counters, the link, the activation or retirement, and the cleared marker. A
+        step with nothing to write flushes nothing, and the write ends with the same
+        final flush. This was the default up to 0.1.1.
+
+        ``"none"`` (``False`` means the same): no flush at all. Suited to scratch or
+        regenerable files.
+
+        What every mode keeps: the three make **the same writes in the same order**, each
+        reaching the operating system as it is made, with the same in-progress marker.
+        Under **process death** (the writing process killed at any point) an interrupted
+        write therefore leaves the same states in every mode, and the next write
+        reconciles it the same way (killed-process matrix ``crates/dss-core/tests/p64_kill.rs``).
+
+        What no mode promises: **no power-loss claim is made for any mode.** After a
+        power loss or an operating-system crash, an interrupted write may be missing,
+        torn or out of order; with ``"none"`` that also holds for writes that had already
+        returned. A normal write never repairs damage it did not cause; for a damaged
+        DSS7 file the recovery path is :func:`repair`, which copies every readable record
+        into a new file.
 
     Pattern records (D part ``TS-...``, both versions): a regular E part stores the
     values positionally, with no ``start=`` (the only time accepted is the reader's
     convention, the first value at 01JAN3000 00:00); an ``IR-`` E part needs ``times=``
     as the reader returns them. The stored time offset is 0, as HEC stores it. HEC stores no
     quality or notes in a pattern, and DSS6 patterns are floats only. DSS6 irregular
-    patterns are written as ``zsitsi6.f`` stores them but not confirmed by a HEC reader:
-    Monolith 3.3.27 misreads the tested records from both writers.
+    patterns (an ``IR-`` E part with a ``TS-`` D part, type 111) are written as ``zsitsi6.f``
+    stores them but not confirmed by a HEC reader: Monolith 3.3.27 misreads the tested
+    records from both writers, and no such record has been found in HEC-written files.
+    They are therefore refused with
+    :class:`~ras_commander_fast_dss.exceptions.DssUnsupportedRecordError` unless
+    ``allow_unconfirmed_dss6_irregular_pattern=True`` (``FEATURES`` flag
+    ``write_ts_dss6_irregular_pattern_opt_in``). The flag has no effect on any other record.
 
     Pseudo-regular series (E part ``~1Day``, both versions): irregular data with
     ``times=``, stored as HEC stores it (``~1Day`` on DSS7; ``IR-YEAR`` with the interval
@@ -413,7 +477,12 @@ def write_timeseries(
     """
     if not isinstance(pathname, str):
         raise TypeError(f"pathname must be str, not {type(pathname).__name__}")
-    sync = _sync_flag(sync)
+    sync = _sync_mode(sync)
+    if not isinstance(allow_unconfirmed_dss6_irregular_pattern, bool):
+        raise TypeError(
+            "allow_unconfirmed_dss6_irregular_pattern must be True or False, not "
+            f"{allow_unconfirmed_dss6_irregular_pattern!r}"
+        )
     # P38: patterns, and multi-word quality or notes, take their own paths.
     if _is_pattern(pathname):
         if version not in (6, 7):
@@ -424,6 +493,7 @@ def write_timeseries(
             precision=precision, value_type=value_type, raw=raw, version=version,
             allow_undetectable_readers=allow_undetectable_readers,
             time_granularity=time_granularity, sync=sync,
+            allow_unconfirmed_dss6_irregular_pattern=allow_unconfirmed_dss6_irregular_pattern,
         )
     if notes is not None or _is_quality_words(quality):
         if version == 6:
@@ -431,7 +501,7 @@ def write_timeseries(
 
             raise DssUnsupportedRecordError(
                 "DSS6 stores no notes and one quality word per value (zsrtsc6.f, zsitsi6.f; "
-                "P33 section 1)"
+                "dss6.md §7.4)"
             )
         _check_version(version)
         return _write_variants(
@@ -523,6 +593,7 @@ def write_timeseries(
         _precision(precision),
         bool(allow_undetectable_readers),
         sync=sync,
+        **_held(),
     )
     if report.get("readers_undetected"):
         warnings.warn(
@@ -602,7 +673,7 @@ def _write_variants(
     raw: bool,
     allow_undetectable_readers: bool,
     time_granularity: Optional[int],
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
 ) -> Dict[str, Any]:
     """DSS7 write with multi-word quality or notes."""
     irregular = _is_irregular(pathname)
@@ -640,7 +711,7 @@ def _write_variants(
     kw = dict(
         quality=q, quality_element_size=qes or 1, inotes=inotes, inote_element_size=nes,
         cnotes=cnotes, time_zone=time_zone, precision=_precision(precision),
-        allow_undetectable_readers=bool(allow_undetectable_readers), sync=bool(sync),
+        allow_undetectable_readers=bool(allow_undetectable_readers), sync=sync,
     )
     if irregular:
         if start is not None:
@@ -655,7 +726,8 @@ def _write_variants(
                 raise ValueError("time_granularity must be an integer number of seconds")
             time_granularity = int(time_granularity)
         report = _native.write_its_variants(
-            path, pathname, t, vals, units, data_type, time_granularity=time_granularity, **kw
+            path, pathname, t, vals, units, data_type, time_granularity=time_granularity, **kw,
+            **_held(),
         )
     else:
         if time_granularity is not None:
@@ -673,7 +745,9 @@ def _write_variants(
         else:
             _refuse_tz(start, "start")
             start_s = to_hec_seconds(start)
-        report = _native.write_rts_variants(path, pathname, start_s, vals, units, data_type, **kw)
+        report = _native.write_rts_variants(
+            path, pathname, start_s, vals, units, data_type, **kw, **_held()
+        )
     _warn_old_scheme(report, dss_file)
     return dict(report)
 
@@ -696,7 +770,8 @@ def _write_pattern(
     version: int,
     allow_undetectable_readers: bool,
     time_granularity: Optional[int],
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
+    allow_unconfirmed_dss6_irregular_pattern: bool = False,
 ) -> Dict[str, Any]:
     """One pattern record (``ztsStorePattern``, ``zsrtpa6``, ``zsitsi6``)."""
     if quality is not None or notes is not None:
@@ -757,7 +832,9 @@ def _write_pattern(
         str(Path(os.fspath(dss_file))), pathname, vals, units, data_type, times=t,
         time_zone=time_zone, precision=prec, time_granularity=time_granularity,
         version=int(version), allow_undetectable_readers=bool(allow_undetectable_readers),
-        sync=bool(sync),
+        sync=sync,
+        allow_unconfirmed_dss6_irregular_pattern=bool(allow_unconfirmed_dss6_irregular_pattern),
+        **_held(),
     )
     _warn_old_scheme(report, dss_file)
     return dict(report)
@@ -797,7 +874,7 @@ def _write_irregular(
     raw: bool,
     allow_undetectable_readers: bool,
     time_granularity: Optional[int],
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
 ) -> Dict[str, Any]:
     if start is not None:
         raise ValueError("irregular (IR-) series take times= (one per value), not start=")
@@ -833,7 +910,8 @@ def _write_irregular(
         _precision(precision),
         time_granularity,
         bool(allow_undetectable_readers),
-        sync=bool(sync),
+        sync=sync,
+        **_held(),
     )
     if report.get("readers_undetected"):
         warnings.warn(
@@ -857,9 +935,9 @@ def _write_irregular(
 HEC_MISSING_DSS6 = -901.0
 
 
-def _create6(path: PathLike) -> Path:
+def _create6(path: PathLike, sync: str = "end") -> Path:
     p = Path(os.fspath(path))
-    _native.create_dss6(str(p))
+    _native.create_dss6(str(p), sync=sync)
     return p
 
 
@@ -879,7 +957,7 @@ def _write_timeseries6(
     raw: bool,
     allow_undetectable_readers: bool,
     time_granularity: Optional[int] = None,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
 ) -> Dict[str, Any]:
     """DSS6 branch of :func:`write_timeseries`. Uses the shared helpers of
     the DSS7 writers (``_values_array``, ``_times_array`` with its numeric-time and NaT
@@ -918,7 +996,8 @@ def _write_timeseries6(
             raise ValueError(f"{len(t)} times for {n} values")
         report = _native.write_its6(
             path, pathname, t, vals, units, data_type, q, "replace",
-            bool(allow_undetectable_readers), sync=bool(sync),
+            bool(allow_undetectable_readers), sync=sync,
+            **_held(),
         )
     else:
         if (start is None) == (times is None):
@@ -942,7 +1021,8 @@ def _write_timeseries6(
             start_s = to_hec_seconds(start)
         report = _native.write_rts6(
             path, pathname, start_s, vals, units, data_type, q, None, prec,
-            bool(allow_undetectable_readers), sync=bool(sync),
+            bool(allow_undetectable_readers), sync=sync,
+            **_held(),
         )
     # DSS6 files before 6-M (and so every file whose readers cannot be detected, before
     # 6-K) are refused, so report["readers_undetected"] is always False here.

@@ -899,17 +899,26 @@ leave `zcheckFile` errors until the next native write repairs them:
 - a new record in an **existing bin**, interrupted after Publish and before Counters:
   `knumberRecords` stays one low.
 
-The crash model is **process death** (the OS keeps every completed `write`). With the
-default `sync: true` the writer flushes (`fsync`) at the transaction's existing flush
-points: the record area together with the EOF flag (the Data step has no flush of its
-own), the allocation header, the chain word, an entry body before its hash word and the
-hash word itself, the counters, the link, the activation and the cleared marker; a step
-with nothing to write flushes nothing, and the write ends with one `sync_all`. A single
-`write` of the 800-byte header spans two 512-byte sectors and is not atomic on power
-loss; neither is heclib's. `sync: false` (Python `sync=False`) keeps the order of
-completed writes and of the in-progress marker under process death and gives up the
-flushes; no power-loss claim is made in either mode. Damaged files are recovered by
-copy-out (`repair_dss7`, Python `repair`; threat model below).
+The crash model is **process death** (the OS keeps every completed `write`). The steps
+above say "flush" where the transaction has a **flush point**. Whether the writer calls
+`fsync` there is the flush policy, `WriteOptions.sync` (Python `sync=`), with three modes:
+
+| Mode | `fsync` calls | Notes |
+|---|---|---|
+| `SyncMode::End` (`sync="end"`, or `True`) | One `sync_all` at the end of the write call, before the lock is released. None at the flush points | **The default since 0.1.2.** A call that stores several records (gridded import, grid tools, time tools, grid to point) writes them without a flush and flushes once after the last |
+| `SyncMode::Step` (`sync="step"`) | `sync_data` at every flush point, then the same final `sync_all` | The default up to 0.1.1. The flush points are: the record area together with the EOF flag (the Data step has no flush of its own), the allocation header, the chain word, an entry body before its hash word and the hash word itself, the counters, the link, the activation and the cleared marker. A step with nothing to write flushes nothing |
+| `SyncMode::None` (`sync="none"`, or `False`) | None | Opt-in since 0.1.1 |
+
+The three modes make **the same `write` calls in the same order**; only the `fsync` calls
+differ. Under process death they therefore leave the same states at every point, and
+the next write reconciles them the same way: the killed-process matrix
+(`crates/dss-core/tests/p64_kill.rs`) runs every kill point in all three modes.
+A single `write` of the 800-byte header spans two 512-byte
+sectors and is not atomic on power loss; neither is heclib's. **No power-loss claim is
+made in any mode**: `Step` orders what reaches storage, but that ordering
+was never qualified against power loss, and `End` and `None` do not order it at all.
+Damaged files are recovered by copy-out (`repair_dss7`, Python `repair`; threat model
+below).
 
 **Interrupted Publish of a new bin (finding F1, repaired in 0.1.1).** The
 killed-process matrix (`crates/dss-core/tests/p64_kill.rs`) kills the writing process at

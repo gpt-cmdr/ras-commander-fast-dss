@@ -1,5 +1,7 @@
-//! Killed-process qualification of both flush policies (`WriteOptions { sync }`), and of
-//! the repair of finding F1 (`docs/format/dss7.md` §6.4).
+//! Killed-process qualification of the three flush policies (`WriteOptions { sync }`:
+//! `SyncMode::None`, `End`, `Step`), and of the repair of finding F1
+//! (`docs/format/dss7.md` §6.4). `End` is the default since 0.1.2; the reference write and
+//! the repairing write of every check below run in that default.
 //!
 //! The crash model of `docs/format/dss7.md` and `dss6.md` is process death: the operating
 //! system keeps every completed `write`. The existing fault matrices (`dss7_write.rs`, `dss7_write_irr.rs`, `pd_write.rs`,
@@ -41,20 +43,177 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use dss_core::dss6::write::{
-    check_file6, create_dss6, write_grid6, write_its6, write_pd6, write_rts6,
-    ItsInput as ItsInput6, ItsMode,
-};
+use dss_core::dss6::write::{self as w6, check_file6, create_dss6, ItsInput as ItsInput6, ItsMode};
 use dss_core::dss6::Dss6File;
 use dss_core::dss7::write::{
-    create_dss7, repair_dss7, set_barrier_hook, write_grid, write_its, write_location,
-    write_pattern, write_pd, write_profile, write_rts, write_rts_variants, AlbersParameters,
+    self as w7, create_dss7, repair_dss7, repair_dss7_with, set_barrier_hook, AlbersParameters,
     FaultPoint, GridCompression, GridInput, GridProjection, ItsInput, LocationInput, PatternInput,
-    PdArrays, PdInput, ProfileArrays, ProfileInput, RtsInput, RtsValues, TsVariants, WriteError,
-    WriteOptions, WriteStep,
+    PdArrays, PdInput, ProfileArrays, ProfileInput, RtsInput, RtsValues, SyncMode, TsVariants,
+    WriteError, WriteOptions, WriteReport, WriteStep,
 };
 use dss_core::dss7::{table_hash, ChainState, Dss7File};
 use dss_core::time::ymd_to_julian;
+
+// ---------------------------------------------------------------------------------
+// The held-handle path. With `P64_HELD=1` the killed write and the
+// repairing write each run as a `DssFile` session runs them: one read+write handle is
+// opened, a read view is built on a duplicate of it, and every write of the operation
+// goes through that handle (`*_to` entry points). Without it the writes open the path
+// (`write_*`), as before. The writers below dispatch on the handle registered for the
+// file, if any.
+// ---------------------------------------------------------------------------------
+
+thread_local! {
+    static HELD: std::cell::RefCell<Option<(PathBuf, std::fs::File)>> =
+        const { std::cell::RefCell::new(None) };
+    /// Writes of this thread dispatched to the held handle and to the path.
+    static HELD_WRITES: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+    static PATH_WRITES: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
+/// Held-handle writes made by every thread of this process (reported by the matrices).
+static HELD_TOTAL: AtomicUsize = AtomicUsize::new(0);
+
+fn held_mode() -> bool {
+    std::env::var_os("P64_HELD").is_some()
+}
+
+fn via(
+    f: &Path,
+    by_path: impl FnOnce(&Path) -> Result<WriteReport, WriteError>,
+    by_file: impl FnOnce(&std::fs::File) -> Result<WriteReport, WriteError>,
+) -> Result<WriteReport, WriteError> {
+    HELD.with(|h| match h.borrow().as_ref() {
+        Some((p, file)) if p == f => {
+            HELD_WRITES.with(|c| c.set(c.get() + 1));
+            HELD_TOTAL.fetch_add(1, Ordering::SeqCst);
+            by_file(file)
+        }
+        _ => {
+            PATH_WRITES.with(|c| c.set(c.get() + 1));
+            by_path(f)
+        }
+    })
+}
+
+/// Run `op` with a held read+write handle on `f` in held mode (else just `op`). Before
+/// `op`, the file is read through a duplicate of the handle, as `DssFile` reads.
+///
+/// In held mode the session fails fast if `op` wrote through the path
+/// instead of the handle, or (unless `op` is the copy-out repair, which writes a new file
+/// by path) made no held write at all, so a silent fallback to the path cannot pass.
+fn session<T>(v: u8, f: &Path, op: impl FnOnce() -> T) -> T {
+    session_expect(v, f, true, op)
+}
+
+fn session_expect<T>(v: u8, f: &Path, expect_held: bool, op: impl FnOnce() -> T) -> T {
+    if !held_mode() {
+        return op();
+    }
+    let (h0, p0) = (HELD_WRITES.with(|c| c.get()), PATH_WRITES.with(|c| c.get()));
+    let file = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(f)
+        .unwrap();
+    let dup = file.try_clone().unwrap();
+    if v == 6 {
+        let src = dss_core::dss6::FileSource::from_file(dup).unwrap();
+        let _ = Dss6File::new(src).unwrap();
+    } else {
+        let _ = Dss7File::new(dup).unwrap().catalog();
+    }
+    HELD.with(|h| *h.borrow_mut() = Some((f.to_path_buf(), file)));
+    let r = op();
+    HELD.with(|h| *h.borrow_mut() = None);
+    let (h1, p1) = (HELD_WRITES.with(|c| c.get()), PATH_WRITES.with(|c| c.get()));
+    assert_eq!(
+        p1, p0,
+        "{f:?}: a write inside a held session went through the path"
+    );
+    if expect_held {
+        assert!(h1 > h0, "{f:?}: a held session made no held write");
+    }
+    r
+}
+
+fn write_rts(f: &Path, i: &RtsInput, o: &WriteOptions) -> Result<WriteReport, WriteError> {
+    via(f, |p| w7::write_rts(p, i, o), |h| w7::write_rts_to(h, i, o))
+}
+fn write_its(f: &Path, i: &ItsInput, o: &WriteOptions) -> Result<WriteReport, WriteError> {
+    via(f, |p| w7::write_its(p, i, o), |h| w7::write_its_to(h, i, o))
+}
+fn write_pd(f: &Path, i: &PdInput, o: &WriteOptions) -> Result<WriteReport, WriteError> {
+    via(f, |p| w7::write_pd(p, i, o), |h| w7::write_pd_to(h, i, o))
+}
+fn write_grid(f: &Path, i: &GridInput, o: &WriteOptions) -> Result<WriteReport, WriteError> {
+    via(
+        f,
+        |p| w7::write_grid(p, i, o),
+        |h| w7::write_grid_to(h, i, o),
+    )
+}
+fn write_profile(f: &Path, i: &ProfileInput, o: &WriteOptions) -> Result<WriteReport, WriteError> {
+    via(
+        f,
+        |p| w7::write_profile(p, i, o),
+        |h| w7::write_profile_to(h, i, o),
+    )
+}
+fn write_location(
+    f: &Path,
+    i: &LocationInput,
+    o: &WriteOptions,
+) -> Result<WriteReport, WriteError> {
+    via(
+        f,
+        |p| w7::write_location(p, i, o),
+        |h| w7::write_location_to(h, i, o),
+    )
+}
+fn write_rts_variants(
+    f: &Path,
+    i: &RtsInput,
+    v: &TsVariants,
+    o: &WriteOptions,
+) -> Result<WriteReport, WriteError> {
+    via(
+        f,
+        |p| w7::write_rts_variants(p, i, v, o),
+        |h| w7::write_rts_variants_to(h, i, v, o),
+    )
+}
+fn write_pattern(f: &Path, i: &PatternInput, o: &WriteOptions) -> Result<WriteReport, WriteError> {
+    via(
+        f,
+        |p| w7::write_pattern(p, i, o),
+        |h| w7::write_pattern_to(h, i, o),
+    )
+}
+fn write_rts6(f: &Path, i: &RtsInput, o: &WriteOptions) -> Result<WriteReport, WriteError> {
+    via(
+        f,
+        |p| w6::write_rts6(p, i, o),
+        |h| w6::write_rts6_to(h, i, o),
+    )
+}
+fn write_its6(f: &Path, i: &ItsInput6, o: &WriteOptions) -> Result<WriteReport, WriteError> {
+    via(
+        f,
+        |p| w6::write_its6(p, i, o),
+        |h| w6::write_its6_to(h, i, o),
+    )
+}
+fn write_pd6(f: &Path, i: &PdInput, o: &WriteOptions) -> Result<WriteReport, WriteError> {
+    via(f, |p| w6::write_pd6(p, i, o), |h| w6::write_pd6_to(h, i, o))
+}
+fn write_grid6(f: &Path, i: &GridInput, o: &WriteOptions) -> Result<WriteReport, WriteError> {
+    via(
+        f,
+        |p| w6::write_grid6(p, i, o),
+        |h| w6::write_grid6_to(h, i, o),
+    )
+}
 
 const DAY: i64 = 86_400;
 
@@ -69,9 +228,40 @@ fn tmp(name: &str) -> PathBuf {
     d
 }
 
-fn mode(sync: bool) -> WriteOptions {
+/// A flush policy under test. The fixed-index regressions written before 0.1.2 pass a
+/// `bool`: `false` is `SyncMode::None`, `true` is `SyncMode::Step` (the default they were
+/// written against).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Mode(SyncMode);
+
+impl From<bool> for Mode {
+    fn from(sync: bool) -> Mode {
+        Mode(if sync { SyncMode::Step } else { SyncMode::None })
+    }
+}
+
+impl From<SyncMode> for Mode {
+    fn from(sync: SyncMode) -> Mode {
+        Mode(sync)
+    }
+}
+
+impl std::fmt::Display for Mode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.0.as_str())
+    }
+}
+
+/// Every flush policy: the enumerating matrices run each.
+const MODES: [Mode; 3] = [
+    Mode(SyncMode::None),
+    Mode(SyncMode::End),
+    Mode(SyncMode::Step),
+];
+
+fn mode(sync: impl Into<Mode>) -> WriteOptions {
     WriteOptions {
-        sync,
+        sync: sync.into().0,
         ..WriteOptions::default()
     }
 }
@@ -82,8 +272,10 @@ fn mode(sync: bool) -> WriteOptions {
 
 /// The original cases, then the additions: a new record of every DSS7 record kind, a new
 /// bin in the last bin of a bin block and in a new bin block, a bin overflow, the reuse
-/// of a deleted entry, and a write that deletes a record.
-const CASES: [&str; 25] = [
+/// of a deleted entry, and a write that deletes a record; then DSS6 regular merges
+/// that overlap part of a stored block, and that extend a series across block boundaries
+/// (float and double).
+const CASES: [&str; 28] = [
     "rts7_new",
     "rts7_multi",
     "its7",
@@ -110,6 +302,10 @@ const CASES: [&str; 25] = [
     "pd7_widen",
     "rts6_widen",
     "pd6_widen",
+    // P66: DSS6 regular merge/extend into existing blocks (`zsrtsi6.f`, IPLAN 0).
+    "rts6_overlap",
+    "rts6_extend",
+    "rtd6_extend",
 ];
 
 /// DSS7 cases whose write takes a new pathname bin (so the F1 window exists).
@@ -215,6 +411,8 @@ fn paired(v: u8, f: &Path, p: &[u8], scale: f32, o: &WriteOptions) -> Result<(),
 const WIDE_RTS: &[u8] = b"/T/WIDTH/FLOW//1HOUR/S/";
 const WIDE_ITS: &[u8] = b"/T/WIDEIRR/STAGE//IR-MONTH/S/";
 const WIDE_PD: &[u8] = b"/T/WIDEPD/STAGE-FLOW///S/";
+/// P66: the stored double series of `rtd6_extend`.
+const DBL_RTS: &[u8] = b"/T/DBL/FLOW//1HOUR/S/";
 
 /// R17 (dss7.md §6.4): an F64 write over an F32 record (type 100 -> 105, 110 -> 115,
 /// 200 -> 205): the replacement changes the entry's record type.
@@ -458,6 +656,18 @@ fn make_base(case: &str, f: &Path) {
         }
         paired(v, f, WIDE_PD, 1.5, &o).unwrap();
     }
+    // P66: a double series that `rtd6_extend` merges into and extends.
+    if case == "rtd6_extend" {
+        let vals: Vec<f64> = (0..48).map(|i| f64::from(i) / 3.0).collect();
+        let input = RtsInput::new(
+            DBL_RTS,
+            t(2021, 3, 20, 3600),
+            RtsValues::F64(&vals),
+            b"CFS",
+            b"INST-VAL",
+        );
+        write_rts6(f, &input, &o).unwrap();
+    }
     // Records some cases rewrite.
     hourly(
         v,
@@ -616,11 +826,41 @@ fn run_write(case: &str, f: &Path, o: &WriteOptions) -> Result<(), WriteError> {
         "reuse7" => irregular(7, f, GAP, &[t(2021, 3, 15, 0)], &[22.0], o),
         "delete7" => gap_write(f, o),
         "rts7_widen" | "its7_widen" | "pd7_widen" | "rts6_widen" | "pd6_widen" => widen(case, f, o),
-        // The copy-out repair, killed like a write (it writes only `dest`).
-        "repair7" => {
-            let _ = o;
-            repair_dss7(f, &copy_dest(f)).map(|_| ())
+        // P66: overlaps the head of the stored 20-22 March values inside the March block.
+        "rts6_overlap" => hourly(
+            v,
+            f,
+            b"/T/MULTI/FLOW//1HOUR/S/",
+            t(2021, 3, 19, 12 * 3600),
+            &ramp(30, 700.0),
+            o,
+        ),
+        // P66: 28 February to 2 April: a new February block, the March block rewritten
+        // (stored values inside the window replaced, the rest kept) and a new April block.
+        "rts6_extend" => hourly(
+            v,
+            f,
+            b"/T/MULTI/FLOW//1HOUR/S/",
+            t(2021, 2, 28, 3600),
+            &ramp(24 * 33, 300.0),
+            o,
+        ),
+        // P66: doubles from 21 March to 2 April into the stored double March block and a
+        // new double April block.
+        "rtd6_extend" => {
+            let vals: Vec<f64> = (0..24 * 13).map(|i| 1000.0 + f64::from(i) / 7.0).collect();
+            let input = RtsInput::new(
+                DBL_RTS,
+                t(2021, 3, 21, 3600),
+                RtsValues::F64(&vals),
+                b"CFS",
+                b"INST-VAL",
+            );
+            write_rts6(f, &input, o).map(|_| ())
         }
+        // The copy-out repair, killed like a write (it writes only `dest`), in the mode
+        // under test (`repair_dss7_with`).
+        "repair7" => repair_dss7_with(f, &copy_dest(f), o.sync).map(|_| ()),
         // A write that reconciles an interrupted write in place.
         "reconcile7" => paired(7, f, b"/Z/RECON/STAGE-FLOW///S/", 6.0, o),
         _ => panic!("unknown case {case}"),
@@ -839,7 +1079,11 @@ fn p64_kill_child() {
     // R17: with P64_KILL_FINE=1 the hook also runs before every separate write.
     dss_core::dss7::write::set_write_barriers(std::env::var_os("P64_KILL_FINE").is_some());
     assert!(set_barrier_hook(pause_hook));
-    let r = run_write(&case, Path::new(&file), &mode(sync == "1"));
+    let sync = SyncMode::from_name(&sync).expect("P64_KILL_SYNC");
+    let f = Path::new(&file);
+    let r = session_expect(version(&case), f, case != "repair7", || {
+        run_write(&case, f, &mode(sync))
+    });
     let mut out = std::io::stdout().lock();
     let _ = writeln!(
         out,
@@ -858,17 +1102,17 @@ enum Outcome {
 
 /// Run the child on `file` and kill it at coarse barrier `at` (flush points and step
 /// boundaries only; the numbering the fixed-index regressions use).
-fn kill_at(case: &str, file: &Path, at: usize, sync: bool) -> Outcome {
-    kill_at_mode(case, file, at, sync, false)
+fn kill_at(case: &str, file: &Path, at: usize, sync: impl Into<Mode>) -> Outcome {
+    kill_at_mode(case, file, at, sync.into(), false)
 }
 
 /// Run the child and kill it at barrier `at`, where every separate file write is also a
 /// barrier (R17, dss7.md §6.4). The enumerating matrices use this.
-fn kill_at_fine(case: &str, file: &Path, at: usize, sync: bool) -> Outcome {
-    kill_at_mode(case, file, at, sync, true)
+fn kill_at_fine(case: &str, file: &Path, at: usize, sync: impl Into<Mode>) -> Outcome {
+    kill_at_mode(case, file, at, sync.into(), true)
 }
 
-fn kill_at_mode(case: &str, file: &Path, at: usize, sync: bool, fine: bool) -> Outcome {
+fn kill_at_mode(case: &str, file: &Path, at: usize, sync: Mode, fine: bool) -> Outcome {
     let mut cmd = Command::new(std::env::current_exe().unwrap());
     if fine {
         cmd.env("P64_KILL_FINE", "1");
@@ -884,7 +1128,7 @@ fn kill_at_mode(case: &str, file: &Path, at: usize, sync: bool, fine: bool) -> O
         .env("P64_KILL_CASE", case)
         .env("P64_KILL_FILE", file)
         .env("P64_KILL_AT", at.to_string())
-        .env("P64_KILL_SYNC", if sync { "1" } else { "0" })
+        .env("P64_KILL_SYNC", sync.0.as_str())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
@@ -938,7 +1182,11 @@ fn retry_locked<T>(what: &str, mut op: impl FnMut() -> Result<T, WriteError>) ->
 
 /// The next write after a kill, in the default mode.
 fn repair(case: &str, f: &Path) {
-    retry_locked(case, || run_write(case, f, &WriteOptions::default()));
+    retry_locked(case, || {
+        session_expect(version(case), f, case != "repair7", || {
+            run_write(case, f, &WriteOptions::default())
+        })
+    });
 }
 
 fn open_after_kill(f: &Path) {
@@ -1110,7 +1358,7 @@ fn check_reference_shape(case: &str, base: &Path, reference: &Path) {
     }
 }
 
-fn check_case(case: &str, dir: &Path, sync: bool, second: bool, counts: &mut Counts) {
+fn check_case(case: &str, dir: &Path, sync: SyncMode, second: bool, counts: &mut Counts) {
     let v = version(case);
     let base = dir.join(format!("{case}_base.dss"));
     make_base(case, &base);
@@ -1125,7 +1373,22 @@ fn check_case(case: &str, dir: &Path, sync: bool, second: bool, counts: &mut Cou
     }
     let x = expect(case, &base, &reference);
     let keep = std::env::var_os("DSS_P64_KILL_OUT").map(PathBuf::from);
-    let tag = if sync { "sync" } else { "nosync" };
+    // File tags: the two modes of 0.1.1 keep their names; `end` is the default.
+    let tag = match sync {
+        SyncMode::None => "nosync",
+        SyncMode::End => "end",
+        SyncMode::Step => "sync",
+    };
+    // Held-handle runs keep their files under their own names.
+    let tag_held = format!("{tag}_held");
+    let tag: &str = if held_mode() { &tag_held } else { tag };
+    // A second kill is made in the mode under test when that is the default, otherwise
+    // in the no-flush mode, as in 0.1.1.
+    let second_mode = if sync == SyncMode::End {
+        SyncMode::End
+    } else {
+        SyncMode::None
+    };
     let mut at = 0;
     loop {
         let f = dir.join(format!("{case}_{tag}_{at}.dss"));
@@ -1157,14 +1420,19 @@ fn check_case(case: &str, dir: &Path, sync: bool, second: bool, counts: &mut Cou
         if let Some(k) = &keep {
             std::fs::create_dir_all(k).unwrap();
             std::fs::copy(&f, k.join(format!("{case}_{tag}_{at}_killed.dss"))).unwrap();
-            std::fs::copy(&reference, k.join(format!("{case}_ref.dss"))).unwrap();
+            // The modes run as parallel tests: only the default mode keeps the reference
+            // (the file the HEC checks read), so no two tests write the same name (a
+            // shared `{case}_ref.dss` gave a sharing violation on Windows).
+            if sync == SyncMode::End {
+                std::fs::copy(&reference, k.join(format!("{case}_ref.dss"))).unwrap();
+            }
         }
         // A second kill inside the repairing write, at a few of its barriers.
         if second {
             for at2 in [0usize, 1, 2, 3, 5, 8, 13] {
                 let g = dir.join(format!("{case}_{tag}_{at}_{at2}.dss"));
                 std::fs::copy(&f, &g).unwrap();
-                match kill_at_fine(case, &g, at2, false) {
+                match kill_at_fine(case, &g, at2, second_mode) {
                     Outcome::Done(_) => {}
                     Outcome::Killed(_) => {
                         counts.second_kills += 1;
@@ -1233,9 +1501,10 @@ fn assert_f1_window_reached(counts: &Counts) {
     }
 }
 
-const SECOND_KILL_CASES: [&str; 8] = [
+const SECOND_KILL_CASES: [&str; 9] = [
     "rts7_new",
     "rts6_multi",
+    "rts6_extend",
     "its7",
     "pd6",
     "fill7_block",
@@ -1254,7 +1523,7 @@ fn killed_at_every_barrier_nosync() {
         check_case(
             case,
             &d,
-            false,
+            SyncMode::None,
             SECOND_KILL_CASES.contains(&case),
             &mut counts,
         );
@@ -1266,36 +1535,69 @@ fn killed_at_every_barrier_nosync() {
     let _ = std::fs::remove_dir_all(&d);
 }
 
-/// The default mode under the same kills.
+/// The default since 0.1.2 (`SyncMode::End`, one flush at the end of the write call) under
+/// the same kills, with second kills inside the repairing write, child again in `End`.
 #[test]
-fn killed_at_every_barrier_default_sync() {
-    let d = tmp("sync");
+fn killed_at_every_barrier_end_sync() {
+    let d = tmp("end");
     let mut counts = Counts::default();
     for case in cases() {
-        check_case(case, &d, true, false, &mut counts);
+        check_case(
+            case,
+            &d,
+            SyncMode::End,
+            SECOND_KILL_CASES.contains(&case),
+            &mut counts,
+        );
     }
-    report(&counts, "default sync");
+    report(&counts, "end (default)");
+    assert!(counts.kills > 300, "{}", counts.kills);
     assert!(counts.failures.is_empty(), "{:?}", counts.failures);
     assert_f1_window_reached(&counts);
     let _ = std::fs::remove_dir_all(&d);
 }
 
-/// Both modes write the same records.
+/// The per-step mode (`SyncMode::Step`, the default up to 0.1.1) under the same kills.
+#[test]
+fn killed_at_every_barrier_default_sync() {
+    let d = tmp("sync");
+    let mut counts = Counts::default();
+    for case in cases() {
+        check_case(case, &d, SyncMode::Step, false, &mut counts);
+    }
+    report(&counts, "step sync");
+    assert!(counts.failures.is_empty(), "{:?}", counts.failures);
+    assert_f1_window_reached(&counts);
+    let _ = std::fs::remove_dir_all(&d);
+}
+
+/// The three modes write the same records.
 #[test]
 fn modes_write_the_same_records() {
     let d = tmp("modes");
     for case in CASES {
         let v = version(case);
         let a = d.join(format!("{case}_a.dss"));
-        let b = d.join(format!("{case}_b.dss"));
         make_base(case, &a);
-        std::fs::copy(&a, &b).unwrap();
-        run_write(case, &a, &mode(true)).unwrap();
-        run_write(case, &b, &mode(false)).unwrap();
+        let others: Vec<(Mode, PathBuf)> = [SyncMode::None, SyncMode::End]
+            .into_iter()
+            .map(|m| (Mode(m), d.join(format!("{case}_{}.dss", m.as_str()))))
+            .collect();
+        for (_, b) in &others {
+            std::fs::copy(&a, b).unwrap();
+        }
+        run_write(case, &a, &mode(SyncMode::Step)).unwrap();
         let known = listed(v, &a);
-        assert_eq!(listed(v, &b), known, "{case}");
-        assert_eq!(snapshot(v, &a, &known), snapshot(v, &b, &known), "{case}");
-        assert_clean(v, &b, case, None);
+        for (m, b) in &others {
+            run_write(case, b, &mode(*m)).unwrap();
+            assert_eq!(listed(v, b), known, "{case} {m}");
+            assert_eq!(
+                snapshot(v, &a, &known),
+                snapshot(v, b, &known),
+                "{case} {m}"
+            );
+            assert_clean(v, b, &format!("{case} {m}"), None);
+        }
     }
     let _ = std::fs::remove_dir_all(&d);
 }
@@ -1781,7 +2083,7 @@ fn legacy_repair_killed_at_every_barrier() {
         let want = readable(&f);
         let r0 = copy_out_ok(&f, variant);
         assert_eq!(r0.src_interrupted_write, variant == "marker");
-        for sync in [false, true] {
+        for sync in MODES {
             let mut at = 0;
             loop {
                 let g = d.join(format!("r{sync}{at}.dss"));
@@ -1882,6 +2184,7 @@ fn real_marker_variants(d: &Path) -> Vec<(String, PathBuf)> {
 /// never written.
 #[test]
 fn repair_with_every_real_marker_killed_at_every_barrier() {
+    let held0 = HELD_WRITES.with(|c| c.get());
     let d = tmp("legacy_markers");
     let variants = real_marker_variants(&d);
     let neg = variants.iter().filter(|(n, _)| n.ends_with("neg")).count();
@@ -1919,7 +2222,7 @@ fn repair_with_every_real_marker_killed_at_every_barrier() {
             std::fs::create_dir_all(k).unwrap();
             std::fs::copy(&r0, k.join(format!("marker_{name}_ref.dss"))).unwrap();
         }
-        for sync in [false, true] {
+        for sync in MODES {
             for at in 0.. {
                 let g = d.join(format!("{name}_{sync}_{at}.dss"));
                 std::fs::copy(f, &g).unwrap();
@@ -1929,9 +2232,8 @@ fn repair_with_every_real_marker_killed_at_every_barrier() {
                     Outcome::Killed(_) => {
                         kills += 1;
                         open_after_kill(&g);
-                        retry_locked("retry", || {
-                            run_write("reconcile7", &g, &WriteOptions::default())
-                        });
+                        // The recovery runs in a held session in held mode.
+                        repair("reconcile7", &g);
                         false
                     }
                 };
@@ -1976,9 +2278,15 @@ fn repair_with_every_real_marker_killed_at_every_barrier() {
         }
     }
     assert!(rollbacks >= 1, "no rolled-back delete among the variants");
+    let held = HELD_WRITES.with(|c| c.get()) - held0;
     eprintln!(
-        "real markers: {neg} negative, {pos} positive, {rollbacks} rolled back; {kills} reconcile kills"
+        "real markers: {neg} negative, {pos} positive, {rollbacks} rolled back; {kills} reconcile kills; {held} held recovery writes (held mode {})",
+        held_mode()
     );
+    if held_mode() {
+        // Every recovery after a reconcile kill ran on a held handle.
+        assert!(held >= kills, "{held} held writes for {kills} kills");
+    }
     let _ = std::fs::remove_dir_all(&d);
 }
 
@@ -2021,9 +2329,7 @@ fn interrupted_delete_rollback_with_hole_is_restartable() {
         Outcome::Killed(_)
     ));
     open_after_kill(&g);
-    retry_locked("retry", || {
-        run_write("reconcile7", &g, &WriteOptions::default())
-    });
+    repair("reconcile7", &g);
     let (mut a, mut b) = (header_words(&g), header_words(&r0));
     a[13] = 0;
     b[13] = 0;
@@ -2055,13 +2361,15 @@ fn f1_leftover_is_cleared_when_no_new_bin_follows() {
     assert!(f1_state(&f), "copy-out changed the source");
     let cursor = hword(&f, NEXT_EMPTY_BIN);
     retry_locked("replace", || {
-        paired(
-            7,
-            &f,
-            b"/T/PD/STAGE-FLOW///S/",
-            7.0,
-            &WriteOptions::default(),
-        )
+        session(7, &f, || {
+            paired(
+                7,
+                &f,
+                b"/T/PD/STAGE-FLOW///S/",
+                7.0,
+                &WriteOptions::default(),
+            )
+        })
     });
     assert_eq!(hword(&f, NEXT_EMPTY_BIN), cursor, "cursor kept");
     assert!((0..200).all(|i| file_word(&f, cursor + i) == 0));
@@ -2730,7 +3038,9 @@ fn legacy_hole_with_activated_info_is_left_alone() {
     copy_out_preserves(&f, "R1 active info");
     let hole_before = bin_words(&f, hole);
     set_word(&f, PENDING_WORD as i64, info);
-    let _ = run_write("reconcile7", &f, &WriteOptions::default());
+    let _ = session(7, &f, || {
+        run_write("reconcile7", &f, &WriteOptions::default())
+    });
     assert_eq!(bin_words(&f, hole), hole_before);
     assert!(hidden_count(&f).0 >= 1);
     let _ = std::fs::remove_dir_all(&d);
@@ -2772,7 +3082,10 @@ fn legacy_repair_header_is_final_before_the_hash() {
     copy_out_ok(&f, "sorted variant");
     let hole = legacy_hole(&f);
     let hole_before = bin_words(&f, hole);
-    run_write("reconcile7", &f, &WriteOptions::default()).unwrap();
+    session(7, &f, || {
+        run_write("reconcile7", &f, &WriteOptions::default())
+    })
+    .unwrap();
     assert_eq!(bin_words(&f, hole), hole_before);
     let _ = std::fs::remove_dir_all(&d);
 }
@@ -2794,7 +3107,9 @@ fn f1_bin_reused_by_a_shorter_entry() {
     let cursor = hword(&f, NEXT_EMPTY_BIN);
     let short = b"/A/B/C///F/";
     retry_locked("short", || {
-        paired(7, &f, short, 5.0, &WriteOptions::default())
+        session(7, &f, || {
+            paired(7, &f, short, 5.0, &WriteOptions::default())
+        })
     });
     let mut want: BTreeSet<Vec<u8>> = listed(7, &f).into_keys().collect();
     want.insert(short.to_vec());
@@ -3269,7 +3584,7 @@ fn r17_replacement_metadata_is_completed_by_reconciliation() {
     widen("rts7_widen", &f, &mode(true)).unwrap();
     assert_eq!(width_state(&f).3, want.3);
     // Restartable: the reconciling write killed at every barrier, then completed.
-    for sync in [false, true] {
+    for sync in MODES {
         let src = d.join(format!("gap_src_{sync}.dss"));
         r17_old_engine_gap(&src);
         let mut kills = 0;

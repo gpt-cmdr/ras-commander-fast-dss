@@ -19,7 +19,7 @@ pub(crate) struct Described {
 
 /// Whether `text` matches groups of alternatives in order, as a regular expression with `.*`
 /// between them and at the end. With `anchored`, the first group starts the text.
-fn in_order(text: &str, groups: &[&[&str]], anchored: bool) -> bool {
+pub(crate) fn in_order(text: &str, groups: &[&[&str]], anchored: bool) -> bool {
     let Some((first, rest)) = groups.split_first() else {
         return true;
     };
@@ -34,7 +34,7 @@ fn in_order(text: &str, groups: &[&[&str]], anchored: bool) -> bool {
     })
 }
 
-const STATUS: &[&str] = &["stable", "provisional", "early"];
+pub(crate) const STATUS: &[&str] = &["stable", "provisional", "early"];
 
 /// `prism.*<var>.*(stable|provisional|early).*`, with whether its daily and monthly forms match.
 /// Vortex's daily form for `tmin` alone is `...d2.*(d1|d2).*`.
@@ -75,7 +75,7 @@ fn prism_variable(name: &str) -> &'static str {
 }
 
 /// The last match of a left-to-right `\d{count}` search.
-fn last_digits(text: &str, count: usize) -> Option<&str> {
+pub(crate) fn last_digits(text: &str, count: usize) -> Option<&str> {
     let b = text.as_bytes();
     let (mut at, mut found) = (0, None);
     while at + count <= b.len() {
@@ -107,7 +107,7 @@ fn prism_date_length(text: &str) -> Option<usize> {
     None
 }
 
-fn refuse(name: &str, why: &str) -> VortexError {
+pub(crate) fn refuse(name: &str, why: &str) -> VortexError {
     VortexError::Refused {
         what: format!("time in file name {name}"),
         reason: why.to_string(),
@@ -128,7 +128,7 @@ fn month_length(year: i64, month: i64) -> i64 {
 }
 
 /// Days since 1899-12-31, which is `dss_core::grid_write::parse_grid_time`'s julian day.
-fn julian(year: i64, month: i64, day: i64) -> i64 {
+pub(crate) fn julian(year: i64, month: i64, day: i64) -> i64 {
     let y = year - i64::from(month <= 2);
     let era = y.div_euclid(400);
     let yoe = y.rem_euclid(400);
@@ -139,9 +139,14 @@ fn julian(year: i64, month: i64, day: i64) -> i64 {
     era * 146_097 + doe - 719_468 + 25_568
 }
 
+/// The latest year [`time_of`] takes. File names state four digits; a header field (SNODAS) is any
+/// integer, and a year past this one would overflow the julian arithmetic.
+pub(crate) const MAX_YEAR: i64 = 9999;
+
 /// `DateTimeFormatter`'s default SMART resolver: a day from 1 to 31 past the month's end becomes
-/// the month's last day. A year of era 0 is rejected.
-fn time_of(
+/// the month's last day. A year of era 0 is rejected, as is any field outside its calendar range,
+/// so the arithmetic below cannot overflow for any input.
+pub(crate) fn time_of(
     name: &str,
     year: i64,
     month: i64,
@@ -149,11 +154,11 @@ fn time_of(
     hour: i64,
     minute: i64,
 ) -> Result<(i64, i64), VortexError> {
-    if year < 1
+    if !(1..=MAX_YEAR).contains(&year)
         || !(1..=12).contains(&month)
         || !(1..=31).contains(&day)
-        || hour > 23
-        || minute > 59
+        || !(0..=23).contains(&hour)
+        || !(0..=59).contains(&minute)
     {
         return Err(refuse(name, "a date or time field is out of range"));
     }
@@ -164,7 +169,7 @@ fn time_of(
 }
 
 /// ASCII digits to a number; the caller has checked them.
-fn number(text: &str) -> i64 {
+pub(crate) fn number(text: &str) -> i64 {
     text.bytes()
         .fold(0, |n, b| n * 10 + i64::from(b.wrapping_sub(b'0')))
 }
@@ -201,7 +206,7 @@ fn dated(name: &str) -> Result<Vec<(i64, i64)>, VortexError> {
     Ok(out)
 }
 
-fn add_seconds(t: (i64, i64), seconds: i64) -> (i64, i64) {
+pub(crate) fn add_seconds(t: (i64, i64), seconds: i64) -> (i64, i64) {
     let total = t.0 * 86_400 + t.1 + seconds;
     (total.div_euclid(86_400), total.rem_euclid(86_400))
 }
@@ -344,7 +349,7 @@ pub(crate) fn describe(file_name: &str) -> Result<Described, VortexError> {
     };
 
     // VortexVariable.fromName is PRECIPITATION for the one name below among those this produces;
-    // the P50 gate compares the data type against Vortex.
+    // the data type is compared against Vortex's.
     let data_type = match time {
         FrameTime::Period { .. } if short_name == "precipitation" => DataType::PerCum,
         FrameTime::Period { .. } => DataType::PerAver,

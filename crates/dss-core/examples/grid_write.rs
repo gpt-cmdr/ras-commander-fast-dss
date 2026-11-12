@@ -44,7 +44,13 @@ fn f(s: &str) -> f32 {
     s.parse().unwrap_or_else(|_| panic!("float {s:?}"))
 }
 
-fn ops(file: &Path, tsv: &Path, version: u8, fault: Option<WriteStep>, sync: bool) -> bool {
+fn ops(
+    file: &Path,
+    tsv: &Path,
+    version: u8,
+    fault: Option<WriteStep>,
+    sync: dss_core::dss7::write::SyncMode,
+) -> bool {
     let dir: PathBuf = tsv.parent().unwrap_or(Path::new(".")).to_path_buf();
     let text = std::fs::read_to_string(tsv).expect("ops.tsv");
     let mut ok = true;
@@ -237,7 +243,7 @@ fn main() -> ExitCode {
     let ok = match a.get(1).map(String::as_str) {
         Some("ops") if a.len() >= 5 => {
             let mut fault = None;
-            let mut sync = true;
+            let mut sync = dss_core::dss7::write::SyncMode::default();
             let mut i = 5;
             while i < a.len() {
                 match a[i].as_str() {
@@ -245,7 +251,7 @@ fn main() -> ExitCode {
                         fault = step(&a[i + 1]);
                         i += 1;
                     }
-                    "--no-sync" => sync = false,
+                    "--no-sync" => sync = dss_core::dss7::write::SyncMode::None,
                     _ => {}
                 }
                 i += 1;

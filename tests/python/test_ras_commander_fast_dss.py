@@ -1,6 +1,6 @@
 """ras_commander_fast_dss Python API on the committed public fixtures (DSS6 and DSS7).
 
-Expected counts come from the Monolith comparisons in P02/P08a/P08b; the reference
+Expected counts come from reading the same fixtures with HEC Monolith; the reference
 values (castro, sample7) were read with ras-commander's Java ``RasDss``.
 """
 

@@ -1050,7 +1050,8 @@ pub struct TemporalRequest {
     pub units: Option<String>,
     pub data_type: Option<DataType>,
     pub version: Option<u8>,
-    pub sync: bool,
+    /// Flush policy of the run; `End` flushes once after the last record.
+    pub sync: dss_core::dss7::write::SyncMode,
     pub allow_undetectable_readers: bool,
     /// Crash simulation at this record of the run, for tests.
     #[doc(hidden)]
@@ -1405,7 +1406,7 @@ fn meaning_of(
 fn sink_options(request: &TemporalRequest, version: u8, index: usize) -> SinkOptions {
     SinkOptions {
         version,
-        sync: request.sync,
+        sync: sink_dss::record_sync(request.sync),
         allow_undetectable_readers: request.allow_undetectable_readers,
         fault: request
             .fault
@@ -1422,6 +1423,27 @@ pub type TemporalProgress<'a> = &'a mut dyn FnMut(usize, usize) -> ControlFlow<(
 /// The whole run is planned first, reading every selected record once, so a refusal leaves the
 /// output untouched and does not create it.
 pub fn shift_times(
+    request: &TemporalRequest,
+    shift_start: i64,
+    shift_end: i64,
+    progress: TemporalProgress,
+) -> Result<TemporalReport, TemporalError> {
+    let result = shift_records(request, shift_start, shift_end, progress);
+    sink_dss::end_sync(request.sync, &request.output, result, flush_failed)
+}
+
+// The run's single flush failed after every record was acknowledged (`SyncMode::End`).
+fn flush_failed(e: dss_core::dss7::write::WriteError, report: TemporalReport) -> TemporalError {
+    TemporalError {
+        failure: Failure::Write(e),
+        phase: "writing",
+        source: None,
+        completed: report.records,
+        in_doubt: None,
+    }
+}
+
+fn shift_records(
     request: &TemporalRequest,
     shift_start: i64,
     shift_end: i64,
@@ -1600,7 +1622,7 @@ fn store(
     let all_missing = parts.cells.iter().all(|&c| c == GRID_NODATA);
     if !*created {
         // No record's write has begun, so none is in doubt.
-        import::create_output(&request.output, version).map_err(Failure::Write)?;
+        import::create_output(&request.output, version, request.sync).map_err(Failure::Write)?;
         *created = true;
     }
     let written = sink_dss::write_record(
@@ -1867,6 +1889,16 @@ fn group_series(
 /// The time-step resampler (`BatchTimeStepResampler.process`), with its overlap rules. See the module
 /// for what `rule` changes.
 pub fn resample_times(
+    request: &TemporalRequest,
+    step_minutes: i64,
+    rule: Rule,
+    progress: TemporalProgress,
+) -> Result<TemporalReport, TemporalError> {
+    let result = resample_records(request, step_minutes, rule, progress);
+    sink_dss::end_sync(request.sync, &request.output, result, flush_failed)
+}
+
+fn resample_records(
     request: &TemporalRequest,
     step_minutes: i64,
     rule: Rule,

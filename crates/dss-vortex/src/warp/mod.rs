@@ -98,7 +98,7 @@ pub enum Align {
 }
 
 /// The default bound on destination cells: 2^28, about 1 GiB of cells, the same as the GRIB2
-/// reader's default. Every real product in the P41 and P44 matrices is well under it.
+/// reader's default. Every real product in the warp cases compared with Vortex is well under it.
 pub const DEFAULT_MAX_CELLS: u64 = 1 << 28;
 
 /// A DSS grid stores its data size in an `i32`, so no plan may ask for more cells than this.
@@ -287,9 +287,17 @@ fn over_budget(bytes: u64, limit: u64) -> VortexError {
     )
 }
 
+/// The default worker count of a gridded import: the host's
+/// available parallelism (`std::thread::available_parallelism`), or 1 if it cannot be read.
+/// The warp still caps it ([`MAX_WARP_THREADS`], the chunk's rows, the memory limit), and the
+/// result does not depend on it.
+pub fn host_threads() -> usize {
+    std::thread::available_parallelism().map_or(1, usize::from)
+}
+
 // More workers than the host can run add cost and no speed.
 fn useful_threads(requested: usize) -> usize {
-    let host = std::thread::available_parallelism().map_or(1, usize::from);
+    let host = host_threads();
     requested.clamp(1, host.clamp(1, MAX_WARP_THREADS))
 }
 

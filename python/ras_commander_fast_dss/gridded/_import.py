@@ -12,6 +12,7 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 import numpy as np
 
 from .. import _native
+from .._write import _sync_mode
 from . import _select
 from ..exceptions import DssUnsupportedRecordError
 from .._time import TimeLike, to_hec_seconds
@@ -155,6 +156,15 @@ def list_variables(path: PathLike) -> List[str]:
     return list(_native.gridded_variables(str(Path(os.fspath(path)))))
 
 
+def _threads(threads: Optional[int]) -> Optional[int]:
+    """The ``threads=`` of the importers: ``None`` (all cores) or an int >= 1."""
+    if threads is None:
+        return None
+    if isinstance(threads, bool) or int(threads) < 1:
+        raise ValueError(f"threads must be at least 1, not {threads!r}")
+    return int(threads)
+
+
 def import_gridded(
     inputs: Union[PathLike, Sequence[PathLike]],
     output: PathLike,
@@ -174,8 +184,8 @@ def import_gridded(
     align: str = "refuse",
     window_rule: str = "refuse",
     duplicates: str = "refuse",
-    threads: int = 1,
-    sync: bool = True,
+    threads: Optional[int] = None,
+    sync: Union[bool, str] = "end",
     allow_undetectable_readers: bool = True,
     progress: Optional[Callable[[Dict[str, Any]], Any]] = None,
     bbox: Optional[Sequence[float]] = None,
@@ -184,6 +194,8 @@ def import_gridded(
     max_decoded_bytes_per_read: Optional[int] = None,
     chunk_cache_bytes: Optional[int] = None,
     stop: Optional["StopHandle"] = None,
+    snodas_times: str = "header",
+    snodas_georeference: str = "vortex",
 ) -> ImportResult:
     """Import grids from files into a DSS file, one frame at a time.
 
@@ -203,7 +215,9 @@ def import_gridded(
     ----------
     inputs:
         One path or a sequence, read in the order given. GRIB2, NetCDF (classic and NetCDF-4), HDF5,
-        GeoTIFF and ASCII grids are read today, each known by its first bytes and not its name.
+        GeoTIFF and ASCII grids are read today, each known by its first bytes and not its name. GRIB1
+        is read for NCEP Stage IV (2002 to July 2020): total precipitation accumulated over hours, on
+        the polar stereographic HRAP grid, simple packing; other GRIB1 is refused.
         A NetCDF step's period is the file's own: its time bounds, or its time for an instant. See
         "NetCDF" below.
         A file whose columns run east to west must be warped; ``target_crs=None`` with ``cell_size=None``
@@ -260,7 +274,7 @@ def import_gridded(
     align:
         ``"refuse"`` (default) or ``"vortex"``; see below.
     window_rule:
-        ``"refuse"`` (default), ``"vortex"``, or ``"accumulation:<duration>"`` for GRIB2 input, with a
+        ``"refuse"`` (default), ``"vortex"``, or ``"accumulation:<duration>"`` for GRIB input, with a
         duration of ``15M``, ``01H``, ``03H``, ``06H``, ``12H``, ``24H``, ``48H`` or ``72H``. The last
         is not Vortex's result, and states that each record is a depth over that duration: it ends at
         the file's time, starts that much earlier, and is PER-CUM. Only stamps follow from it; no cell
@@ -268,7 +282,7 @@ def import_gridded(
         duration is refused; other text in a file name is a label, so ``24H_RadarOnly_QPE_01H.grib2``
         states one hour. Also refused: a source that is not a rain depth, by its name or units, such as
         a rate, or MRMS's ``FLASH_QPE_ARI24H``, in years; ``units`` that are not a depth; any stated
-        ``data_type`` but ``"PER-CUM"``; and any input that is not GRIB2. When nothing in the file
+        ``data_type`` but ``"PER-CUM"``; and any input that is not GRIB2 or GRIB1. When nothing in the file
         states a duration the caller's statement stands, recorded in ``accumulation_stated_by``. A run whose periods overlap
         or leave a gap writes every record and warns, as rolling products cannot be summed; records
         already in the output are not looked at. Without this, an instant of precipitation stays
@@ -276,7 +290,17 @@ def import_gridded(
     duplicates:
         ``"refuse"`` (default) or ``"last"``; see below.
     threads:
-        Warp workers, at least 1. The result does not depend on this.
+        Warp workers, at least 1. ``None`` (the default since 0.1.2) uses every
+        core available to the process (Rust's ``std::thread::available_parallelism``); give
+        ``threads=1`` for a single worker. The warp caps the count at 64 and at the rows of a
+        chunk. The records written do not depend on this: the
+        output file is byte-identical whatever the count.
+    sync:
+        Flush policy of the run: ``"end"`` (default; ``True`` means the same) flushes once,
+        after the last record; ``"step"`` flushes at every flush point of every record;
+        ``"none"`` (or ``False``) does not flush. See
+        :func:`ras_commander_fast_dss.write_timeseries`. No power-loss claim is made for
+        any mode.
     progress:
         Called after each record with ``done``, ``total``, ``input`` (an index), ``variable``,
         ``frame`` and ``pathname``. If it raises, the run stops, that exception propagates with
@@ -293,6 +317,42 @@ def import_gridded(
         files a stage is a fraction of a second. ``chunk_cache_bytes`` matters when one
         chunk holds many steps, as in a year of hourly grids: the cache must hold a whole step's
         chunks for the next step to be cheap.
+    snodas_times:
+        For SNODAS inputs; other formats ignore it. Each SNODAS file is a
+        UTC product of the day ending at 06:00 UTC.
+
+        ``"header"`` (default) takes the times from the NOHRSC header beside each grid, checked
+        against the file name, and the data type from the product. A daily total (liquid and solid
+        precipitation, melt, the two sublimation products; time code ``T0024``) is PER-CUM over the
+        24 hours ending at 06:00 UTC of the file's date. SWE and snow depth (``T0001``) are INST-VAL
+        at 06:00 UTC of that date. Every timing field of the file name is checked by the NOHRSC
+        naming rules: a real date, ``TS`` (the start of the final hourly step) ``05``, the step
+        ``D`` for a total and ``H`` for SWE and depth, and the offset ``P001`` for precipitation,
+        SWE and depth and ``P000`` for melt and sublimation. A grid with no header, a file-name
+        field with another value, or a header that disagrees with the name is refused.
+
+        These have no qualified interpretation and are refused, naming the two options below: the
+        snowpack average temperature (product ``1038``); melt with time code ``T0001``
+        (historical files such as 2010's); and sublimation (``1039``, ``1050``) whose header stops
+        at 05:00, an hour before the 24 hours its name means, as the 2010 headers do. The last is an
+        open item until it is qualified.
+
+        ``"vortex"`` reads as Vortex 1.1.0 does, for compatibility: times from the file name, which
+        puts each daily total one day later than its header (06:00 of the file's date to 06:00 the
+        next day), every daily total typed PER-AVER (precipitation included), and the snowpack
+        temperature an instant. ``"header_as_stated"`` takes the header's ``Start`` and ``Stop`` as
+        written, typed as Vortex types these products: PER-AVER over a period, INST-VAL at an
+        instant.
+
+        The default differs from Vortex's timing; pass ``"vortex"`` for Vortex-compatible
+        records. Records already in a DSS file are never rewritten: with ``duplicates="refuse"``
+        (default) a re-import that would replace one is refused.
+    snodas_georeference:
+        ``"vortex"`` (default) places SNODAS grids at Vortex's fixed corners; ``"header"`` takes
+        them from the NOHRSC header. Before 1 October 2013 the headers' corners differ from Vortex's
+        by 0.0004167 degrees. A grid with no header is refused when ``"header"`` is asked for.
+
+        SNODAS missing cells and grid size: see the notes.
     stop:
         A :data:`StopHandle`. ``stop.request()`` from another thread ends the run before its next
         frame, and a NetCDF read in progress before its next chunk or filter stage. It does not return
@@ -377,6 +437,33 @@ def import_gridded(
       are variables on two-dimensional or uneven axes, or with several vertical levels, a nonzero
       false origin on Lambert or Albers, and a time with a fraction of a second.
 
+    Grid size. A record holds at most 16,777,216 cells (2^24); this library's writer and its
+    default reader both stop there, and a larger destination is refused while the run is planned,
+    before a cell is decoded. The whole SNODAS grid is 6,935 x 3,351 = 23,239,185 cells, so it
+    cannot be written unwarped. The normal path is to clip to the model's envelope, with a buffer
+    of a few destination cells so bilinear resampling has neighbours at the edge::
+
+        from ras_commander_fast_dss import gridded
+
+        # The basin's bounds in SHG (Albers, metres), from the model's shapefile or HMS grid.
+        west, south, east, north = 1_020_000.0, 1_830_000.0, 1_160_000.0, 1_950_000.0
+        cell = 2000.0
+        pad = 4 * cell
+        gridded.import_gridded(
+            ["SNODAS_20200101.tar"], "snow.dss",
+            variable="SWE",
+            target_crs="SHG", cell_size=cell, method="bilinear",
+            envelope=(west - pad, south - pad, east + pad, north + pad),
+        )
+
+    ``shapefile=`` gives the same clip from the basin's bounding box. A configurable higher cap is
+    not offered: it needs HEC-DSSVue, HEC-HMS and HEC library qualification first.
+
+    SNODAS missing cells. A cell of ``-9999`` is masked before it is scaled or resampled, is
+    stored as a DSS missing value, and is left out of the record's minimum, maximum, mean and range
+    counts. The warp carries the mask as GDAL's ``-srcnodata`` does. Real negative values
+    (sublimation) are kept. Vortex keeps ``-9999`` divided by the product's scale as a number.
+
     Observed through Vortex 0.13.3, which writes DSS6: most PER-CUM grids are stored as PRECIP_2_BYTE,
     which rounds each cell to 1/100; this library stores ZLIB, which keeps the cell's bits. INST-VAL
     stated over a period keeps the period's start in the DSS6 header; this library refuses that.
@@ -390,8 +477,7 @@ def import_gridded(
         raise ValueError("give exactly one of variable=, product=")
     if isinstance(version, bool) or version not in (None, 6, 7):
         raise ValueError(f"version must be 6 or 7, not {version!r}")
-    if isinstance(threads, bool) or int(threads) < 1:
-        raise ValueError(f"threads must be at least 1, not {threads!r}")
+    threads = _threads(threads)
     if stop is not None and not isinstance(stop, StopHandle):
         raise ValueError(f"stop must be a gridded.StopHandle, not {type(stop).__name__}")
     box = _bounds(envelope)
@@ -413,8 +499,8 @@ def import_gridded(
         align=align,
         window_rule=window_rule,
         duplicates=duplicates,
-        threads=int(threads),
-        sync=bool(sync),
+        threads=threads,
+        sync=_sync_mode(sync),
         allow_undetectable_readers=bool(allow_undetectable_readers),
         progress=progress,
         bbox=_select.source_box(bbox),
@@ -423,6 +509,8 @@ def import_gridded(
         max_decoded_bytes_per_read=_limit("max_decoded_bytes_per_read", max_decoded_bytes_per_read),
         chunk_cache_bytes=_limit("chunk_cache_bytes", chunk_cache_bytes),
         stop=stop,
+        snodas_times=snodas_times,
+        snodas_georeference=snodas_georeference,
         **_parts(parts),
     )
     records = [dict(r) for r in records]
@@ -481,8 +569,8 @@ def import_arrays(
     version: Optional[int] = None,
     align: str = "refuse",
     duplicates: str = "refuse",
-    threads: int = 1,
-    sync: bool = True,
+    threads: Optional[int] = None,
+    sync: Union[bool, str] = "end",
     allow_undetectable_readers: bool = True,
     progress: Optional[Callable[[Dict[str, Any]], Any]] = None,
 ) -> ImportResult:
@@ -565,8 +653,7 @@ def import_arrays(
         raise ValueError("transform must be (origin_x, dx, origin_y, dy)") from None
     if isinstance(version, bool) or version not in (None, 6, 7):
         raise ValueError(f"version must be 6 or 7, not {version!r}")
-    if isinstance(threads, bool) or int(threads) < 1:
-        raise ValueError(f"threads must be at least 1, not {threads!r}")
+    threads = _threads(threads)
     box = _bounds(envelope)
     out = str(Path(os.fspath(output)))
     records = _native.import_arrays(
@@ -593,8 +680,8 @@ def import_arrays(
         version=version,
         align=align,
         duplicates=duplicates,
-        threads=int(threads),
-        sync=bool(sync),
+        threads=threads,
+        sync=_sync_mode(sync),
         allow_undetectable_readers=bool(allow_undetectable_readers),
         progress=progress,
         **_parts(parts),

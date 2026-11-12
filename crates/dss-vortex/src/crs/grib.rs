@@ -1,6 +1,5 @@
 //! GRIB2 earth shapes and the CRS Vortex derives from them, as NetCDF-Java 5.5.3 does:
-//! `ucar/nc2/grib/grib2/Grib2Gds.java` `getEarth` and each template's `makeHorizCoordSys`,
-//! with the findings in P41's "The georeference rule".
+//! `ucar/nc2/grib/grib2/Grib2Gds.java` `getEarth` and each template's `makeHorizCoordSys`.
 
 use super::{CrsDef, Datum, Projection};
 use crate::error::VortexError;

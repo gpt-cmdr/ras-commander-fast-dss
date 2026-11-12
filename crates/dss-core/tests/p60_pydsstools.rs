@@ -161,7 +161,7 @@ fn e3_time_invariant_grid_types_follow_hec() {
         ),
     ];
     let o = WriteOptions {
-        sync: false,
+        sync: dss_core::dss7::write::SyncMode::None,
         ..WriteOptions::default()
     };
     for v in [6u8, 7] {

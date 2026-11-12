@@ -10,6 +10,7 @@ use super::numbers::{
     int4, nearly_equals_f32, nearly_equals_f64, pow10_f64, wkt_number, UNDEFINED,
 };
 use crate::error::VortexError;
+use crate::units::km_to_m_or_refuse;
 
 /// Exactly what the Vortex grid definition holds.
 #[derive(Debug, Clone, PartialEq)]
@@ -109,11 +110,11 @@ fn spherical_radius(section: &Section) -> Result<Option<f64>, VortexError> {
 }
 
 const SCALE6: f32 = 1.0e-6;
-const DEG_TO_RAD: f64 = 0.017453292519943295;
+pub(crate) const DEG_TO_RAD: f64 = 0.017453292519943295;
 const RAD_TO_DEG: f64 = 57.29577951308232;
 const PI_OVER_4: f64 = std::f64::consts::PI / 4.0;
 /// `Earth.WGS84_EARTH_RADIUS_METERS`, and `ProjectionImpl.EARTH_RADIUS` in km.
-const DEFAULT_RADIUS_M: f64 = 6371229.0;
+pub(crate) const DEFAULT_RADIUS_M: f64 = 6371229.0;
 const DEFAULT_RADIUS_KM: f64 = 6371.229;
 /// `ProjectionImpl.TOLERANCE`.
 const TOLERANCE: f64 = 1.0e-6;
@@ -189,7 +190,13 @@ fn lambert_start(
 }
 
 /// `Stereographic` with the three-argument constructor and `latLonToProj`, in km.
-fn stereographic_start(latt_deg: f64, lont_deg: f64, scale: f64, la1: f64, lo1: f64) -> (f64, f64) {
+pub(crate) fn stereographic_start(
+    latt_deg: f64,
+    lont_deg: f64,
+    scale: f64,
+    la1: f64,
+    lo1: f64,
+) -> (f64, f64) {
     let latt = latt_deg * DEG_TO_RAD;
     let lont = lont_deg * DEG_TO_RAD;
     let scaled = scale * DEFAULT_RADIUS_KM;
@@ -214,7 +221,7 @@ fn stereographic_start(latt_deg: f64, lont_deg: f64, scale: f64, la1: f64, lo1: 
 /// `Array.makeArray(DataType.FLOAT, n, start, delta)` then `CoordinateAxis1D`: the axis values
 /// are `f32`, the edges `f64`; `getGridDefinition` keeps the first edge and the mean spacing.
 /// Refuses an axis `calcIsRegular` would call irregular, because `getGridData` then resamples.
-fn axis(start: f64, delta: f64, n: usize) -> Result<(f64, f64), VortexError> {
+pub(crate) fn axis(start: f64, delta: f64, n: usize) -> Result<(f64, f64), VortexError> {
     let value = |i: usize| f64::from((start + i as f64 * delta) as f32);
     if n < 2 {
         // makeEdges: both edges equal the coordinate, so the spacing is 0.
@@ -396,10 +403,11 @@ fn polar(s: &Section, nx: usize, ny: usize) -> Result<Georeference, VortexError>
     Ok(Georeference {
         nx,
         ny,
-        origin_x: origin_km * 1000.0,
-        origin_y: origin_y_km * 1000.0,
-        dx: dx_km * 1000.0,
-        dy: dy_km * 1000.0,
+        // NetcdfDataReader.scaleGrid through indriya, as Vortex does.
+        origin_x: km_to_m_or_refuse(origin_km, "GRIB2 grid")?,
+        origin_y: km_to_m_or_refuse(origin_y_km, "GRIB2 grid")?,
+        dx: km_to_m_or_refuse(dx_km, "GRIB2 grid")?,
+        dy: km_to_m_or_refuse(dy_km, "GRIB2 grid")?,
         wkt_radius: DEFAULT_RADIUS_M,
         wkt,
         start_x,
@@ -437,10 +445,11 @@ fn lambert(s: &Section, nx: usize, ny: usize) -> Result<Georeference, VortexErro
     Ok(Georeference {
         nx,
         ny,
-        origin_x: origin_km * 1000.0,
-        origin_y: origin_y_km * 1000.0,
-        dx: dx_km * 1000.0,
-        dy: dy_km * 1000.0,
+        // NetcdfDataReader.scaleGrid through indriya, as Vortex does.
+        origin_x: km_to_m_or_refuse(origin_km, "GRIB2 grid")?,
+        origin_y: km_to_m_or_refuse(origin_y_km, "GRIB2 grid")?,
+        dx: km_to_m_or_refuse(dx_km, "GRIB2 grid")?,
+        dy: km_to_m_or_refuse(dy_km, "GRIB2 grid")?,
         wkt_radius: radius,
         wkt,
         start_x,
@@ -492,7 +501,7 @@ fn lambert_wkt(radius: f64, lat1: f64, lon: f64, lat2: f64) -> Result<String, Vo
 }
 
 /// `WktFactory.createWkt`, `Stereographic` branch: `SetStereographic`, `ExportToPrettyWkt`.
-fn stereographic_wkt(lat: f64, lon: f64, scale: f64) -> Result<String, VortexError> {
+pub(crate) fn stereographic_wkt(lat: f64, lon: f64, scale: f64) -> Result<String, VortexError> {
     Ok(format!(
         "PROJCS[\"unnamed\",\n{}    PROJECTION[\"Stereographic\"],\n    PARAMETER[\"latitude_of_origin\",{}],\n    \
          PARAMETER[\"central_meridian\",{}],\n    PARAMETER[\"scale_factor\",{}],\n{PRETTY_TAIL}",
@@ -519,6 +528,25 @@ mod tests {
     #[test]
     fn a_single_point_axis_has_zero_spacing() {
         assert_eq!(axis(5.0, 1.0, 1).unwrap(), (5.0, 0.0));
+    }
+
+    #[test]
+    fn polar_spacing_converts_as_indriya_does() {
+        // Section 3 of the public Stage IV Puerto Rico grid (205 x 205, template 3.20) with Dx and
+        // Dy set to 4763000 mm, the CONUS spacing. Vortex 1.1.0 and 0.13.3 both report dx and dy as
+        // 4762.998999618903; `x * 1000.0` gives ...902.
+        const SECTION: &str = concat!(
+            "0000004103000000a4290000001401000061378000000000000000000000000000",
+            "cd000000cd01084f881140830008039387000f32fdc00048ad780048ad780040",
+        );
+        let bytes: Vec<u8> = (0..SECTION.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&SECTION[i..i + 2], 16).unwrap())
+            .collect();
+        let g = polar(&Section(&bytes), 205, 205).unwrap();
+        assert_eq!(g.dx, 4762.998999618903);
+        assert_eq!(g.dy, 4762.998999618903);
+        assert_ne!(g.dx, 4762.998999618902);
     }
 
     #[test]

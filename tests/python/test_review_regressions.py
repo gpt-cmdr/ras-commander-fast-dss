@@ -1,4 +1,4 @@
-"""Regressions for the nine P09a binding findings; public and synthetic data only."""
+"""Regressions for nine Python binding defects fixed in P09a; public and synthetic data only."""
 
 import errno
 import os

@@ -148,6 +148,16 @@ pub trait GridSource {
     fn precipitation_must_be_a_depth(&self) -> bool {
         false
     }
+    /// A data type the source states for a step, used when the caller states none, in place of
+    /// the one inferred from the variable and its time. `None` (the default) infers it, as Vortex's
+    /// `DssDataWriter` does. SNODAS states its products' types under its default timing.
+    fn stated_data_type(
+        &self,
+        _variable: &str,
+        _step: usize,
+    ) -> Result<Option<DataType>, VortexError> {
+        Ok(None)
+    }
 }
 
 /// What of a source a run reads. `bbox` and `times` are the caller's; the rest is the
@@ -375,6 +385,8 @@ pub struct OpenOptions {
     pub limits: SourceLimits,
     /// What a caller set on the NetCDF reader. Other formats ignore it.
     pub netcdf: NetcdfOptions,
+    /// P71. Where SNODAS grids take their times and corners from. Other formats ignore it.
+    pub snodas: crate::source::snodas::SnodasOptions,
 }
 
 /// Limits every source takes.
@@ -383,6 +395,8 @@ pub struct SourceLimits {
     pub max_cells: usize,
     pub max_input_bytes: u64,
     pub max_records: usize,
+    /// P71: what one ZIP archive's rasters may hold together; see [`ImportLimits::max_archive_decoded_bytes`].
+    pub archive: crate::source::zipped::ArchiveBudget,
 }
 
 impl Default for SourceLimits {
@@ -391,6 +405,7 @@ impl Default for SourceLimits {
             max_cells: ImportLimits::default().max_source_cells,
             max_input_bytes: ImportLimits::default().max_input_bytes,
             max_records: Limits::default().max_records,
+            archive: ImportLimits::default().archive_budget(),
         }
     }
 }
@@ -406,6 +421,16 @@ pub fn open_source(path: &Path, options: &OpenOptions) -> Result<Box<dyn GridSou
 /// [`open_source`], with a stop the caller holds. A NetCDF read in progress ends when it is asked;
 /// the GRIB2 and raster readers hold a file whole and do not look at it. A Zarr store opened here
 /// takes its default limits and no stop: `import_gridded` opens one with the request's own.
+/// Whether a file named as a SNODAS member holds what that name says: gzip for `.dat.gz`, and for
+/// `.dat` exactly the masked grid's 2-byte cells.
+fn snodas_bytes_agree(path: &Path, name: &str, head: &[u8]) -> Result<bool, VortexError> {
+    if name.to_ascii_lowercase().ends_with(".gz") {
+        return Ok(crate::source::archive::is_gzip(head));
+    }
+    let grid = (crate::source::snodas::NCOLS * crate::source::snodas::NROWS * 2) as u64;
+    Ok(std::fs::metadata(path)?.len() == grid)
+}
+
 pub fn open_source_with_stop(
     path: &Path,
     options: &OpenOptions,
@@ -460,6 +485,25 @@ pub fn open_source_with_stop(
     if import_netcdf::has_magic(head) {
         return open_netcdf();
     }
+    // P71: archives have their signature at the first byte, and may hold any text after it, so
+    // they come before the search for `GRIB`. A tar's signature is at byte 257.
+    if crate::source::archive::is_zip(head) {
+        return crate::import_archive::open_zip(path, options, stop);
+    }
+    if crate::source::archive::is_tar(head) {
+        return crate::import_archive::open_snodas_tar(path, options);
+    }
+    let name = path
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    // A SNODAS member is chosen by its name only where its bytes agree, so a renamed file of
+    // another format still reaches that format's reader: a `.dat.gz` is gzip, which
+    // the search for `GRIB` below cannot read through, and a `.dat` is exactly the masked grid.
+    let snodas_name = crate::source::snodas::is_snodas_name(&name);
+    if snodas_name && snodas_bytes_agree(path, &name, head)? {
+        return crate::import_archive::open_snodas_member(path, options);
+    }
     if head.windows(4).any(|w| w == b"GRIB") {
         let limits = Limits {
             max_cells: options.limits.max_cells,
@@ -467,6 +511,15 @@ pub fn open_source_with_stop(
             max_records: options.limits.max_records,
             ..Limits::default()
         };
+        // P73: the edition octet of the first message chooses the reader. Each refuses a file that
+        // also holds the other edition.
+        if crate::source::grib1::scan::first_edition(head) == Some(1) {
+            let file = crate::source::grib1::Grib1File::open_with_limits(path, limits)?;
+            return Ok(Box::new(crate::source::grib1::Grib1Source::new(
+                file,
+                options.window_rule,
+            )));
+        }
         let file = Grib2File::open_with_limits(path, limits)?;
         return Ok(Box::new(GribSource::new(file, options.window_rule)));
     }
@@ -476,13 +529,27 @@ pub fn open_source_with_stop(
     if named_asc {
         return open_raster();
     }
+    // An HDF5 signature after a user block is content, so it comes before the readers chosen by
+    // name.
     if import_netcdf::has_offset_magic(head) {
         return open_netcdf();
     }
+    // P71: BIL has no signature; its `.hdr` beside it says what it is.
+    if path
+        .extension()
+        .is_some_and(|e| e.eq_ignore_ascii_case("bil"))
+    {
+        return crate::import_archive::open_bil(path, options);
+    }
+    // A SNODAS name whose bytes are neither gzip nor the masked grid: its reader states why.
+    if snodas_name {
+        return crate::import_archive::open_snodas_member(path, options);
+    }
     Err(VortexError::Unsupported {
         what: format!(
-            "{}: no reader recognises this file. GRIB2, NetCDF, HDF5, GeoTIFF and ASCII grids are \
-             read today; another format plugs in through import::GridSource",
+            "{}: no reader recognises this file. GRIB2, NetCDF, HDF5, GeoTIFF, ASCII grids, BIL, \
+             ZIP archives of those, and SNODAS tars and members are read today; another format \
+             plugs in through import::GridSource",
             path.display()
         ),
     })
@@ -786,6 +853,22 @@ pub struct ImportLimits {
     /// hundred bytes, so this is what bounds its growth: 2^20 is 119 years of hourly grids, and under
     /// 1 GiB of plan.
     pub max_records: usize,
+    /// P71: most bytes of decoded cells (4 per cell) kept from one ZIP archive, whose rasters are
+    /// all decoded when it is opened. 2^30. Checked before each raster is decoded.
+    pub max_archive_decoded_bytes: u64,
+    /// P71: most rasters read from one ZIP archive, checked before any is read. 256; a PRISM
+    /// package holds one.
+    pub max_archive_rasters: usize,
+}
+
+impl ImportLimits {
+    /// The aggregate bounds on one ZIP archive.
+    pub fn archive_budget(&self) -> crate::source::zipped::ArchiveBudget {
+        crate::source::zipped::ArchiveBudget {
+            max_decoded_bytes: self.max_archive_decoded_bytes,
+            max_rasters: self.max_archive_rasters,
+        }
+    }
 }
 
 impl Default for ImportLimits {
@@ -796,6 +879,9 @@ impl Default for ImportLimits {
             max_warp_bytes: 1 << 30,
             max_input_bytes: 1 << 32,
             max_records: 1 << 20,
+            max_archive_decoded_bytes: crate::source::zipped::ArchiveBudget::default()
+                .max_decoded_bytes,
+            max_archive_rasters: crate::source::zipped::ArchiveBudget::default().max_rasters,
         }
     }
 }
@@ -821,12 +907,19 @@ pub struct ImportRequest {
     pub align: Align,
     pub window_rule: WindowRule,
     pub duplicates: Duplicates,
+    /// Warp workers. Default [`crate::warp::host_threads`], all cores; the
+    /// written records do not depend on it.
     pub threads: usize,
     pub limits: ImportLimits,
-    pub sync: bool,
+    /// Flush policy of the run: `End`, the default, flushes once after the last
+    /// record; `Step` flushes at every flush point of every record; `None` never.
+    pub sync: dss_core::dss7::write::SyncMode,
     pub allow_undetectable_readers: bool,
     /// Limits on the NetCDF reader: a read's time, the bytes it may decode, and the chunk cache.
     pub netcdf: NetcdfOptions,
+    /// Where SNODAS grids take their times, data types and corners from; the default
+    /// is the checked header's times with the product's data type, and Vortex's corners.
+    pub snodas: crate::source::snodas::SnodasOptions,
     /// Crash simulation at this record of the run, for tests.
     #[doc(hidden)]
     pub fault: Option<(usize, FaultPoint)>,
@@ -842,7 +935,7 @@ pub struct ImportRequest {
     /// gives one). Set from another thread, it ends the run before its next frame, and a Zarr or
     /// NetCDF read in progress before its next chunk; for NetCDF, also before each filter stage.
     /// On a file input the run then fails as [`Failure::Stopped`]; on a Zarr store the read in
-    /// progress is refused by the store, as P49 has it. Either way `completed` holds the records
+    /// progress is refused by the store itself. Either way `completed` holds the records
     /// already written.
     pub stop: Option<StopFlag>,
 }
@@ -869,11 +962,13 @@ impl ImportRequest {
             align: Align::default(),
             window_rule: WindowRule::default(),
             duplicates: Duplicates::default(),
-            threads: 1,
+            // All cores by default; an explicit `threads` (1 included) wins.
+            threads: crate::warp::host_threads(),
             limits: ImportLimits::default(),
-            sync: true,
+            sync: dss_core::dss7::write::SyncMode::End,
             allow_undetectable_readers: true,
             netcdf: NetcdfOptions::default(),
+            snodas: crate::source::snodas::SnodasOptions::default(),
             fault: None,
             source_bbox: None,
             source_times: None,
@@ -1293,6 +1388,7 @@ fn name_step(
     meta: &StepMeta,
     version: u8,
     must_be_a_depth: bool,
+    stated_type: Option<DataType>,
 ) -> Result<PlannedRecord, VortexError> {
     let accumulation = match request.window_rule {
         WindowRule::Accumulation(wanted) => Some(wanted),
@@ -1325,7 +1421,7 @@ fn name_step(
     let overrides = Overrides {
         c_part: request.parts.c.as_deref(),
         units: request.units.as_deref(),
-        data_type: request.data_type,
+        data_type: request.data_type.or(stated_type),
     };
     let description = meta.description.as_deref();
     let meaning = units::record_meaning(
@@ -1567,9 +1663,11 @@ pub fn import_gridded(
             limits: SourceLimits {
                 max_cells: request.limits.max_source_cells,
                 max_input_bytes: request.limits.max_input_bytes,
+                archive: request.limits.archive_budget(),
                 ..SourceLimits::default()
             },
             netcdf: request.netcdf,
+            snodas: request.snodas,
         },
         request,
     };
@@ -1578,6 +1676,21 @@ pub fn import_gridded(
 
 /// Import from any [`SourceProvider`], for arrays and other formats.
 pub fn run(
+    provider: &dyn SourceProvider,
+    request: &ImportRequest,
+    progress: &mut dyn FnMut(&Progress) -> ControlFlow<()>,
+) -> Result<Vec<ImportedRecord>, ImportError> {
+    let result = run_records(provider, request, progress);
+    sink_dss::end_sync(request.sync, &request.output, result, |e, completed| {
+        ImportError {
+            completed,
+            ..ImportError::planning(Failure::Write(e))
+        }
+        .phase_writing()
+    })
+}
+
+fn run_records(
     provider: &dyn SourceProvider,
     request: &ImportRequest,
     progress: &mut dyn FnMut(&Progress) -> ControlFlow<()>,
@@ -1613,7 +1726,7 @@ pub fn run(
     let mut index = 0;
     let options = |record: usize| SinkOptions {
         version,
-        sync: request.sync,
+        sync: sink_dss::record_sync(request.sync),
         allow_undetectable_readers: request.allow_undetectable_readers,
         fault: request
             .fault
@@ -1820,6 +1933,9 @@ fn plan_run(
                 }
             };
             let short = source.short_name(&variable).map_err(|e| at(e, v, s))?;
+            let stated_type = source
+                .stated_data_type(&variable, step)
+                .map_err(|e| at(e, v, s))?;
             let planned = name_step(
                 request,
                 source.file_name(),
@@ -1827,6 +1943,7 @@ fn plan_run(
                 &meta,
                 version,
                 source.precipitation_must_be_a_depth(),
+                stated_type,
             )
             .map_err(|e| at(e, v, s))?;
             let crs = sink_crs_for(geo, &def).map_err(|e| at(e, v, s))?;
@@ -2011,7 +2128,7 @@ fn write_item(
     let place = sink_dss::placement(&parts.transform, parts.ny, request.align).map_err(vortex)?;
     sink_dss::to_stored_cells(&mut parts, item.planned.meaning.conversion).map_err(vortex)?;
     if !*created {
-        create_output(&request.output, version).map_err(Failure::Write)?;
+        create_output(&request.output, version, request.sync).map_err(Failure::Write)?;
         *created = true;
     }
     sink_dss::write_record(
@@ -2027,11 +2144,18 @@ fn write_item(
     .map_err(Failure::Write)
 }
 
-pub(crate) fn create_output(path: &Path, version: u8) -> Result<(), WriteError> {
+pub(crate) fn create_output(
+    path: &Path,
+    version: u8,
+    sync: dss_core::dss7::write::SyncMode,
+) -> Result<(), WriteError> {
+    // The new file's own flush follows the run's policy record by record: with `End` the
+    // run's single flush covers it.
+    let sync = sink_dss::record_sync(sync);
     if version == 6 {
-        dss_core::dss6::write::create_dss6(path)
+        dss_core::dss6::write::create_dss6_with(path, sync)
     } else {
-        dss_core::dss7::write::create_dss7(path)
+        dss_core::dss7::write::create_dss7_with(path, sync)
     }
 }
 

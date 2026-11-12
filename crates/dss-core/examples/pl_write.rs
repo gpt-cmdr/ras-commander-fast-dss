@@ -205,7 +205,7 @@ fn main() {
         }
         "store" => {
             let opts = WriteOptions {
-                sync: false,
+                sync: dss_core::dss7::write::SyncMode::None,
                 fault: a.get(5).map(|s| FaultPoint {
                     block: a.get(6).map_or(0, |b| b.parse().expect("block")),
                     step: step(s),

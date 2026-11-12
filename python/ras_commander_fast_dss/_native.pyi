@@ -1,6 +1,6 @@
 """Type stubs for the Rust extension module (crates/dss-py)."""
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 def file_signature(path: str) -> Dict[str, Any]: ...
 def open(path: str, recover: bool = False) -> NativeFile: ...
@@ -18,6 +18,15 @@ class NativeFile:
     def closed(self) -> bool: ...
     def signature(self) -> Dict[str, Any]: ...
     def close(self) -> None: ...
+    # Test hooks (not a supported API): read+write handle opens, and whether one is held.
+    @property
+    def _held_opens(self) -> int: ...
+    @property
+    def _holds_write_handle(self) -> bool: ...
+    # The DSS major version of the file the path names now (no view rebuild).
+    def _write_version(self) -> int: ...
+    @property
+    def _view_stale(self) -> bool: ...
     # P62: live_only exports only live/alias rows (no stored_pathname/raw_status keys).
     def catalog(self, recover: Optional[bool] = None, live_only: bool = False) -> Dict[str, Any]: ...
     def pathnames(self, recover: Optional[bool] = None) -> List[str]: ...
@@ -106,9 +115,15 @@ def lock_status(path: str) -> Dict[str, Any]: ...
 #   ("dss6_internal_header_word0_minutes" | "dss7_int_head_time_offset")
 #   pattern_heclib_first_seconds: Optional[int]  (heclib ztsRetrievePattern start)
 
+# Test hook (not a supported API): the next session write renames its file to
+# `aside` (and copies `replacement` to the path) after its identity check, before it writes.
+def _set_session_race(aside: str, replacement: Optional[str] = None) -> None: ...
+
 # P20: DSS7 regular time-series writer.
-def create_dss7(path: str) -> None: ...
-def repair_dss7(src: str, dest: str) -> dict[str, Any]: ...
+# Every writer below takes `handle=`, a NativeFile open on the same path; the write
+# then goes through that object's held read+write handle (DssFile sessions).
+def create_dss7(path: str, sync: Union[bool, str] = "end") -> None: ...
+def repair_dss7(src: str, dest: str, sync: Union[bool, str] = "end") -> dict[str, Any]: ...
 def write_rts(
     path: str,
     pathname: str,
@@ -120,7 +135,8 @@ def write_rts(
     time_zone: Optional[str] = None,
     precision: int = -1,
     allow_undetectable_readers: bool = True,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
+    handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
 def rts_value_times(pathname: str, start: int, n: int) -> Any: ...
 
@@ -137,11 +153,12 @@ def write_its(
     precision: int = -1,
     time_granularity: Optional[int] = None,
     allow_undetectable_readers: bool = True,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
+    handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
 
 # P22: DSS6 time-series writer.
-def create_dss6(path: str) -> None: ...
+def create_dss6(path: str, sync: Union[bool, str] = "end") -> None: ...
 def write_rts6(
     path: str,
     pathname: str,
@@ -153,25 +170,30 @@ def write_rts6(
     time_zone: Optional[str] = None,
     precision: int = -1,
     allow_undetectable_readers: bool = True,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
+    handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
 def rts6_value_times(pathname: str, start: int, n: int) -> Any: ...
 def write_rts_variants(
     path: str, pathname: str, start: int, values: Any, units: str, data_type: str,
     quality: Any = ..., quality_element_size: int = ..., inotes: Any = ...,
     inote_element_size: int = ..., cnotes: Any = ..., time_zone: Any = ..., precision: int = ...,
-    allow_undetectable_readers: bool = ..., sync: bool = ...,
+    allow_undetectable_readers: bool = ..., sync: Union[bool, str] = ...,
+    handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
 def write_its_variants(
     path: str, pathname: str, times: Any, values: Any, units: str, data_type: str,
     quality: Any = ..., quality_element_size: int = ..., inotes: Any = ...,
     inote_element_size: int = ..., cnotes: Any = ..., time_zone: Any = ..., precision: int = ...,
-    time_granularity: Any = ..., allow_undetectable_readers: bool = ..., sync: bool = ...,
+    time_granularity: Any = ..., allow_undetectable_readers: bool = ..., sync: Union[bool, str] = ...,
+    handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
 def write_pattern(
     path: str, pathname: str, values: Any, units: str, data_type: str, times: Any = ...,
     time_zone: Any = ..., precision: int = ..., time_granularity: Any = ..., version: int = ...,
-    allow_undetectable_readers: bool = ..., sync: bool = ...,
+    allow_undetectable_readers: bool = ..., sync: Union[bool, str] = ...,
+    handle: Optional[NativeFile] = None,
+    allow_unconfirmed_dss6_irregular_pattern: bool = False,
 ) -> Dict[str, Any]: ...
 def write_its6(
     path: str,
@@ -183,7 +205,8 @@ def write_its6(
     quality: Optional[Any] = None,
     mode: str = "replace",
     allow_undetectable_readers: bool = True,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
+    handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
 
 # P23: paired-data writer (DSS7 and DSS6).
@@ -204,7 +227,8 @@ def write_pd(
     time_zone: Optional[str] = None,
     version: int = 7,
     allow_undetectable_readers: bool = True,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
+    handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
 
 # P24: grid writer (DSS7 and DSS6).
@@ -237,8 +261,9 @@ def write_grid(
     is_interval: bool = True,
     version: int = 7,
     allow_undetectable_readers: bool = True,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
     validate_only: bool = False,
+    handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
 
 
@@ -256,7 +281,8 @@ def write_profile(
     time_zone: Optional[str] = None,
     precision: int = -1,
     allow_undetectable_readers: bool = True,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
+    handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
 
 def write_location(
@@ -276,7 +302,8 @@ def write_location(
     keep_existing: bool = True,
     version: int = 7,
     allow_undetectable_readers: bool = True,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
+    handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
 
 # P52: time tools, behind the `vortex` feature. Public API: `ras_commander_fast_dss.gridded`.

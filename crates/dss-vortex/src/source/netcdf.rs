@@ -21,6 +21,7 @@ mod wkt;
 
 use crate::error::VortexError;
 use crate::source::grib::nearly_equals_f64;
+use crate::units::km_to_m_or_refuse;
 use crate::{Crs, DataType, FrameTime, GeoTransform, GridFrame, GridFrameParts, RowOrder};
 use axes::CoordSystems;
 use budget::Metered;
@@ -941,9 +942,15 @@ impl<'a> Variable<'a> {
         let dx = (urx - ulx) / nx as f64;
         let (uly, lly) = (y_axis.edges[0], y_axis.edges[ny]);
         let dy = (lly - uly) / ny as f64;
-        // scaleGrid: km on the axes, metres in the WKT.
-        let scale = if km_cell { 1000.0 } else { 1.0 };
-        let (mut origin_x, origin_y, dx, dy) = (ulx * scale, uly * scale, dx * scale, dy * scale);
+        // scaleGrid: km on the axes, metres in the WKT, converted by indriya as Vortex does.
+        let scale = |v: f64| {
+            if km_cell {
+                km_to_m_or_refuse(v, &what())
+            } else {
+                Ok(v)
+            }
+        };
+        let (mut origin_x, origin_y, dx, dy) = (scale(ulx)?, scale(uly)?, scale(dx)?, scale(dy)?);
         // shiftGrid.
         let geographic = !km_cell;
         if geographic && (origin_x > 180.0 || origin_x + dx * nx as f64 > 180.0) {

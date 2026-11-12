@@ -95,12 +95,30 @@ __all__ = [
 #: GRIB2 record's accumulation, for MRMS 15M to 72H QPE.
 #: ``gridded_netcdf``: ``import_gridded`` and ``list_variables`` read NetCDF classic, NetCDF-4 and HDF5
 #: files, with the reader's limits and ``gridded.StopHandle``.
+#: ``gridded_grib1_stage4``: ``import_gridded`` and ``list_variables`` read NCEP Stage IV GRIB1 (2002
+#: to July 2020): total precipitation accumulated over 1, 6 or 24 hours on the polar stereographic
+#: HRAP grid, simple packing. Other GRIB1 is a typed refusal.
+#: ``write_ts_dss6_irregular_pattern_opt_in``: a DSS6 irregular pattern (type 111) is written
+#: only with ``allow_unconfirmed_dss6_irregular_pattern=True`` and refused otherwise with
+#: ``DssUnsupportedRecordError``: no HEC reader has confirmed such records. DSS7 patterns
+#: and DSS6 regular patterns are unaffected.
 #: ``write_sync_policy``: the TS, paired-data, grid, profile and location writers take
-#: ``sync=``. Default ``True``, unchanged: ``fsync`` at the transaction's
-#: existing flush points (the data together with the end-of-file flag) and one terminal
-#: ``sync_all``. ``False`` (opt-in): no flushes; keeps the ordering of completed writes and
-#: of the recovery marker under process death. No power-loss claim for either mode;
-#: ``repair`` is the path for a damaged DSS7 file.
+#: ``sync=``.
+#: ``write_sync_modes``: ``sync=`` names three flush policies, :data:`SYNC_MODES`.
+#: ``"end"`` is the default since 0.1.2: one flush at the end of each write
+#: call. ``"step"`` also flushes at every flush point of the transaction (the default up to
+#: 0.1.1). ``"none"`` does not flush. ``True`` means ``"end"`` and ``False`` means ``"none"``.
+#: ``create``, ``repair``, ``gridded.grid_to_point`` and every gridded writer take it too. All
+#: three keep the ordering of completed writes and of the recovery marker under process death.
+#: No power-loss claim for any mode; ``repair`` is the path for a damaged DSS7 file.
+#: ``gridded_threads_all_cores``: ``gridded.import_gridded``, ``import_arrays`` and
+#: ``import_zarr`` default to ``threads=None``, every core available to the process
+#: (``1`` up to 0.1.1). The written file is byte-identical for any count.
+#: ``dssfile_held_handle``: a ``DssFile`` keeps one read+write handle from its first write
+#: until ``close()``, ``__exit__`` or garbage collection, and its writes and reads use it.
+#: The lock is still tested, taken and released by every write;
+#: the handle's identity is checked against the path before each write and reopened if the
+#: file was replaced.
 FEATURES = frozenset(
     {
         "grid_srs_monolith_parity",
@@ -116,12 +134,25 @@ FEATURES = frozenset(
         "grid_tools",
         "gridded_accumulation_window",
         "gridded_netcdf",
+        # P73: NCEP Stage IV GRIB1 through ``import_gridded`` and ``list_variables``.
+        "gridded_grib1_stage4",
         # P49: ``gridded.import_zarr``, ``read_zarr`` and ``zarr_variables`` read a local Zarr v2
         # store, and ``import_gridded`` takes a store's folder.
         "gridded_zarr",
         # P65: ``repair(src, dest)`` copies every readable DSS7 record into a new file.
         "repair_copy_out",
         "write_sync_policy",
+        "write_sync_modes",
+        "gridded_threads_all_cores",
+        "dssfile_held_handle",
+        # P71: ``import_gridded`` and ``list_variables`` read ESRI BIL (PRISM, old and 2025 names),
+        # and ZIP archives of BIL, ASCII grids and GeoTIFF, as PRISM distributes them.
+        "gridded_prism_bil",
+        # P71: SNODAS daily tars and ``.dat`` members, with ``snodas_times=`` and
+        # ``snodas_georeference=`` on ``import_gridded``.
+        "gridded_snodas",
+        # P66: DSS6 irregular-pattern writes need an explicit opt-in.
+        "write_ts_dss6_irregular_pattern_opt_in",
     }
 )
 
@@ -351,9 +382,9 @@ from .exceptions import NO_DATA_STATUS, DssNoDataError  # noqa: E402
 __all__ += ["DssNoDataError", "NO_DATA_STATUS"]
 
 # P20: DSS7 regular time-series writer.
-from ._write import HEC_UNDEFINED_FLOAT, create, repair, write_timeseries  # noqa: E402
+from ._write import HEC_UNDEFINED_FLOAT, SYNC_MODES, create, repair, write_timeseries  # noqa: E402
 
-__all__ += ["create", "repair", "write_timeseries", "HEC_UNDEFINED_FLOAT"]
+__all__ += ["create", "repair", "write_timeseries", "HEC_UNDEFINED_FLOAT", "SYNC_MODES"]
 
 # P22: DSS6 time-series writer (version=6 of create / write_timeseries).
 from ._write import HEC_MISSING_DSS6  # noqa: E402

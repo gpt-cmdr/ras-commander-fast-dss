@@ -358,7 +358,7 @@ fn temporal_request(input: &Path, output: &Path) -> TemporalRequest {
         units: None,
         data_type: None,
         version: None,
-        sync: false,
+        sync: dss_core::dss7::write::SyncMode::None,
         allow_undetectable_readers: true,
         fault: None,
         limits: Default::default(),

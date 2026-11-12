@@ -23,3 +23,6 @@ crates/dss-vortex/tests/crs_tm_golden.json -text
 crates/dss-vortex/tests/crs_tm_golden.bin binary
 fixtures/public/vortex_p53b/** -text
 fixtures/public/zarr/** -text
+fixtures/public/p71/*.json -text
+fixtures/public/p71/*.zip binary
+fixtures/public/p71/*.gz binary

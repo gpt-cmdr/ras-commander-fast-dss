@@ -11,7 +11,7 @@
 //!   GDAL use a Float64 band, more tokens than cells, and a `.prj` that is not WKT1.
 //!
 //! The `.prj` keeps its text verbatim. `importFromESRI` in GDAL also renames some fields, which the
-//! P50 gate shows does not change what the CRS is on the samples it reads.
+//! comparison with Vortex shows does not change what the CRS is on the samples it reads.
 
 use super::{alloc_zeroed, geokeys, is_wkt1_crs, CrsResolution, Decoded, Limits};
 use crate::error::VortexError;

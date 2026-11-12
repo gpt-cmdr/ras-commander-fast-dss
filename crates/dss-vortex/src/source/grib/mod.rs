@@ -103,7 +103,7 @@ impl Grib2File {
             return Err(VortexError::Refused {
                 what: "GRIB1".to_string(),
                 reason: format!(
-                    "{} message(s) are not edition 2; GRIB1 is not read yet",
+                    "{} message(s) are not edition 2; GRIB1 is read by source::grib1::Grib1File",
                     found.other_editions
                 ),
             });

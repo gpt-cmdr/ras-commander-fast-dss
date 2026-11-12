@@ -150,6 +150,7 @@ impl<'a> Io<'a> {
 
     pub fn sync(&self, on: bool) -> io::Result<()> {
         if on && !self.planning() {
+            crate::dss7::write::count_flush();
             self.f.sync_data()?;
         }
         Ok(())

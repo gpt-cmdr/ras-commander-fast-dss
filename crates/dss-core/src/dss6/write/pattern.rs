@@ -14,16 +14,32 @@
 //! - HEC stores no quality or notes in a pattern record.
 
 use super::engine::{blank_padded, Engine, Found, Record6, I_TYPE};
-use super::{path, BlockReport, PatternInput, RtsValues, WriteError};
+use super::{path, BlockReport, Dss6IrregularPattern, PatternInput, RtsValues, WriteError};
 use crate::dss6::interval::{block_start_ymd, iymdjl, BlockSpan};
 
 fn bad_input(m: impl Into<String>) -> WriteError {
     WriteError::BadInput(m.into())
 }
 
-/// Build the record of one pattern without touching a file.
-pub(super) fn record(p: &PatternInput) -> Result<Record6, WriteError> {
+/// Build the record of one pattern without touching a file. An irregular pattern (type
+/// 111) is refused unless `irregular` is [`Dss6IrregularPattern::AllowUnconfirmed`]:
+/// no HEC reader has confirmed such records.
+pub(super) fn record(
+    p: &PatternInput,
+    irregular: Dss6IrregularPattern,
+) -> Result<Record6, WriteError> {
     let (stored, kind) = path::validate_pattern(p.pathname)?;
+    if matches!(kind, path::Kind::Irregular { .. })
+        && irregular != Dss6IrregularPattern::AllowUnconfirmed
+    {
+        return Err(WriteError::Unsupported(
+            "a DSS6 irregular pattern (type 111) is written only on explicit opt-in \
+             (Dss6IrregularPattern::AllowUnconfirmed; Python \
+             allow_unconfirmed_dss6_irregular_pattern=True): HEC Monolith 3.3.27 misreads \
+             such records from both writers and no HEC reader has confirmed them"
+                .into(),
+        ));
+    }
     let v =
         match p.values {
             RtsValues::F32(v) => v,
@@ -148,7 +164,7 @@ pub(super) fn store(eng: &mut Engine, rec: &Record6) -> Result<Vec<BlockReport>,
 #[cfg(test)]
 mod tests {
     use super::super::engine::{write_with, Found};
-    use super::super::{create_dss6, write_pattern6, WriteOptions};
+    use super::super::{create_dss6, write_pattern6_with, Dss6IrregularPattern, WriteOptions};
     use super::*;
     use crate::dss6::Dss6File;
     use std::fs::OpenOptions;
@@ -162,7 +178,7 @@ mod tests {
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(&d).unwrap();
         let opts = WriteOptions {
-            sync: false,
+            sync: crate::dss7::write::SyncMode::None,
             ..WriteOptions::default()
         };
         let times = [3600i64, 7200];
@@ -184,7 +200,7 @@ mod tests {
             create_dss6(&f).unwrap();
             let mut i = PatternInput::new(path, RtsValues::F32(&[1.0, 2.0]), b"CFS", b"PER-AVER");
             i.times = t;
-            let rec = record(&i).unwrap();
+            let rec = record(&i, Dss6IrregularPattern::AllowUnconfirmed).unwrap();
             let header = vec![0x4142_4344, 0x4546_4748, 7];
             let file = OpenOptions::new().read(true).write(true).open(&f).unwrap();
             write_with(&file, &opts, |eng| {
@@ -201,7 +217,8 @@ mod tests {
 
             // Equal values: nothing is written.
             let before = std::fs::read(&f).unwrap();
-            let r = write_pattern6(&f, &i, &opts).unwrap();
+            let r =
+                write_pattern6_with(&f, &i, &opts, Dss6IrregularPattern::AllowUnconfirmed).unwrap();
             assert_eq!(
                 r.blocks[0].outcome,
                 crate::dss7::write::BlockOutcome::Unchanged
@@ -210,7 +227,8 @@ mod tests {
 
             // Changed values: a new copy with the same header.
             i.values = RtsValues::F32(&[3.0, 4.0]);
-            let r = write_pattern6(&f, &i, &opts).unwrap();
+            let r =
+                write_pattern6_with(&f, &i, &opts, Dss6IrregularPattern::AllowUnconfirmed).unwrap();
             assert_eq!(
                 r.blocks[0].outcome,
                 crate::dss7::write::BlockOutcome::Replaced

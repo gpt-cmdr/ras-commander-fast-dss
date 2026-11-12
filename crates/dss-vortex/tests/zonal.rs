@@ -62,6 +62,7 @@ fn run_request(grids: &Path, zones: &Path, field: &str, output: &Path) -> GridTo
         parts: PointParts::default(),
         version: None,
         allow_undetectable_readers: true,
+        sync: dss_core::dss7::write::SyncMode::End,
         allow_in_place: false,
         fault: None,
     }

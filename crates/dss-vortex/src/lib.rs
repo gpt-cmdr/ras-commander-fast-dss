@@ -12,6 +12,7 @@ pub mod file_identity;
 pub mod frame;
 pub mod grid_tools;
 pub mod import;
+pub mod import_archive;
 pub mod import_netcdf;
 pub mod maths;
 pub mod products;

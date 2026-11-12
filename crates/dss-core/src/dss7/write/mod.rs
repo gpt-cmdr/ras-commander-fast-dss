@@ -372,6 +372,139 @@ pub struct FaultPoint {
     pub step: WriteStep,
 }
 
+/// When a write forces its data to storage (`fsync`). [`SyncMode::End`] is the default
+/// since 0.1.2; up to 0.1.1 the default was what is now [`SyncMode::Step`].
+///
+/// The three modes issue **the same `write` calls in the same order** (data first,
+/// pointers last, with the in-progress marker), through unbuffered writes that reach the
+/// operating system as they are made. They differ only in when `fsync` is called. A write
+/// interrupted by **process death** therefore leaves the same on-disk states in every
+/// mode, and the next write reconciles it the same way (the crash model of
+/// `docs/format/dss7.md` and `dss6.md`; killed-process matrix `tests/p64_kill.rs`, run in
+/// all three modes). **No power-loss claim is made in any mode**: after a power loss or an operating-system crash, parts of an
+/// interrupted write, and in [`SyncMode::None`] of earlier completed writes, may be
+/// missing, torn or out of order.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum SyncMode {
+    /// No flush at all. Nothing is forced to storage by the writer.
+    None,
+    /// One flush (`sync_all`) at the end of the write call, before the lock is released
+    /// and the call returns; none between the steps of the transaction. The default.
+    ///
+    /// A caller that stores several records in one public call (the gridded importer,
+    /// the grid tools, grid-to-point) flushes once after its last record; see
+    /// [`SyncMode::batched`].
+    #[default]
+    End,
+    /// A flush (`sync_data`) at every flush point of the transaction, then one
+    /// `sync_all` at the end: the default up to 0.1.1. The flush points are: the record
+    /// area together with the end-of-file flag (the [`WriteStep::Data`] step has no flush
+    /// of its own), the header allocation and marker, the bin-block chain word, a bin
+    /// entry's body before the word that publishes it and that word itself, the header
+    /// counters, the link, the activation, and the cleared marker. A step with nothing to
+    /// write flushes nothing. Reconciliation of an interrupted write flushes its own
+    /// repairs. This is a description of the flush points, not a flush per [`WriteStep`].
+    Step,
+}
+
+impl SyncMode {
+    /// The public names: `"none"`, `"end"`, `"step"`.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            SyncMode::None => "none",
+            SyncMode::End => "end",
+            SyncMode::Step => "step",
+        }
+    }
+
+    /// Parse a public name (`"none"`, `"end"`, `"step"`).
+    pub fn from_name(name: &str) -> Option<SyncMode> {
+        match name {
+            "none" => Some(SyncMode::None),
+            "end" => Some(SyncMode::End),
+            "step" => Some(SyncMode::Step),
+            _ => None,
+        }
+    }
+
+    /// True when the transaction flushes at each of its flush points.
+    #[inline]
+    pub fn each_step(self) -> bool {
+        self == SyncMode::Step
+    }
+
+    /// True when the write call ends with a `sync_all`.
+    #[inline]
+    pub fn at_end(self) -> bool {
+        self != SyncMode::None
+    }
+
+    /// For a public call that stores several records, each through its own write call:
+    /// the mode to give each record, and whether the caller must call [`sync_path`] once
+    /// after the last one. [`SyncMode::End`] becomes "no flush per record, one at the
+    /// end", so the call as a whole keeps the meaning of `End`; the other two modes pass
+    /// through.
+    pub fn batched(self) -> (SyncMode, bool) {
+        match self {
+            SyncMode::End => (SyncMode::None, true),
+            other => (other, false),
+        }
+    }
+}
+
+static FLUSHES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Called by both engines immediately before each `sync_data` / `sync_all`.
+#[inline]
+pub(crate) fn count_flush() {
+    FLUSHES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// Test and measurement hook, not a supported API: the number of flushes
+/// (`sync_data` and `sync_all` calls) the writers of this process have made so far, in
+/// every thread. The tests of the flush policies read it.
+#[doc(hidden)]
+pub fn flush_count() -> u64 {
+    FLUSHES.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+/// `i64::MIN`: no fixed clock.
+static CLOCK_MS: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(i64::MIN);
+
+/// Test hook, not a supported API: fix the time, in milliseconds since
+/// 1970-01-01 UTC, that the writers of this process stamp on files and records (DSS7 last-write
+/// times, DSS6 write date and time), or `None` for the system clock again. Two runs that
+/// should write the same file, such as a gridded import with one worker and with all cores,
+/// can then be compared byte for byte.
+#[doc(hidden)]
+pub fn set_write_clock(ms: Option<i64>) {
+    CLOCK_MS.store(ms.unwrap_or(i64::MIN), std::sync::atomic::Ordering::Relaxed);
+}
+
+/// The fixed clock of [`set_write_clock`], if set.
+pub(crate) fn write_clock() -> Option<i64> {
+    match CLOCK_MS.load(std::sync::atomic::Ordering::Relaxed) {
+        i64::MIN => None,
+        ms => Some(ms),
+    }
+}
+
+/// Force everything written to the file at `path` to storage (`sync_all`): the single
+/// flush of a multi-record call in [`SyncMode::End`] (see [`SyncMode::batched`]). It
+/// writes nothing and touches no lock word. A path that does not exist is not an error.
+pub fn sync_path(path: &Path) -> io::Result<()> {
+    // Windows `FlushFileBuffers` needs write access to the handle.
+    match OpenOptions::new().write(true).open(path) {
+        Ok(f) => {
+            count_flush();
+            f.sync_all()
+        }
+        // A call that stored nothing may not have created the file.
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(()),
+        Err(e) => Err(e),
+    }
+}
+
 /// Writer options.
 #[derive(Debug, Clone)]
 pub struct WriteOptions {
@@ -380,31 +513,8 @@ pub struct WriteOptions {
     /// writers hold the file, and write old-scheme files (readers undetectable) while
     /// holding the lock, reporting [`WriteReport::readers_undetected`].
     pub lock_policy: LockPolicy,
-    /// Flush policy (default `true`, the durable default).
-    ///
-    /// `true`: the writer calls `sync_data` (`fsync`) after each write that a later write
-    /// of the same transaction depends on, at the existing flush points: the record area
-    /// together with the end-of-file flag (the [`WriteStep::Data`] step has no flush of
-    /// its own; its writes are flushed with the EOF flag), the header allocation and
-    /// marker, the bin-block chain word, a bin entry's body before the word that
-    /// publishes it and that word itself, the header counters, the link, the activation,
-    /// and the cleared marker. A step with nothing to write (for example Retire for a new
-    /// record, or Chain without a new bin block) flushes nothing. Reconciliation of an
-    /// interrupted write flushes its own repairs. The write ends with one `sync_all`.
-    /// This is a description of the transaction's flush points, not a flush per
-    /// [`WriteStep`].
-    ///
-    /// `false` (opt-in): no flush. Every write still reaches the operating
-    /// system in the same order through unbuffered `write` calls, and the in-progress
-    /// marker and reconciliation work as before, so a write interrupted by **process
-    /// death** leaves the same states as with `true` (the crash model of
-    /// `docs/format/dss7.md` and `dss6.md`). The killed-process matrix
-    /// (`tests/p64_kill.rs`) finds the same results in both modes, including the DSS7
-    /// window of finding F1 (`dss7.md` §6.4, "Interrupted Publish of a new bin"). What
-    /// `false` gives up: nothing is forced to storage, so after a power loss or
-    /// operating-system crash any part of the write (and of earlier unflushed writes) may
-    /// be missing, torn or out of order. No power-loss claim is made in either mode.
-    pub sync: bool,
+    /// Flush policy; default [`SyncMode::End`]. See [`SyncMode`].
+    pub sync: SyncMode,
     /// Crash-simulation hook (tests only).
     pub fault: Option<FaultPoint>,
 }
@@ -413,7 +523,7 @@ impl Default for WriteOptions {
     fn default() -> Self {
         WriteOptions {
             lock_policy: LockPolicy::default(),
-            sync: true,
+            sync: SyncMode::End,
             fault: None,
         }
     }
@@ -627,6 +737,13 @@ pub fn new_file_words(now_ms: i64) -> Vec<i64> {
 /// ([`WriteError::AlreadyExists`]); the file is written in full and synced before
 /// returning.
 pub fn create_dss7(path: &Path) -> Result<(), WriteError> {
+    create_dss7_with(path, SyncMode::End)
+}
+
+/// [`create_dss7`] with a flush policy: [`SyncMode::None`] skips the `sync_all` (the file
+/// is still written in full by one `write`); the other two modes flush once, as
+/// `create_dss7` does.
+pub fn create_dss7_with(path: &Path, sync: SyncMode) -> Result<(), WriteError> {
     let words = engine::new_file_words(engine::now_ms());
     let mut f = match OpenOptions::new().write(true).create_new(true).open(path) {
         Ok(f) => f,
@@ -640,7 +757,10 @@ pub fn create_dss7(path: &Path) -> Result<(), WriteError> {
         bytes.extend_from_slice(&w.to_le_bytes());
     }
     f.write_all(&bytes)?;
-    f.sync_all()?;
+    if sync.at_end() {
+        count_flush();
+        f.sync_all()?;
+    }
     Ok(())
 }
 
@@ -704,8 +824,27 @@ pub fn create_dss7(path: &Path) -> Result<(), WriteError> {
 /// ([`RepairReport::hidden_records_copied`]). A complete copy says only that what the
 /// readers could find was copied and verified; it is not an integrity certificate for
 /// `src`.
+///
+/// Flushes as [`SyncMode::End`]; see [`repair_dss7_with`].
 pub fn repair_dss7(src: &Path, dest: &Path) -> Result<RepairReport, WriteError> {
-    engine::copy_out(src, dest)
+    repair_dss7_with(src, dest, SyncMode::End)
+}
+
+/// [`repair_dss7`] with a flush policy. The new file is
+/// built under a temporary name that no reader can see until it is published, so a flush
+/// between its steps orders nothing a reader can observe: [`SyncMode::End`] (the default)
+/// and [`SyncMode::Step`] both make **one** `sync_all` of the new file after its last
+/// record and before it is verified and published; [`SyncMode::None`] makes none. In
+/// every mode the file is published only after every selected record was written and
+/// verified, so a process killed at any point leaves `src` unchanged and either no `dest`
+/// or the complete verified `dest`. No power-loss claim; with `None` a
+/// published `dest` may also be incomplete after a power loss.
+pub fn repair_dss7_with(
+    src: &Path,
+    dest: &Path,
+    sync: SyncMode,
+) -> Result<RepairReport, WriteError> {
+    engine::copy_out(src, dest, sync)
 }
 
 /// Store a regular-interval series in the existing DSS7 file at `path`.
@@ -897,6 +1036,18 @@ pub fn write_rts_variants(
     engine::write_rts_v(&file, input, &plan, variants, opts)
 }
 
+/// Same as [`write_rts_variants`] on an already open read-write handle (a `DssFile` session's held handle).
+pub fn write_rts_variants_to(
+    file: &File,
+    input: &RtsInput,
+    variants: &TsVariants,
+    opts: &WriteOptions,
+) -> Result<WriteReport, WriteError> {
+    let plan = engine::plan(input)?;
+    engine::check_rts_variants(input, variants)?;
+    engine::write_rts_v(file, input, &plan, variants, opts)
+}
+
 /// [`write_its`] with multi-word quality or notes.
 pub fn write_its_variants(
     path: &Path,
@@ -910,6 +1061,18 @@ pub fn write_its_variants(
     engine::write_its_v(&file, input, &plan, variants, opts)
 }
 
+/// Same as [`write_its_variants`] on an already open read-write handle (a `DssFile` session's held handle).
+pub fn write_its_variants_to(
+    file: &File,
+    input: &ItsInput,
+    variants: &TsVariants,
+    opts: &WriteOptions,
+) -> Result<WriteReport, WriteError> {
+    let plan = engine::plan_its(input)?;
+    engine::check_its_variants(input, variants)?;
+    engine::write_its_v(file, input, &plan, variants, opts)
+}
+
 /// Store one pattern record (`SemiPublic/ztsStorePattern.c:ztsStorePattern()`): a new
 /// record, or a replacement of a pattern of the same type.
 pub fn write_pattern(
@@ -920,6 +1083,16 @@ pub fn write_pattern(
     let plan = engine::plan_pattern(input)?;
     let file = OpenOptions::new().read(true).write(true).open(path)?;
     engine::write_pattern_planned(&file, &plan, opts)
+}
+
+/// Same as [`write_pattern`] on an already open read-write handle (a `DssFile` session's held handle).
+pub fn write_pattern_to(
+    file: &File,
+    input: &PatternInput,
+    opts: &WriteOptions,
+) -> Result<WriteReport, WriteError> {
+    let plan = engine::plan_pattern(input)?;
+    engine::write_pattern_planned(file, &plan, opts)
 }
 
 /// Validate a pattern input without touching any file.

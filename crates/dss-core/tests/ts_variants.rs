@@ -34,7 +34,7 @@ fn at(y: i64, m: i64, d: i64, h: i64) -> i64 {
 
 fn opts() -> WriteOptions {
     WriteOptions {
-        sync: false,
+        sync: dss_core::dss7::write::SyncMode::None,
         ..WriteOptions::default()
     }
 }
@@ -550,8 +550,24 @@ fn dss6_patterns_and_refusals() {
     i.pathname = b"/P38/P/FLOW/TS-PATTERN/IR-YEAR/I/";
     let times: Vec<i64> = (0..12).map(|k| (k + 1) * 3600).collect();
     i.times = Some(&times);
+    // P66: an irregular DSS6 pattern needs the explicit opt-in; the refusal changes
+    // nothing.
+    let unchanged = std::fs::read(&f).unwrap();
+    assert!(matches!(
+        w6::write_pattern6(&f, &i, &opts()),
+        Err(WriteError::Unsupported(m)) if m.contains("opt-in")
+    ));
+    assert!(matches!(
+        w6::validate_pattern6_input(&i),
+        Err(WriteError::Unsupported(_))
+    ));
+    assert_eq!(unchanged, std::fs::read(&f).unwrap());
+    w6::validate_pattern6_input_with(&i, w6::Dss6IrregularPattern::AllowUnconfirmed).unwrap();
     assert_eq!(
-        w6::write_pattern6(&f, &i, &opts()).unwrap().blocks[0].record_type,
+        w6::write_pattern6_with(&f, &i, &opts(), w6::Dss6IrregularPattern::AllowUnconfirmed)
+            .unwrap()
+            .blocks[0]
+            .record_type,
         111
     );
     assert!(w6::check_file6(&f).unwrap().problems.is_empty());

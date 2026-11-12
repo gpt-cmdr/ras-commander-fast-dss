@@ -318,7 +318,7 @@ fn refuse_stale_sidecar(path: &Path) -> Result<(), VortexError> {
     if path.file_name().is_none() {
         return Err(refuse("raster write", "the target has no file name"));
     }
-    if let Some((found, why)) = applied_sidecar(path, true)? {
+    if let Some((found, why)) = applied_sidecar(path, true, false)? {
         return Err(refuse(
             "raster write",
             format!("a {found} beside the target: {why}"),

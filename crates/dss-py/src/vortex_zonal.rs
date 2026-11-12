@@ -149,7 +149,8 @@ fn run_err(py: Python<'_>, grids: &str, output: &str, e: GridToPointError) -> Py
 #[pyfunction]
 #[pyo3(signature = (grids, zones, field, output, statistics, accumulate=false, part_a=None, part_f=None,
                     variables=None, zones_crs=None, compatibility="engine", version=None,
-                    assume_no_datum_shift=false, allow_undetectable_readers=true, allow_in_place=false))]
+                    assume_no_datum_shift=false, allow_undetectable_readers=true, allow_in_place=false,
+                    sync=crate::PySync::DEFAULT))]
 #[allow(clippy::too_many_arguments)]
 fn gridded_grid_to_point<'py>(
     py: Python<'py>,
@@ -168,6 +169,7 @@ fn gridded_grid_to_point<'py>(
     assume_no_datum_shift: bool,
     allow_undetectable_readers: bool,
     allow_in_place: bool,
+    sync: crate::PySync,
 ) -> PyResult<Bound<'py, PyDict>> {
     let statistics = statistics
         .iter()
@@ -193,6 +195,7 @@ fn gridded_grid_to_point<'py>(
             f: part_f,
         },
         version,
+        sync: sync.0,
         allow_undetectable_readers,
         allow_in_place,
         fault: None,

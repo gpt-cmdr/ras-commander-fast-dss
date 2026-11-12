@@ -259,6 +259,18 @@ fn bits(g: &Grid) -> Vec<u32> {
     g.data.iter().map(|c| c.to_bits()).collect()
 }
 
+/// A request uses every core unless told otherwise. That the written file does not depend on
+/// the count is `tests/python/test_p72_threads.py`.
+#[test]
+fn threads_default_to_the_host_parallelism() {
+    let r = request(Path::new("unused.dss"));
+    assert_eq!(r.threads, dss_vortex::warp::host_threads());
+    assert_eq!(
+        r.threads,
+        std::thread::available_parallelism().map_or(1, usize::from)
+    );
+}
+
 #[test]
 fn the_julian_day_constant_is_june_15() {
     assert_eq!(dss_core::time::ymd_to_julian(2024, 6, 15), JUNE15);
@@ -956,7 +968,7 @@ fn mutated_grib_inputs_never_panic_and_never_leave_a_partial_record() {
             Selection::Variable("Total_precipitation_surface_1_Hour_Accumulation".into()),
             Method::Near,
         );
-        r.sync = false;
+        r.sync = dss_core::dss7::write::SyncMode::None;
         r.align = Align::Vortex;
         r.duplicates = Duplicates::Last;
         match import::import_gridded(&r, &mut |_| ControlFlow::Continue(())) {

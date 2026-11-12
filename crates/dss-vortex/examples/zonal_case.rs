@@ -123,6 +123,7 @@ fn run(case: &Value) -> Result<Value, String> {
             parts,
             version: case["version"].as_u64().map(|v| v as u8),
             allow_undetectable_readers: false,
+            sync: dss_core::dss7::write::SyncMode::End,
             allow_in_place: false,
             fault: None,
         };

@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Union
 
 from .. import _native
+from .._write import _sync_mode
 from .._time import TimeLike
 from ._import import ImportResult, PathLike, _bounds, _seconds
 
@@ -43,7 +44,7 @@ def _common(
     data_type: Optional[str],
     version: Optional[int],
     align: str,
-    sync: bool,
+    sync: Union[bool, str],
     allow_undetectable_readers: bool,
 ) -> Dict[str, Any]:
     parts = dict(parts or {})
@@ -67,7 +68,7 @@ def _common(
         data_type=data_type,
         version=version,
         align=align,
-        sync=sync,
+        sync=_sync_mode(sync),
         allow_undetectable_readers=allow_undetectable_readers,
     )
 
@@ -121,7 +122,7 @@ def calculate(
     data_type: Optional[str] = None,
     version: Optional[int] = None,
     align: str = "refuse",
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
     allow_undetectable_readers: bool = True,
 ) -> ImportResult:
     """Apply one operation by one constant to every valid cell (Vortex's ``BatchCalculator``).
@@ -170,7 +171,7 @@ def calculate_raster(
     data_type: Optional[str] = None,
     version: Optional[int] = None,
     align: str = "refuse",
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
     allow_undetectable_readers: bool = True,
     static_raster: bool = False,
 ) -> ImportResult:
@@ -218,7 +219,7 @@ def sanitize(
     data_type: Optional[str] = None,
     version: Optional[int] = None,
     align: str = "refuse",
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
     allow_undetectable_readers: bool = True,
 ) -> ImportResult:
     """Replace valid cells at or beyond thresholds (Vortex's ``BatchSanitizer``).
@@ -257,7 +258,7 @@ def clip(
     data_type: Optional[str] = None,
     version: Optional[int] = None,
     align: str = "refuse",
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
     allow_undetectable_readers: bool = True,
 ) -> ImportResult:
     """Clip grids to an envelope, by nearest neighbour, in their own CRS (``BatchSubsetter``).
@@ -319,7 +320,7 @@ def normalize(
     data_type: Optional[str] = None,
     version: Optional[int] = None,
     align: str = "refuse",
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
     allow_undetectable_readers: bool = True,
 ) -> NormalizeResult:
     """Scale each interval's source grids so their total matches its normals (``Normalizer``).

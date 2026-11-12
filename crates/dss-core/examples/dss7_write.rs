@@ -80,7 +80,7 @@ fn run() -> Result<(), String> {
                         i += 2;
                     }
                     "--no-sync" => {
-                        opts.sync = false;
+                        opts.sync = dss_core::dss7::write::SyncMode::None;
                         i += 1;
                     }
                     o => return Err(format!("unknown option {o}")),

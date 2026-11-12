@@ -215,7 +215,7 @@ pub fn standard_dss6() -> Vec<u8> {
         &Payload {
             internal_header: ih,
             data,
-            kilnda: 365, // stale, as in P05 O9
+            kilnda: 365, // stale, as in dss6.md §12 O9
             ..Payload::default()
         },
     );

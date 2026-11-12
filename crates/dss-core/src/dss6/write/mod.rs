@@ -55,8 +55,8 @@ use std::io::Write as _;
 use std::path::Path;
 
 pub use crate::dss7::write::{
-    BlockOutcome, BlockReport, FaultPoint, RtsInput, RtsValues, WriteError, WriteOptions,
-    WriteReport, WriteStep,
+    sync_path, BlockOutcome, BlockReport, FaultPoint, RtsInput, RtsValues, SyncMode, WriteError,
+    WriteOptions, WriteReport, WriteStep,
 };
 pub use crate::dss7::write::{PatternInput, PdArrays, PdInput};
 pub use check::{check_file6, CheckReport};
@@ -158,6 +158,13 @@ pub fn new_file_words6(date: &[u8; 7], time: &[u8; 8]) -> Vec<i32> {
 /// ([`WriteError::AlreadyExists`]); the file is written in full and synced before
 /// returning.
 pub fn create_dss6(path: &Path) -> Result<(), WriteError> {
+    create_dss6_with(path, SyncMode::End)
+}
+
+/// [`create_dss6`] with a flush policy: [`SyncMode::None`] skips the `sync_all` of the
+/// temporary file (it is still written in full and published by the same hard link); the
+/// other two modes flush once, as `create_dss6` does.
+pub fn create_dss6_with(path: &Path, sync: SyncMode) -> Result<(), WriteError> {
     let (date, time) = engine::when();
     let words = engine::new_file_words(&date, &time);
     let bytes = io::words_to_file_bytes(&words);
@@ -175,7 +182,10 @@ pub fn create_dss6(path: &Path) -> Result<(), WriteError> {
     let result = (|| -> Result<(), WriteError> {
         let mut f = OpenOptions::new().write(true).create_new(true).open(&tmp)?;
         f.write_all(&bytes)?;
-        f.sync_all()?;
+        if sync.at_end() {
+            crate::dss7::write::count_flush();
+            f.sync_all()?;
+        }
         drop(f);
         match std::fs::hard_link(&tmp, path) {
             Ok(()) => Ok(()),
@@ -338,20 +348,78 @@ pub fn write_grid6_to(
 // Pattern records.
 // ---------------------------------------------------------------------------------
 
+/// Whether a DSS6 irregular pattern (type 111, an `IR-` E part with a `TS-` D part) may be
+/// written. Such records are written as `zsitsi6.f`
+/// stores them (lines 213-266), but HEC Monolith 3.3.27 misreads the tested records from both
+/// writers and no HEC reader has confirmed them, so they need an
+/// explicit opt-in. Regular patterns (type 101) do not depend on it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Dss6IrregularPattern {
+    /// Refuse with [`WriteError::Unsupported`] (the default).
+    #[default]
+    Refuse,
+    /// Write the record, not confirmed by a HEC reader.
+    AllowUnconfirmed,
+}
+
 /// Store one pattern record in the existing DSS6 file at `path` (`zsrtpa6.f`, `zsitsi6.f`
 /// lines 213-266): a new record, or a replacement of a pattern of the same type. Floats
-/// only; no time zone, precision, quality or notes.
+/// only; no time zone, precision, quality or notes. An irregular pattern is refused: see
+/// [`write_pattern6_with`].
 pub fn write_pattern6(
     path: &Path,
     input: &PatternInput,
     opts: &WriteOptions,
 ) -> Result<WriteReport, WriteError> {
-    let rec = pattern::record(input)?;
+    write_pattern6_with(path, input, opts, Dss6IrregularPattern::Refuse)
+}
+
+/// [`write_pattern6`] with an explicit choice for irregular patterns. A refusal
+/// leaves the file unchanged.
+pub fn write_pattern6_with(
+    path: &Path,
+    input: &PatternInput,
+    opts: &WriteOptions,
+    irregular: Dss6IrregularPattern,
+) -> Result<WriteReport, WriteError> {
+    // Built once: validated before the open, stored as built.
+    let rec = pattern::record(input, irregular)?;
     let file = OpenOptions::new().read(true).write(true).open(path)?;
     engine::write_with(&file, opts, |eng| pattern::store(eng, &rec))
 }
 
-/// Validate a pattern input for DSS6 without touching any file.
+/// Same as [`write_pattern6`] on an already open read-write handle (a `DssFile` session's held
+/// handle); irregular patterns are refused.
+pub fn write_pattern6_to(
+    file: &File,
+    input: &PatternInput,
+    opts: &WriteOptions,
+) -> Result<WriteReport, WriteError> {
+    write_pattern6_to_with(file, input, opts, Dss6IrregularPattern::Refuse)
+}
+
+/// [`write_pattern6_to`] with an explicit choice for irregular patterns. The input
+/// is validated before anything is written; a refusal leaves the file unchanged.
+pub fn write_pattern6_to_with(
+    file: &File,
+    input: &PatternInput,
+    opts: &WriteOptions,
+    irregular: Dss6IrregularPattern,
+) -> Result<WriteReport, WriteError> {
+    let rec = pattern::record(input, irregular)?;
+    engine::write_with(file, opts, |eng| pattern::store(eng, &rec))
+}
+
+/// Validate a pattern input for DSS6 without touching any file, as [`write_pattern6`]
+/// would (irregular patterns refused).
 pub fn validate_pattern6_input(input: &PatternInput) -> Result<(), WriteError> {
-    pattern::record(input).map(|_| ())
+    validate_pattern6_input_with(input, Dss6IrregularPattern::Refuse)
+}
+
+/// [`validate_pattern6_input`] with an explicit choice for irregular patterns.
+pub fn validate_pattern6_input_with(
+    input: &PatternInput,
+    irregular: Dss6IrregularPattern,
+) -> Result<(), WriteError> {
+    pattern::record(input, irregular).map(|_| ())
 }

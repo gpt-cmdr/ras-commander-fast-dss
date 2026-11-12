@@ -31,7 +31,7 @@ fn tmp(name: &str) -> PathBuf {
 
 fn opts() -> WriteOptions {
     WriteOptions {
-        sync: false,
+        sync: dss_core::dss7::write::SyncMode::None,
         ..WriteOptions::default()
     }
 }

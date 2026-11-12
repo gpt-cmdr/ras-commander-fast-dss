@@ -97,7 +97,7 @@ fn check_against_spec(pd: &PairedData, r: &[String], version: u8) {
 
 fn replay(path: &Path, rows: &[Vec<String>], version: u8) {
     let opts = WriteOptions {
-        sync: false,
+        sync: dss_core::dss7::write::SyncMode::None,
         ..WriteOptions::default()
     };
     for r in rows {

@@ -827,7 +827,7 @@ Compression is never combined with quality or doubles (`zsrtsi6.f` lines 600-605
 
 ### 7.3b Writing patterns and pseudo-regular data
 
-A regular pattern (`zsrtpa6.f`, type 101) has a 5-word internal header and `KBLNDA` n. An irregular pattern (`zsitsi6.f` lines 213-266, type 111) has the 28-word header, n pairs and `KBLNDA` 2n. Both are floats only. HEC pattern writes omit the end-of-file flag that the native transaction writes; that word is a documented difference.
+A regular pattern (`zsrtpa6.f`, type 101) has a 5-word internal header and `KBLNDA` n. An irregular pattern (`zsitsi6.f` lines 213-266, type 111) has the 28-word header, n pairs and `KBLNDA` 2n. Both are floats only. HEC pattern writes omit the end-of-file flag that the native transaction writes; that word is a documented difference. Irregular patterns are written only on explicit opt-in (`Dss6IrregularPattern::AllowUnconfirmed`; Python `allow_unconfirmed_dss6_irregular_pattern=True`): Monolith 3.3.27 misreads the tested type-111 records from both writers, no HEC reader has confirmed them, and the private test corpus holds none.
 
 A pseudo-regular write is an irregular write to the `IR-*` block `zpseudorts6.f` selects, with the interval in minutes in internal-header word 5 (`INTLPS`) and in the bin (`KBPINTL`, `zsetfi6.f` line 91).
 
@@ -1253,14 +1253,17 @@ Monolith): every store succeeds and every record reads; until the next native wr
 counters can be one off (`KNRECS` one high after Counters/Link of a new record, `KHUSED`
 or `KBOVER` one high after Counters of a new bin). Reads and writes are unaffected, but
 HEC's check routines (`zckpnb6`, `zcklnk6`, `zckpat6`) count the `KNRECS` window as an
-error until the next native write. The crash model is process death. With the default
-`sync: true` the writer flushes at the transaction's existing flush points: the record
-area together with the EOF flag (the Data step has no flush of its own), the allocation
-header, the chain word, the counters, the link, the publication, the retirement and the
-cleared marker; a step with nothing to write flushes nothing, and the write ends with one
-`sync_all`. `sync: false` (Python `sync=False`) keeps the order of the writes and the
-marker and gives up the flushes. Every step that must be atomic is one `write` inside one
-512-byte record. No power-loss claim is made in either mode.
+error until the next native write. The crash model is process death. The flush policy
+is `WriteOptions.sync` (Python `sync=`), the same three modes as for DSS7 (`dss7.md`).
+`SyncMode::End`, the default since 0.1.2, calls `sync_all`
+once at the end of the write call and nowhere else. `SyncMode::Step`, the default up to
+0.1.1, also flushes at the transaction's flush points: the record area together with the
+EOF flag (the Data step has no flush of its own), the allocation header, the chain word,
+the counters, the link, the publication, the retirement and the cleared marker; a step
+with nothing to write flushes nothing. `SyncMode::None` never flushes. All three
+make the same writes in the same order and set the same marker, so the killed-process
+matrix finds the same states in each. Every step that must be atomic is one `write`
+inside one 512-byte record. No power-loss claim is made in any mode.
 
 **Differences from HEC's stores** (deliberate): relocation instead of in-place rewrites
 (`KIUNUS` 0, `KDEAD` by HEC's relocation formula, `zowrit6.f` line 82); `KILNDA`/`KBLNDA`
@@ -1299,6 +1302,106 @@ rule (`zpdRetrieve6.c` lines 129-136) gives `(0, 3)` and `(0, 0)`
 path is `Heclib.Hec_zspd` (`ZSPDI6` with REAL*4). Writer:
 `crates/dss-core/src/dss6/write/pd.rs`.
 
+### 9.4 Regular merge and extend into existing blocks
+
+DSS6 regular time-series writes merge into and extend existing records as HEC does with
+its default store flag. The native rule is a port of
+`zsrtsi6.f:ZSRTSI6` with `IPLAN = 0` ("Always replace data", lines 25-35) and
+`zmovbk6.f:ZMOVBK6` with `IFLAG = 1` (hec-dss tag `7-IU-15`):
+
+- **Window.** The write's window runs from the cleaned start, moved to its standard
+  boundary with the offset kept (`zofset6.f`, `zsrtsi6.f` lines 447-457), for `NVALS`
+  periods (line 459). Blocks are visited from the block holding the start to the block
+  holding the end (`zbegdt6.f`, `zincbk6.f`; weekly blocks Sunday-aligned, lines 517-524).
+- **Each block.** An absent block is created full (`NDATA = NOPERS(block, next block)`,
+  line 677) with every unwritten slot -901 (lines 699-727). An existing block is read and
+  the new values replace the stored ones at positions `NPOS..NPOS+NSTORE-1`
+  (`zmovbk6.f` lines 60-130); every other position keeps its stored value bit for bit.
+  Values are stored as given: a -901, -902, NaN or -FLT_MAX in the input replaces a
+  valid stored value (IPLAN 0 never tests for missing; `IFLAG` -1 and -4 do, for IPLAN 1
+  and 4, which are not offered). A block that ends up all missing is still written (only
+  IPLAN 3 deletes, lines 911 and 1021).
+- **Width and quality** (lines 728-808): double wins (a float block written with doubles
+  is widened with `DBLE`, line 768; floats into a double block are widened, `zmovbk6.f`
+  loop 140); quality is kept (written slots without quality get 0, `zmovbk6.f` lines
+  183 and 217) or added to a float block (loop 310); the other combinations are refused with
+  HEC's status 511.
+- **Metadata.** Units, type and the offset word are the write's (`IIHEAD(1) = IOFSET`,
+  line 871): a merge at another offset relabels the stored values without converting
+  them, as HEC does. The native writer keeps the stored time-zone, coordinate and
+  `KIPREC` words.
+- **Crash ordering.** Each block is one §9.3 transaction; a merge that spans blocks is
+  atomic per block, never across blocks, as HEC's own store is.
+
+**Verification.** `fixtures/public/p66_hec_ts6_merge_ops.tsv` (60 stores: overlap at
+the head, the tail, inside and covering one block; extension before, after and on both
+sides across block boundaries for 1MIN to 1YEAR; offsets; missing values both ways; every
+width combination; quality kept, added and double; compressed stored blocks) was run by
+HEC Monolith 3.3.27 (`p66_hec_ts6_merge.dss`) and replayed natively
+(`crates/dss-core/tests/dss6_merge.rs`): 42 of 44 records are word-identical (bin entry,
+info block apart from addresses and stamps, internal header, data); the two records HEC
+stores compressed decode equal (scheme 1) or differ only as below (scheme 3). A
+replacement-only model of the rule above predicts every value and quality flag of the
+native file, and of HEC's file except its delta-compressed (scheme 3) record, which that
+model does not cover. HEC's re-quantization is checked separately. In this file
+(`hec_requantizes_a_merged_delta_block`), HEC's scheme-3 values up to the end of the
+written window are the native values rounded half away from zero to the caller's precision
+(`NPREC` 0), and the values after it are equal. In the same-block merges below
+(`same_block_compressed_merges`), each value HEC stored is within one unit in the last
+place of the native value re-quantized to the caller's precision. The DSS6 C library of
+hec-dss 7-IV-1 (`ztsStore` → `zsrtsi6`, storage flag 0) made the same merges for the 38
+records without quality or compression: equal to the native result. Monolith and the C
+library read every native result as they read HEC's.
+
+**Merges into the same HEC-compressed block.** `p66_hec_ts6_comp_base.dss`
+holds five blocks HEC stored compressed: scheme 1 (repeats), and scheme 3 (repeats and
+deltas) at `NPREC` -2. Identical copies were merged by HEC Monolith 3.3.27 (`zsrtsx`,
+`p66_hec_ts6_comp_merged.dss`), by the HEC 7-IV-1 C library (`ztsStore`,
+`p66_c_ts6_comp_merged.dss`) and by the native writer (`dss6_merge.rs`,
+`same_block_compressed_merges`). Monolith and the C library read all four files as the
+native reader does.
+
+- **Scheme 1:** both HEC paths and the native writer agree in every value of the block.
+  The internal header and the info block are word-identical, apart from addresses, stamps
+  and the three words of the stored representation (`KINDAT`, `KICOMP`, `KINCHE`). HEC
+  keeps the block compressed; the native writer stores it uncompressed.
+- **Scheme 3: a documented difference from HEC, accepted by the maintainer.** The
+  native writer stores the input values in the written window and leaves every stored
+  value outside it exactly as stored. HEC re-quantizes the whole block to the caller's
+  precision, written values included, so some values inside and outside the window differ
+  from the native result. That whole-block re-quantization is the accepted
+  exception.
+  - *What HEC does.* `zsrtsi6` keeps the stored scheme (`IACOMP = IRCOMP`, line 594), but
+    compresses the merged block with the caller's `NPREC` and base, not the stored ones.
+    Line 659 reads: "NEED TO GET OTHER COMPRESSION INFORMATION HERE (EG BASE NPREC)".
+  - *The whole block is re-quantized.* Every value of the block, outside the written
+    window as well as inside it, is quantized to `10^NPREC` of the caller. A value already
+    on that grid often keeps its stored value, and a missing value is preserved, so many
+    positions are unchanged (see *Observed*). Delta reconstruction can still move an
+    on-grid value by one unit in the last place. The model is: scale in single precision, round half away
+    from zero, scale back. HEC's values are within one unit in the last place of that model
+    at every position.
+  - *Which precision applies.* The caller's precision depends on the store path:
+    - `zsrtsx` passes the caller's `NPREC`. The Fortran default is 0.
+    - The C API (`ztsStore` → `zsrtsc6`) always passes `NPREC` -1 (`zsrtsc6.f` sets it).
+      The same Fortran routine serves HEC's Java store path.
+  - *Observed.* Stored at -2 (hundredths), with positions 26-35 written:
+    - At caller `NPREC` 0, stored 7.5 becomes 8.0 and stored 15.45 becomes 15.0, outside
+      the window. The written values become whole numbers.
+    - At caller `NPREC` -1, as both the C library and `zsrtsx` with -1 store it, stored
+      15.45, 20.02, 27.12 and 31.13 outside the window become 15.5, 20.0, 27.1 and 31.1.
+      The written values become tenths.
+    - At caller `NPREC` -2, the stored precision, with two-decimal input, stored values
+      are unchanged. Two of the ten written values differ from the input by one unit in
+      the last place, from HEC's delta reconstruction.
+  - *What the native writer does.* It decodes the stored block (§8) and changes only the
+    written positions: values outside the window are bit-identical to the decoded starting
+    block. It stores the block uncompressed and does not quantize the
+    input. This difference is accepted.
+- **Rarity.** DSS6 compression is rare in the private test corpus: schemes 1-3, sampled
+  records in 4 files. A merge census of 34 HEC-written DSS6 test files found 37 compressed
+  blocks in 2 files, one of them writable.
+
 ---
 
 ## 10. Pathname rules and limits
@@ -1309,6 +1412,7 @@ path is `Heclib.Hec_zspd` (`ZSPDI6` with REAL*4). Writer:
 | Lister limit | entries with `npath > 390` are skipped by `zplist6` | `zplist6.f` line 149 |
 | Bin fit | `P + 11 + 2 ≤ KBNSIZ` (≤ 456 characters with 127-word bins) | `zcheck6.f` lines 57-64 |
 | Case | stored upper case; characters below 32 become `?` | `zcheck6.f` lines 70-82 |
+| Native writer: printable ASCII only | a pathname byte below 32 or above 126 is refused before anything is written (DSS6 and DSS7 writers). HEC accepts such a pathname and stores it changed, so a native write cannot add to an existing record whose pathname has such bytes; reads are unaffected | `crates/dss-core/src/dss6/write/path.rs`, `crates/dss-core/src/dss7/write/path.rs` |
 | Long path flag | status 11 if `npath > 80` or any part > 32 characters | `znwrit6.f` lines 40-43, 60-72 |
 | Part maximums | header `KMXPRT` bytes 1..6 (catalog display treats < 4 as 4, and D/E < 6 as 6) | `znwrit6.f` lines 59-72; `zcat6.f` lines 102-110 |
 | Pattern TS | D part starting `TS-` (types 101/111) has no dates; value count is `KINDAT`, not `KILNDA` (§7.3a) | `zrrtsi.f` lines 161-187 |

@@ -150,10 +150,13 @@ fn put_date(dst: &mut [i32], date: &[u8; 7]) {
 /// `HH:MM:SS`. HEC uses local time; the writer uses UTC (`dss-core` has no time-zone
 /// database).
 pub(super) fn when() -> ([u8; 7], [u8; 8]) {
-    let secs = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs() as i64)
-        .unwrap_or(0);
+    let secs = match crate::dss7::write::write_clock() {
+        Some(ms) => ms.div_euclid(1000),
+        None => std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs() as i64)
+            .unwrap_or(0),
+    };
     let julian = secs.div_euclid(86_400) + 25_568;
     let s = secs.rem_euclid(86_400);
     let (y, m, d) = julian_to_ymd(julian);
@@ -590,7 +593,7 @@ impl<'a> Engine<'a> {
         if !self.io.planning() {
             crate::dss7::write::barrier(self.block_index, None);
         }
-        self.io.sync(self.opts.sync)?;
+        self.io.sync(self.opts.sync.each_step())?;
         Ok(())
     }
 
@@ -1215,7 +1218,8 @@ where
     let mut eng = Engine::new(file, opts)?;
     let reconciled = eng.reconcile()?;
     let blocks = body(&mut eng)?;
-    if opts.sync {
+    if opts.sync.at_end() {
+        crate::dss7::write::count_flush();
         file.sync_all()?;
     }
     drop(held);

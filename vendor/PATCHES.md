@@ -1,6 +1,6 @@
 # CLB's changes to the vendored readers
 
-Each row is one or more commits on `feat/p48-netcdf-source`, with tests in `crates/dss-vortex/tests/nc_reader_patch.rs`, `nc_hostile_job.rs` and in the crate. **Hit by** says what reaches the code path: every row is a synthetic file. No real file in the P48 set is known to hit any of them. Nothing here has been sent upstream.
+Each row is one change to the vendored source, with tests in `crates/dss-vortex/tests/nc_reader_patch.rs`, `nc_hostile_job.rs` and in the crate. **Hit by** says what reaches the code path: every row is a synthetic file. No real NetCDF file tested is known to hit any of them. Nothing here has been sent upstream.
 
 | # | Kind | Change | Files | Hit by |
 |---|---|---|---|---|

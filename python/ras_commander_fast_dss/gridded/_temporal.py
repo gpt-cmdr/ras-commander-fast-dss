@@ -16,6 +16,7 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 import numpy as np
 
 from .. import _native
+from .._write import _sync_mode
 
 PathLike = Union[str, os.PathLike]
 TimeText = Union[str, _dt.datetime]
@@ -156,7 +157,7 @@ def shift_times(
     units: Optional[str] = None,
     data_type: Optional[str] = None,
     version: Optional[int] = None,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
     allow_undetectable_readers: bool = True,
     progress: Optional[Callable[[int, int], Any]] = None,
 ) -> TimeToolResult:
@@ -213,7 +214,7 @@ def shift_times(
         units=units,
         data_type=data_type,
         version=version,
-        sync=bool(sync),
+        sync=_sync_mode(sync),
         allow_undetectable_readers=bool(allow_undetectable_readers),
         progress=progress,
         **_parts(parts),
@@ -232,7 +233,7 @@ def resample_times(
     units: Optional[str] = None,
     data_type: Optional[str] = None,
     version: Optional[int] = None,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
     allow_undetectable_readers: bool = True,
     progress: Optional[Callable[[int, int], Any]] = None,
 ) -> TimeToolResult:
@@ -289,7 +290,7 @@ def resample_times(
         units=units,
         data_type=data_type,
         version=version,
-        sync=bool(sync),
+        sync=_sync_mode(sync),
         allow_undetectable_readers=bool(allow_undetectable_readers),
         progress=progress,
         **_parts(parts),

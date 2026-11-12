@@ -1,4 +1,4 @@
-"""Gridded import: GRIB2, NetCDF, HDF5, GeoTIFF and ASCII grid files, or arrays, to DSS grids, in the engine's process, with no Java.
+"""Gridded import: GRIB2, GRIB1 (NCEP Stage IV), NetCDF, HDF5, GeoTIFF and ASCII grid files, or arrays, to DSS grids, in the engine's process, with no Java.
 
     from ras_commander_fast_dss import gridded
 

@@ -138,7 +138,7 @@ fn peak_of(inputs: usize, name: &str) -> usize {
         Selection::Variable("Precip".into()),
         Method::Near,
     );
-    r.sync = false;
+    r.sync = dss_core::dss7::write::SyncMode::None;
     let start = NOW.load(SeqCst);
     PEAK.store(start, SeqCst);
     let written = import::run(&Many(inputs), &r, &mut |_| ControlFlow::Continue(())).unwrap();

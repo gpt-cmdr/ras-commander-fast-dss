@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from .. import _native
+from .._write import _sync_mode
 
 PathLike = Union[str, os.PathLike]
 
@@ -77,6 +78,7 @@ def grid_to_point(
     assume_no_datum_shift: bool = False,
     allow_undetectable_readers: bool = True,
     allow_in_place: bool = False,
+    sync: Union[bool, str] = "end",
 ) -> GridToPointResult:
     """Zonal statistics of each grid, written as one time series per zone and statistic.
 
@@ -116,6 +118,12 @@ def grid_to_point(
     allow_in_place:
         Permit ``output`` to be the file holding ``grids``, adding series beside its grids. Otherwise
         an output that is an input is refused, whatever its name: a hard link counts.
+    sync:
+        Flush policy of the run: ``"end"`` (default; ``True`` means the same) flushes once,
+        after the last series; ``"step"`` flushes at every flush point of every record;
+        ``"none"`` (or ``False``) does not flush. See
+        :func:`ras_commander_fast_dss.write_timeseries`. No power-loss claim is made for
+        any mode.
 
     Nothing touches ``output`` until every statistic and record is settled, so a refusal leaves it as
     it was. That includes a valid statistic or accumulated total whose final float32 is -901, -902
@@ -157,6 +165,7 @@ def grid_to_point(
         assume_no_datum_shift=assume_no_datum_shift,
         allow_undetectable_readers=allow_undetectable_readers,
         allow_in_place=allow_in_place,
+        sync=_sync_mode(sync),
     )
     return GridToPointResult(
         output=_path(output),

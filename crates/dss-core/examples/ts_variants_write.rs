@@ -135,7 +135,7 @@ fn run() -> Result<(), String> {
                 i += 2;
             }
             "--no-sync" => {
-                opts.sync = false;
+                opts.sync = dss_core::dss7::write::SyncMode::None;
                 i += 1;
             }
             "--six" => {
@@ -256,7 +256,13 @@ fn run() -> Result<(), String> {
                     input.time_granularity = Some(gran);
                 }
                 if six {
-                    print(w6::write_pattern6(file, &input, &opts))?;
+                    // Replays of HEC-written cases: irregular patterns are opted in.
+                    print(w6::write_pattern6_with(
+                        file,
+                        &input,
+                        &opts,
+                        w6::Dss6IrregularPattern::AllowUnconfirmed,
+                    ))?;
                 } else {
                     print(write_pattern(file, &input, &opts))?;
                 }

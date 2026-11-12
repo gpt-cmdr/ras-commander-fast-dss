@@ -36,7 +36,7 @@ fn t(y: i64, m: i64, d: i64, secs: i64) -> i64 {
 
 fn opts() -> WriteOptions {
     WriteOptions {
-        sync: false,
+        sync: dss_core::dss7::write::SyncMode::None,
         ..WriteOptions::default()
     }
 }

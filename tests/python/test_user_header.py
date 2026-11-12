@@ -162,7 +162,7 @@ def test_vertical_datum_stays_informational(f):
 
 
 def test_dss7_keys_are_none():
-    # DSS7 user headers are out of scope for P26 (dss7.md §12): every key is None.
+    # DSS7 user-header extraction is unsupported (dss7.md §12): every key is None.
     with dss.open(fixture_path("sample7.dss")) as fh:
         cat = fh.catalog()
         p = cat.loc[cat["record_type"].isin([100, 105, 110, 115]), "pathname"].iloc[0]

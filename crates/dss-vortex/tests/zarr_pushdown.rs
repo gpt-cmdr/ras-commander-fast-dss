@@ -50,7 +50,7 @@ fn request(name: &str, method: Method) -> ImportRequest {
     );
     r.parts.a = "SHG".into();
     r.parts.f = "AORC".into();
-    r.sync = false;
+    r.sync = dss_core::dss7::write::SyncMode::None;
     r.target = Some(Crs::Named(NamedCrs::Shg));
     r.cell_size = Some(2000.0);
     r.bounds = Bounds::Envelope {

@@ -2148,6 +2148,57 @@
 }
 }
 },
+"lambert_km_decimal.nc": {
+"bytes_fnv1a": "8bb9f9b606a91761",
+"sha256": "0e3a2eabc6d585416fa3e01cb5eb33c84d1b1c3e60cefef7e98421b495c98436",
+"variables": {
+"data": {
+"dto_count": 2,
+"dtos": [
+{
+"cells": 20,
+"cells_fnv1a": "8845eede655e7a95",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "1001.0",
+"dy": "-1001.0",
+"endTime": "2000-01-01T01:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "500.5",
+"originY": "1503.4999999999998",
+"shortName": "data",
+"startTime": "2000-01-01T00:00Z",
+"step": 0,
+"units": "mm",
+"wkt": "PROJCS[\"Lambert Conformal Conic 2SP\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],\n    PARAMETER[\"latitude_of_origin\",25],\n    PARAMETER[\"central_meridian\",265],\n    PARAMETER[\"standard_parallel_1\",25],\n    PARAMETER[\"standard_parallel_2\",25],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+},
+{
+"cells": 20,
+"cells_fnv1a": "7be8f4fd1e9e6575",
+"dataType": "AVERAGE",
+"description": null,
+"dx": "1001.0",
+"dy": "-1001.0",
+"endTime": "2000-01-01T02:00Z",
+"fullName": "data",
+"noDataValue": "9.969209968386869e+36",
+"nx": 5,
+"ny": 4,
+"originX": "500.5",
+"originY": "1503.4999999999998",
+"shortName": "data",
+"startTime": "2000-01-01T01:00Z",
+"step": 1,
+"units": "mm",
+"wkt": "PROJCS[\"Lambert Conformal Conic 2SP\",\n    GEOGCS[\"unknown\",\n        DATUM[\"unknown\",\n            SPHEROID[\"sphere\",6371229,0]],\n        PRIMEM[\"Greenwich\",0],\n        UNIT[\"degree\",0.0174532925199433,\n            AUTHORITY[\"EPSG\",\"9122\"]]],\n    PROJECTION[\"Lambert_Conformal_Conic_2SP\"],\n    PARAMETER[\"latitude_of_origin\",25],\n    PARAMETER[\"central_meridian\",265],\n    PARAMETER[\"standard_parallel_1\",25],\n    PARAMETER[\"standard_parallel_2\",25],\n    PARAMETER[\"false_easting\",0],\n    PARAMETER[\"false_northing\",0],\n    UNIT[\"Meter\",1],\n    AXIS[\"Easting\",EAST],\n    AXIS[\"Northing\",NORTH]]"
+}
+]
+}
+}
+},
 "lambert_two_parallels.nc": {
 "bytes_fnv1a": "eeb6d82dc6b35e7b",
 "sha256": "0f6fa440c5ff3923abe92a78295d7ffc7f3b8175aa2f50ea8dbf9cbd70355903",

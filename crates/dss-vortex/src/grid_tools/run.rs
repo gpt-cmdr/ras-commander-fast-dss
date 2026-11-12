@@ -42,7 +42,8 @@ pub struct OutputOptions {
     pub data_type: Option<DataType>,
     pub version: Option<u8>,
     pub align: Align,
-    pub sync: bool,
+    /// Flush policy of the run; `End` flushes once after the last record.
+    pub sync: dss_core::dss7::write::SyncMode,
     pub allow_undetectable_readers: bool,
     /// Crash simulation, at the nth record written, for tests.
     pub fault: Option<(usize, FaultPoint)>,
@@ -60,7 +61,7 @@ impl OutputOptions {
             data_type: None,
             version: None,
             align: Align::Refuse,
-            sync: true,
+            sync: dss_core::dss7::write::SyncMode::End,
             allow_undetectable_readers: true,
             fault: None,
         }
@@ -191,7 +192,7 @@ fn at(
 }
 
 /// Open a DSS file, a GeoTIFF, an ASCII grid or a GRIB2 file. `DataReader.builder` also reads NetCDF,
-/// which arrives with P48.
+/// which this function does not open.
 fn open_any(path: &Path) -> Result<(Box<dyn GridSource>, bool), VortexError> {
     if !path.exists() {
         return Err(refused(
@@ -524,8 +525,32 @@ fn stored_frame(
     Ok(parts)
 }
 
-// Check every record, compute every frame once, then write.
+// Check every record, compute every frame once, then write; then the run's single flush
+// (`SyncMode::End`).
 fn execute(
+    input: &Path,
+    source: &dyn GridSource,
+    items: &[Item],
+    options: &OutputOptions,
+    version: u8,
+    existed: bool,
+    tool: &mut dyn Tool,
+) -> Result<Vec<ToolRecord>, ImportError> {
+    let result = execute_records(input, source, items, options, version, existed, tool);
+    sink_dss::end_sync(options.sync, &options.output, result, |e, done| {
+        ImportError {
+            failure: Failure::Write(e),
+            phase: "writing",
+            input: Some(input.to_path_buf()),
+            variable: None,
+            step: None,
+            completed: done.into_iter().map(|r| r.imported).collect(),
+            in_doubt: None,
+        }
+    })
+}
+
+fn execute_records(
     input: &Path,
     source: &dyn GridSource,
     items: &[Item],
@@ -576,14 +601,14 @@ fn execute(
             Err(e) => return Err(stop(Failure::Vortex(e), &mut done, false)),
         };
         if !created {
-            if let Err(e) = import::create_output(&options.output, version) {
+            if let Err(e) = import::create_output(&options.output, version, options.sync) {
                 return Err(stop(Failure::Write(e), &mut done, false));
             }
             created = true;
         }
         let sink = SinkOptions {
             version,
-            sync: options.sync,
+            sync: sink_dss::record_sync(options.sync),
             allow_undetectable_readers: options.allow_undetectable_readers,
             fault: options
                 .fault

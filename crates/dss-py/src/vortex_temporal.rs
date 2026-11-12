@@ -205,7 +205,7 @@ fn request_of(
     units: Option<&str>,
     data_type: Option<&str>,
     version: Option<u8>,
-    sync: bool,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
 ) -> PyResult<TemporalRequest> {
     Ok(TemporalRequest {
@@ -221,7 +221,7 @@ fn request_of(
         units: units.map(str::to_string),
         data_type: data_type_of(data_type)?,
         version,
-        sync,
+        sync: sync.0,
         allow_undetectable_readers,
         fault: None,
         limits: TemporalLimits::default(),
@@ -231,7 +231,7 @@ fn request_of(
 /// Shift record times by whole seconds. See `gridded.shift_times`.
 #[pyfunction]
 #[pyo3(signature = (input, output, shift_start, shift_end, select=None, part_a="", part_b="",
-                    part_c=None, part_f="", units=None, data_type=None, version=None, sync=true,
+                    part_c=None, part_f="", units=None, data_type=None, version=None, sync=crate::PySync::DEFAULT,
                     allow_undetectable_readers=true, progress=None))]
 #[allow(clippy::too_many_arguments)]
 fn shift_grid_times<'py>(
@@ -248,7 +248,7 @@ fn shift_grid_times<'py>(
     units: Option<&str>,
     data_type: Option<&str>,
     version: Option<u8>,
-    sync: bool,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
     progress: Option<PyObject>,
 ) -> PyResult<Bound<'py, PyDict>> {
@@ -281,7 +281,7 @@ fn shift_grid_times<'py>(
 /// Resample a series to a Vortex time step. See `gridded.resample_times`.
 #[pyfunction]
 #[pyo3(signature = (input, output, step_minutes, rule="strict", select=None, part_a="", part_b="",
-                    part_c=None, part_f="", units=None, data_type=None, version=None, sync=true,
+                    part_c=None, part_f="", units=None, data_type=None, version=None, sync=crate::PySync::DEFAULT,
                     allow_undetectable_readers=true, progress=None))]
 #[allow(clippy::too_many_arguments)]
 fn resample_grid_times<'py>(
@@ -298,7 +298,7 @@ fn resample_grid_times<'py>(
     units: Option<&str>,
     data_type: Option<&str>,
     version: Option<u8>,
-    sync: bool,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
     progress: Option<PyObject>,
 ) -> PyResult<Bound<'py, PyDict>> {

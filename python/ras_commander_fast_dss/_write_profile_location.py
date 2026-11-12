@@ -23,7 +23,7 @@ import numpy as np
 
 from . import _native
 from ._time import TimeLike, to_hec_seconds
-from ._write import HEC_UNDEFINED_FLOAT, _precision, _refuse_tz, _sync_flag
+from ._write import HEC_UNDEFINED_FLOAT, _precision, _refuse_tz, _sync_mode, _held, _file_version
 from ._write_pd import _cast, _numeric, _text
 from .exceptions import DssUnsupportedRecordError
 
@@ -75,7 +75,7 @@ def write_profile(
     value_type: str = "auto",
     raw: bool = False,
     allow_undetectable_readers: bool = True,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
 ) -> Dict[str, Any]:
     """Store a regular-interval profile in an existing DSS7 file.
 
@@ -106,13 +106,13 @@ def write_profile(
         By default ``NaN`` values are stored as HEC's missing flag (-FLT_MAX), and ``NaN``
         or infinite depths are refused. ``raw=True`` stores every bit as given.
     sync:
-        Flush policy, as for :func:`ras_commander_fast_dss.write_timeseries`: ``True``
-        (default, unchanged) flushes at the transaction's existing flush points (the
-        data is flushed together with the end-of-file flag) and ends with one
-        ``sync_all``; ``False`` (opt-in) does not flush. ``False`` keeps the
-        ordering of completed writes and of the recovery marker when the writing process
-        dies, so the next write reconciles an interrupted one as with ``True``. No
-        power-loss claim is made for either mode. For a damaged DSS7 file use
+        Flush policy, as for :func:`ras_commander_fast_dss.write_timeseries`: ``"end"``
+        (default; ``True`` means the same) flushes once at the end of this call;
+        ``"step"`` also flushes at every flush point of the transaction (the default
+        before 0.1.2); ``"none"`` (or ``False``) does not flush. All three make the same
+        writes in the same order, so a write interrupted by the death of the writing
+        process is reconciled by the next write in the same way. No power-loss claim is
+        made for any mode. For a damaged DSS7 file use
         :func:`ras_commander_fast_dss.repair`.
 
     Returns
@@ -129,7 +129,7 @@ def write_profile(
     """
     if not isinstance(pathname, str):
         raise TypeError(f"pathname must be str, not {type(pathname).__name__}")
-    if _native.file_signature(os.fspath(dss_file))["version"] == 6:
+    if _file_version(dss_file) == 6:
         raise DssUnsupportedRecordError(
             f"{dss_file}: DSS6 files cannot store profiles (heclib ztsStore.c: profiles are "
             "not implemented in version 6)"
@@ -176,7 +176,8 @@ def write_profile(
         time_zone,
         _precision(precision),
         bool(allow_undetectable_readers),
-        sync=_sync_flag(sync),
+        sync=_sync_mode(sync),
+        **_held(),
     )
     _warn_undetected(report, dss_file)
     return dict(report)
@@ -208,7 +209,7 @@ def write_location(
     supplemental: Optional[TextLike] = None,
     keep_existing: bool = True,
     allow_undetectable_readers: bool = True,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
 ) -> Dict[str, Any]:
     """Store location data for ``pathname``, in the file's DSS version.
 
@@ -234,13 +235,13 @@ def write_location(
         loses nothing. ``False``: every field left ``None`` is cleared, as heclib stores a
         whole struct.
     sync:
-        Flush policy, as for :func:`ras_commander_fast_dss.write_timeseries`: ``True``
-        (default, unchanged) flushes at the transaction's existing flush points (the
-        data is flushed together with the end-of-file flag) and ends with one
-        ``sync_all``; ``False`` (opt-in) does not flush. ``False`` keeps the
-        ordering of completed writes and of the recovery marker when the writing process
-        dies, so the next write reconciles an interrupted one as with ``True``. No
-        power-loss claim is made for either mode. For a damaged DSS7 file use
+        Flush policy, as for :func:`ras_commander_fast_dss.write_timeseries`: ``"end"``
+        (default; ``True`` means the same) flushes once at the end of this call;
+        ``"step"`` also flushes at every flush point of the transaction (the default
+        before 0.1.2); ``"none"`` (or ``False``) does not flush. All three make the same
+        writes in the same order, so a write interrupted by the death of the writing
+        process is reconciled by the next write in the same way. No power-loss claim is
+        made for any mode. For a damaged DSS7 file use
         :func:`ras_commander_fast_dss.repair`.
 
     Returns
@@ -274,9 +275,10 @@ def write_location(
         _encode(time_zone, "time_zone"),
         _encode(supplemental, "supplemental"),
         bool(keep_existing),
-        _native.file_signature(os.fspath(dss_file))["version"],
+        _file_version(dss_file),
         bool(allow_undetectable_readers),
-        sync=_sync_flag(sync),
+        sync=_sync_mode(sync),
+        **_held(),
     )
     _warn_undetected(report, dss_file)
     return dict(report)

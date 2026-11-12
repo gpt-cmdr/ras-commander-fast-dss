@@ -25,7 +25,7 @@ import numpy as np
 import pandas as pd
 
 from . import _native
-from ._write import HEC_MISSING_DSS6, HEC_UNDEFINED_FLOAT, _precision, _sync_flag
+from ._write import HEC_MISSING_DSS6, HEC_UNDEFINED_FLOAT, _precision, _sync_mode, _held
 
 __all__ = ["write_paired_data"]
 
@@ -116,7 +116,7 @@ def write_paired_data(
     time_zone: Optional[str] = None,
     version: int = 7,
     allow_undetectable_readers: bool = True,
-    sync: bool = True,
+    sync: Union[bool, str] = "end",
 ) -> Dict[str, Any]:
     """Store one paired-data record (a new record, or a full replacement).
 
@@ -168,13 +168,13 @@ def write_paired_data(
     allow_undetectable_readers:
         As for :func:`ras_commander_fast_dss.write_timeseries`.
     sync:
-        Flush policy, as for :func:`ras_commander_fast_dss.write_timeseries`: ``True``
-        (default, unchanged) flushes at the transaction's existing flush points (the
-        data is flushed together with the end-of-file flag) and ends with one
-        ``sync_all``; ``False`` (opt-in) does not flush. ``False`` keeps the
-        ordering of completed writes and of the recovery marker when the writing process
-        dies, so the next write reconciles an interrupted one as with ``True``. No
-        power-loss claim is made for either mode. For a damaged DSS7 file use
+        Flush policy, as for :func:`ras_commander_fast_dss.write_timeseries`: ``"end"``
+        (default; ``True`` means the same) flushes once at the end of this call;
+        ``"step"`` also flushes at every flush point of the transaction (the default
+        before 0.1.2); ``"none"`` (or ``False``) does not flush. All three make the same
+        writes in the same order, so a write interrupted by the death of the writing
+        process is reconciled by the next write in the same way. No power-loss claim is
+        made for any mode. For a damaged DSS7 file use
         :func:`ras_commander_fast_dss.repair`.
 
     Returns
@@ -262,7 +262,8 @@ def write_paired_data(
         time_zone,
         int(version),
         bool(allow_undetectable_readers),
-        sync=_sync_flag(sync),
+        sync=_sync_mode(sync),
+        **_held(),
     )
     if report.get("readers_undetected"):
         warnings.warn(

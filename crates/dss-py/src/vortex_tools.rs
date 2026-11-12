@@ -53,7 +53,7 @@ fn output_options(
     data_type: Option<&str>,
     version: Option<u8>,
     align: &str,
-    sync: bool,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
 ) -> PyResult<OutputOptions> {
     let align = match align {
@@ -74,7 +74,7 @@ fn output_options(
         data_type: data_type_of(data_type)?,
         version,
         align,
-        sync,
+        sync: sync.0,
         allow_undetectable_readers,
         ..OutputOptions::new(output)
     })
@@ -107,7 +107,7 @@ fn finish<'py>(
 #[pyfunction]
 #[pyo3(signature = (input, output, operation, value, variables=None, part_a="", part_b="",
                     part_c=None, part_f="", units=None, data_type=None, version=None,
-                    align="refuse", sync=true, allow_undetectable_readers=true))]
+                    align="refuse", sync=crate::PySync::DEFAULT, allow_undetectable_readers=true))]
 #[allow(clippy::too_many_arguments)]
 fn grid_calculate<'py>(
     py: Python<'py>,
@@ -124,7 +124,7 @@ fn grid_calculate<'py>(
     data_type: Option<&str>,
     version: Option<u8>,
     align: &str,
-    sync: bool,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
 ) -> PyResult<Bound<'py, PyList>> {
     let operation = operation_of(operation)?;
@@ -151,7 +151,7 @@ fn grid_calculate<'py>(
 #[pyfunction]
 #[pyo3(signature = (input, raster, output, operation, method="bilinear", raster_variable=None,
                     variables=None, part_a="", part_b="", part_c=None, part_f="", units=None,
-                    data_type=None, version=None, align="refuse", sync=true,
+                    data_type=None, version=None, align="refuse", sync=crate::PySync::DEFAULT,
                     allow_undetectable_readers=true, static_raster=false))]
 #[allow(clippy::too_many_arguments)]
 fn grid_calculate_raster<'py>(
@@ -171,7 +171,7 @@ fn grid_calculate_raster<'py>(
     data_type: Option<&str>,
     version: Option<u8>,
     align: &str,
-    sync: bool,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
     static_raster: bool,
 ) -> PyResult<Bound<'py, PyList>> {
@@ -205,7 +205,7 @@ fn grid_calculate_raster<'py>(
 #[pyfunction]
 #[pyo3(signature = (input, output, minimum=None, maximum=None, minimum_replacement=f32::NAN,
                     maximum_replacement=f32::NAN, variables=None, part_a="", part_b="", part_c=None,
-                    part_f="", units=None, data_type=None, version=None, align="refuse", sync=true,
+                    part_f="", units=None, data_type=None, version=None, align="refuse", sync=crate::PySync::DEFAULT,
                     allow_undetectable_readers=true))]
 #[allow(clippy::too_many_arguments)]
 fn grid_sanitize<'py>(
@@ -225,7 +225,7 @@ fn grid_sanitize<'py>(
     data_type: Option<&str>,
     version: Option<u8>,
     align: &str,
-    sync: bool,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
 ) -> PyResult<Bound<'py, PyList>> {
     let defaults = Thresholds::default();
@@ -258,7 +258,7 @@ fn grid_sanitize<'py>(
 #[pyfunction]
 #[pyo3(signature = (input, output, envelope=None, envelope_crs=None, shapefile=None, variables=None,
                     part_a="", part_b="", part_c=None, part_f="", units=None, data_type=None,
-                    version=None, align="refuse", sync=true, allow_undetectable_readers=true))]
+                    version=None, align="refuse", sync=crate::PySync::DEFAULT, allow_undetectable_readers=true))]
 #[allow(clippy::too_many_arguments)]
 fn grid_clip<'py>(
     py: Python<'py>,
@@ -276,7 +276,7 @@ fn grid_clip<'py>(
     data_type: Option<&str>,
     version: Option<u8>,
     align: &str,
-    sync: bool,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
 ) -> PyResult<Bound<'py, PyList>> {
     let bounds = match (envelope, envelope_crs, shapefile) {
@@ -332,7 +332,7 @@ fn day_and_seconds(hec_seconds: i64) -> (i64, i64) {
 #[pyfunction]
 #[pyo3(signature = (input, normals, output, start, end, interval_seconds, source_variables=None,
                     normals_variables=None, part_a="", part_b="", part_c=None, part_f="", units=None,
-                    data_type=None, version=None, align="refuse", sync=true,
+                    data_type=None, version=None, align="refuse", sync=crate::PySync::DEFAULT,
                     allow_undetectable_readers=true))]
 #[allow(clippy::too_many_arguments)]
 fn grid_normalize<'py>(
@@ -353,7 +353,7 @@ fn grid_normalize<'py>(
     data_type: Option<&str>,
     version: Option<u8>,
     align: &str,
-    sync: bool,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
 ) -> PyResult<Bound<'py, PyDict>> {
     let request = NormalizeRequest {

@@ -30,3 +30,8 @@ weezl = { version = "=0.1.12", default-features = false, features = ["alloc"] }
 [dev-dependencies]
 serde_json = "=1.0.154"
 tiff = { version = "=0.11.3", default-features = false, features = ["deflate", "lzw"] }
+
+# `p71_dump` checks its own command line, so `cargo test` runs its tests.
+[[example]]
+name = "p71_dump"
+test = true

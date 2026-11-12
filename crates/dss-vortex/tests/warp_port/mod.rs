@@ -1,4 +1,4 @@
-//! Test-only port of the P41 prototype: GDAL 3.2.1 warp and transformer logic and PROJ 7.2.0 `aea`,
+//! Test-only port of the GDAL 3.2.1 warp and transformer logic and PROJ 7.2.0 `aea`,
 //! `lcc`, `stere`, kept to prove cross-platform bits. It is not the production warp. Licences:
 //! see `NOTICE`.
 

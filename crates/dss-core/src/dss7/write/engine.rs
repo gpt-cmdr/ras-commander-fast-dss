@@ -174,6 +174,9 @@ fn bytes_to_words(b: &[u8], words: usize) -> Vec<i64> {
 
 /// Milliseconds since 1970 (`getCurrentTimeMillis`).
 pub(super) fn now_ms() -> i64 {
+    if let Some(ms) = super::write_clock() {
+        return ms;
+    }
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_millis() as i64)
@@ -604,7 +607,8 @@ impl<'a> Engine<'a> {
             return Ok(());
         }
         super::barrier(self.block_index, None);
-        if self.opts.sync {
+        if self.opts.sync.each_step() {
+            super::count_flush();
             self.file.sync_data()?;
         }
         Ok(())
@@ -3138,7 +3142,8 @@ impl<'a> Session<'a> {
     }
 
     fn finish(self, blocks: Vec<BlockReport>) -> Result<WriteReport, WriteError> {
-        if self.eng.opts.sync {
+        if self.eng.opts.sync.at_end() {
+            super::count_flush();
             self.file.sync_all()?;
         }
         drop(self.held);
@@ -3353,6 +3358,7 @@ use super::{Candidate, CandidateOutcome};
 pub(super) fn copy_out(
     src: &std::path::Path,
     dest: &std::path::Path,
+    sync: super::SyncMode,
 ) -> Result<RepairReport, WriteError> {
     use super::copy_out_fault as fault;
     if std::fs::symlink_metadata(dest).is_ok() {
@@ -3778,7 +3784,8 @@ pub(super) fn copy_out(
         }
         created.write_all(&bytes)?;
         fault("write_header")?;
-        created.sync_all()?;
+        // No flush here. The file is unpublished; the one flush below,
+        // after the last record, covers the header too.
     }
     drop(created);
     let file = std::fs::OpenOptions::new()
@@ -3786,10 +3793,11 @@ pub(super) fn copy_out(
         .write(true)
         .open(&tmp)?;
     fault("open")?;
-    // Flushes between steps buy nothing in a file no one can see yet: one sync_all
-    // before the file is published (`sync: false` keeps the write order).
+    // Flushes between steps buy nothing in a file no one can see yet: at most one
+    // sync_all, after the last record and before the file is published
+    // (`sync: false` keeps the write order; `sync` below is the caller's policy).
     let wopts = WriteOptions {
-        sync: false,
+        sync: super::SyncMode::None,
         ..WriteOptions::default()
     };
     let mut session = Session::begin(&file, &wopts)?;
@@ -3823,7 +3831,10 @@ pub(super) fn copy_out(
     fault("commit")?;
     session.finish(Vec::new())?;
     fault("finish")?;
-    file.sync_all()?;
+    if sync.at_end() {
+        super::count_flush();
+        file.sync_all()?;
+    }
     fault("sync")?;
     drop(file);
     // Verify: every copied record reads back bit for bit, and decodes with the normal

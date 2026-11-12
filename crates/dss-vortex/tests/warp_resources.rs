@@ -218,7 +218,8 @@ fn a_huge_thread_count_is_capped(data: &[f32]) {
 }
 
 fn the_default_clears_the_products_and_larger_grids_opt_in(data: &[f32]) {
-    // The largest destination in the P41 and P44 matrices, `noenv.mrms.nocell`.
+    // The largest destination among the real-product warp cases compared with Vortex,
+    // `noenv.mrms.nocell`.
     const LARGEST_REAL_PRODUCT_CELLS: u64 = 39_902_027;
     const _: () = assert!(LARGEST_REAL_PRODUCT_CELLS < DEFAULT_MAX_CELLS);
     assert_eq!(DEFAULT_MAX_CELLS, 268_435_456);

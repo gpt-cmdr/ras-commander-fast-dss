@@ -71,7 +71,7 @@ fn engine_written() -> Vec<u8> {
     let _ = std::fs::remove_file(&path);
     create_dss7(&path).unwrap();
     let opts = WriteOptions {
-        sync: false,
+        sync: dss_core::dss7::write::SyncMode::None,
         ..WriteOptions::default()
     };
     let start = |y, m| iv::ymd_to_julian(y, m, 1) * 86_400 + 3600;

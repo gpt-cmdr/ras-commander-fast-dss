@@ -22,5 +22,11 @@ numpy = "0.24"
 # Tier V gridded import: one wheel, feature off until the importer works.
 dss-vortex = { workspace = true, optional = true }
 
+# The identity check of a `DssFile` session's held handle (volume serial and
+# file index, `GetFileInformationByHandle`). Already in the lock file through other
+# crates; Microsoft's official bindings.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage_FileSystem"] }
+
 [features]
 vortex = ["dep:dss-vortex"]

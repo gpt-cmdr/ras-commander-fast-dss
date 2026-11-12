@@ -1,0 +1,95 @@
+{
+ "files": {
+  "PRISM_ppt_stable_4kmD1_19990101_bil.zip": {
+   "bytes": 428983,
+   "sha256": "d43fa8705ed246c11355c566aef9608e7c02bbae2c6ab7368061b2ac5ef6ded1",
+   "source": "https://data.prism.oregonstate.edu/prior_versions/ppt/daily_D1_201506/1999/PRISM_ppt_stable_4kmD1_19990101_bil.zip"
+  },
+  "us_ssmv11039lL00T0024TTNATS2020010105DP000.dat.gz": {
+   "bytes": 392836,
+   "member_of": {
+    "tar": "SNODAS_20200101.tar",
+    "tar_sha256": "750aaa3a2ccea641874c115bfd9d5c1d35f3f89911baa5576abf910f365b96ef"
+   },
+   "sha256": "05665bf1fb13fb955479cbff36fc0810259b21ae4f58f87d0f6fc342c449bc61",
+   "source": "https://noaadata.apps.nsidc.org/NOAA/G02158/masked/2020/01_Jan/SNODAS_20200101.tar"
+  },
+  "us_ssmv11039lL00T0024TTNATS2020010105DP000.txt.gz": {
+   "bytes": 1129,
+   "member_of": {
+    "tar": "SNODAS_20200101.tar",
+    "tar_sha256": "750aaa3a2ccea641874c115bfd9d5c1d35f3f89911baa5576abf910f365b96ef"
+   },
+   "sha256": "3772b70b3bef818c0eec2ec24edcd992ce014ea5322a0adb7f5976e7730f3566",
+   "source": "https://noaadata.apps.nsidc.org/NOAA/G02158/masked/2020/01_Jan/SNODAS_20200101.tar"
+  }
+ },
+ "prism_bil_zip": {
+  "0.13.3": {
+   "cells_sha256": "fc4590941dc8bc153b2576882b1d9a7832869dfc6be76a46bcbcbee6e9f89faa",
+   "dataType": "ACCUMULATION",
+   "dx": "0.04166666666667",
+   "dy": "-0.04166666666667",
+   "endTime": "1999-01-01T12:00Z[UTC]",
+   "noDataValue": "-9999.0",
+   "nx": 1405,
+   "ny": 621,
+   "originX": "-125.02083333333333",
+   "originY": "49.93750000000203",
+   "shortName": "precipitation",
+   "startTime": "1998-12-31T12:00Z[UTC]",
+   "units": "mm",
+   "wkt": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101,AUTHORITY[\"EPSG\",\"7019\"]],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.0174532925199433],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH]]"
+  },
+  "1.1.0": {
+   "cells_sha256": "fc4590941dc8bc153b2576882b1d9a7832869dfc6be76a46bcbcbee6e9f89faa",
+   "dataType": "ACCUMULATION",
+   "dx": "0.04166666666667",
+   "dy": "-0.04166666666667",
+   "endTime": "1999-01-01T12:00Z[UTC]",
+   "noDataValue": "-9999.0",
+   "nx": 1405,
+   "ny": 621,
+   "originX": "-125.02083333333333",
+   "originY": "49.93750000000203",
+   "shortName": "precipitation",
+   "startTime": "1998-12-31T12:00Z[UTC]",
+   "units": "mm",
+   "wkt": "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101,AUTHORITY[\"EPSG\",\"7019\"]],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.0174532925199433],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH]]"
+  }
+ },
+ "snodas_member": {
+  "0.13.3": {
+   "cells_sha256": "f13d758c6142a2b06d4e07b1b5c4dc6b67f769d27885bd63cb85c5d6ee33d852",
+   "dataType": "INSTANTANEOUS",
+   "dx": "0.008333333332372024",
+   "dy": "-0.008333333333333333",
+   "endTime": "2020-01-02T06:00Z[UTC]",
+   "noDataValue": "nan",
+   "nx": 6935,
+   "ny": 3351,
+   "originX": "-124.73333333",
+   "originY": "52.875",
+   "shortName": "Sublimation of Blowing Snow",
+   "startTime": "2020-01-01T06:00Z[UTC]",
+   "units": "m",
+   "wkt": "GEOGCS[\"unknown\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH]]"
+  },
+  "1.1.0": {
+   "cells_sha256": "f13d758c6142a2b06d4e07b1b5c4dc6b67f769d27885bd63cb85c5d6ee33d852",
+   "dataType": "AVERAGE",
+   "dx": "0.008333333332372024",
+   "dy": "-0.008333333333333333",
+   "endTime": "2020-01-02T06:00Z[UTC]",
+   "noDataValue": "nan",
+   "nx": 6935,
+   "ny": 3351,
+   "originX": "-124.73333333",
+   "originY": "52.875",
+   "shortName": "Sublimation of Blowing Snow",
+   "startTime": "2020-01-01T06:00Z[UTC]",
+   "units": "m",
+   "wkt": "GEOGCS[\"unknown\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Longitude\",EAST],AXIS[\"Latitude\",NORTH]]"
+  }
+ }
+}

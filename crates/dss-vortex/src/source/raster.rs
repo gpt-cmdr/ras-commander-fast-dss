@@ -1,5 +1,5 @@
 //! GeoTIFF and ASCII grid source: bytes to one frame, with what GDAL hands Vortex's `AscDataReader`
-//! as the reference. `rasterio` and Vortex 1.1.0 read the same files in the P50 gate.
+//! as the reference, compared with what `rasterio` and Vortex 1.1.0 read from the same files.
 //!
 //! Layers, each with its source named in its file:
 //! - `geotiff`: the TIFF container, chunks, predictors and the geotransform.
@@ -18,7 +18,7 @@
 mod asc;
 pub(crate) mod geokeys;
 pub(crate) mod geotiff;
-mod names;
+pub(crate) mod names;
 
 use crate::error::VortexError;
 use crate::{Crs, GeoTransform, GridFrame, GridFrameParts, RowOrder};
@@ -119,9 +119,13 @@ pub(crate) enum CrsResolution {
 /// has no effect on a raster with an internal georeference, and one without is refused for that.
 /// `<name>.ovr` only offers reduced-resolution data, which is not read here, as internal overviews
 /// are not; `with_overviews` is for the writer, where it would describe data no longer there.
+///
+/// `read_pam` leaves `<name>.aux.xml` out of the search, for a reader that applies it: it is read
+/// beside a GeoTIFF under the rule a PRISM ZIP's member gets ([`pam_sidecar`], [`apply_pam_nodata`]).
 pub(crate) fn applied_sidecar(
     path: &Path,
     with_overviews: bool,
+    read_pam: bool,
 ) -> Result<Option<(String, &'static str)>, VortexError> {
     let Some(name) = path.file_name().map(|n| n.to_string_lossy().into_owned()) else {
         return Ok(None);
@@ -131,8 +135,11 @@ pub(crate) fn applied_sidecar(
         .map(|n| n.to_string_lossy().into_owned())
         .unwrap_or_default();
     const PAM: &str = "GDAL lets it override nodata, CRS and georeference";
-    let mut wanted = vec![
-        (format!("{name}.aux.xml"), ".aux.xml", PAM),
+    let mut wanted = Vec::new();
+    if !read_pam {
+        wanted.push((format!("{name}.aux.xml"), ".aux.xml", PAM));
+    }
+    wanted.extend([
         (format!("{name}.aux"), ".aux", PAM),
         (format!("{stem}.aux"), ".aux", PAM),
         (
@@ -140,7 +147,7 @@ pub(crate) fn applied_sidecar(
             ".msk",
             "GDAL takes the mask from it instead of from nodata",
         ),
-    ];
+    ]);
     if with_overviews {
         wanted.push((
             format!("{name}.ovr"),
@@ -162,6 +169,73 @@ pub(crate) fn applied_sidecar(
     Ok(None)
 }
 
+/// The `<name>.aux.xml` beside `path`, matched without regard to case as GDAL matches it. Two files
+/// whose names differ only in case are refused: which one GDAL takes depends on the file system.
+pub(crate) fn pam_sidecar(path: &Path) -> Result<Option<std::path::PathBuf>, VortexError> {
+    let Some(name) = path.file_name().map(|n| n.to_string_lossy().into_owned()) else {
+        return Ok(None);
+    };
+    let wanted = format!("{name}.aux.xml");
+    let parent = match path.parent() {
+        Some(parent) if !parent.as_os_str().is_empty() => parent,
+        _ => Path::new("."),
+    };
+    let mut found = None;
+    for entry in std::fs::read_dir(parent)? {
+        let entry = entry?;
+        if entry
+            .file_name()
+            .to_string_lossy()
+            .eq_ignore_ascii_case(&wanted)
+        {
+            if found.is_some() {
+                return Err(VortexError::Refused {
+                    what: format!("raster with a .aux.xml sidecar, {wanted}"),
+                    reason: "more than one file has that name in some letter case".to_string(),
+                });
+            }
+            found = Some(entry.path());
+        }
+    }
+    Ok(found)
+}
+
+/// Apply a PAM `.aux.xml` to a raster's frame where it states only nodata and `STATISTICS_*`
+/// items, and refuse it otherwise ([`super::bil::pam_nodata`]). This is the rule for a GeoTIFF or
+/// ASCII grid inside a PRISM ZIP and, since 0.1.2, for a loose GeoTIFF:
+/// - the PAM nodata is taken where the raster states none, and must be a float32 value;
+/// - where the raster states one, the two must be equal (GDAL's GeoTIFF driver prefers its own);
+/// - statistics change nothing that is read.
+///
+/// `what` names the sidecar in a refusal.
+pub(crate) fn apply_pam_nodata(
+    parts: &mut GridFrameParts,
+    xml: &[u8],
+    what: &str,
+) -> Result<(), VortexError> {
+    let refused = |reason: String| VortexError::Refused {
+        what: what.to_string(),
+        reason,
+    };
+    match (super::bil::pam_nodata(xml)?, parts.nodata) {
+        (None, _) => {}
+        (Some(v), None) => {
+            let narrow = v as f32;
+            if f64::from(narrow) != v {
+                return Err(refused(format!("nodata {v} is not a float32 value")));
+            }
+            parts.nodata = Some(narrow);
+        }
+        (Some(v), Some(own)) if f64::from(own) == v => {}
+        (Some(v), Some(own)) => {
+            return Err(refused(format!(
+                "nodata {v} disagrees with the raster's own {own}"
+            )))
+        }
+    }
+    Ok(())
+}
+
 impl RasterFile {
     /// Read a file with the default options. The file's name matters: Vortex takes the variable,
     /// units and time window from it.
@@ -174,6 +248,11 @@ impl RasterFile {
     /// A sidecar GDAL would apply and this reader does not read is refused, so a mask, CRS or
     /// georeference cannot differ from GDAL's without anyone saying so; see [`applied_sidecar`].
     /// [`RasterFile::from_bytes`] has no folder to look in and cannot see them.
+    ///
+    /// A GeoTIFF's `<name>.aux.xml` is read under the rule a PRISM ZIP's member gets
+    /// ([`apply_pam_nodata`]). One that states only nodata and statistics is applied. One that
+    /// states anything else (an SRS, a geotransform, a mask, scale or offset) is refused. An ASCII
+    /// grid's is refused as before.
     pub fn open_with(path: &Path, options: ReadOptions) -> Result<Self, VortexError> {
         let file_name = path
             .file_name()
@@ -183,20 +262,68 @@ impl RasterFile {
         if size > options.limits.max_input_bytes {
             return Err(too_large(size, &options.limits));
         }
-        if let Some((found, why)) = applied_sidecar(path, false)? {
+        // Not named .asc: a GeoTIFF, or refused by `from_bytes` whatever its sidecars say.
+        let read_pam = !is_asc_name(&file_name);
+        if let Some((found, why)) = applied_sidecar(path, false, read_pam)? {
             return Err(VortexError::Refused {
                 what: format!("raster with a {found}"),
                 reason: format!("{why}, and this reader does not read it"),
             });
         }
-        // std::fs::read reserves fallibly.
-        let data = std::fs::read(path)?;
+        let pam = match read_pam.then(|| pam_sidecar(path)).transpose()?.flatten() {
+            Some(side) => {
+                let side_name = side
+                    .file_name()
+                    .map(|n| n.to_string_lossy().into_owned())
+                    .unwrap_or_default();
+                let side_size = std::fs::metadata(&side)?.len();
+                if side_size > super::bil::MAX_SIDECAR {
+                    return Err(VortexError::Refused {
+                        what: format!("raster with a .aux.xml sidecar, {side_name}"),
+                        reason: format!(
+                            "{side_size} bytes is over the sidecar limit of {}",
+                            super::bil::MAX_SIDECAR
+                        ),
+                    });
+                }
+                let what = format!("raster with a .aux.xml sidecar, {side_name}");
+                let xml = super::archive::read_file_bounded(&side, super::bil::MAX_SIDECAR, &what)?;
+                Some((side_name, xml))
+            }
+            None => None,
+        };
+        // Bounded by the bytes read, not the size the file system states.
+        let data =
+            super::archive::read_file_bounded(path, options.limits.max_input_bytes, "raster file")?;
         let prj = if is_asc_name(&file_name) {
             asc::read_prj(path)?
         } else {
             None
         };
-        Self::from_bytes(file_name, &data, prj.as_deref(), options)
+        let file = Self::from_bytes(file_name, &data, prj.as_deref(), options)?;
+        match pam {
+            Some((side_name, xml)) => file.with_pam(&xml, &side_name),
+            None => Ok(file),
+        }
+    }
+
+    /// This raster with a PAM `.aux.xml` applied by [`apply_pam_nodata`]; `what` names the sidecar
+    /// in a refusal.
+    pub(crate) fn with_pam(self, xml: &[u8], what: &str) -> Result<Self, VortexError> {
+        let RasterFile {
+            format,
+            frame,
+            crs_status,
+            stored_wkt,
+        } = self;
+        let mut parts = frame.into_parts();
+        apply_pam_nodata(&mut parts, xml, what)?;
+        Ok(RasterFile {
+            format,
+            frame: GridFrame::new(parts)?,
+            crs_status,
+            stored_wkt,
+        })
     }
 
     /// Decode bytes. `prj` is the text of an ASCII grid's `.prj`; a GeoTIFF ignores it.

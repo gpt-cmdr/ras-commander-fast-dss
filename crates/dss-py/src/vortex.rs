@@ -13,6 +13,7 @@ use dss_vortex::import::{
 use dss_vortex::import_netcdf::{NetcdfOptions, StopHandle};
 use dss_vortex::products::window::Accumulation;
 use dss_vortex::products::WindowRule;
+use dss_vortex::source::snodas::{SnodasGeoreference, SnodasOptions, SnodasTimes};
 use dss_vortex::warp::{Align, Method};
 use dss_vortex::{Crs, DataType, FrameTime, GeoTransform, NamedCrs, VortexError};
 
@@ -139,7 +140,7 @@ pub(super) struct Options {
     window_rule: WindowRule,
     duplicates: Duplicates,
     threads: usize,
-    sync: bool,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
 }
 
@@ -161,10 +162,12 @@ pub(super) fn options(
     align: &str,
     window_rule: &str,
     duplicates: &str,
-    threads: usize,
-    sync: bool,
+    threads: Option<usize>,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
 ) -> PyResult<Options> {
+    // No `threads` means all cores (the default since 0.1.2).
+    let threads = threads.unwrap_or_else(dss_vortex::warp::host_threads);
     let bounds = match (envelope, shapefile) {
         (Some(_), Some(_)) => {
             return Err(PyValueError::new_err(
@@ -268,7 +271,7 @@ pub(super) fn request_of(
     r.window_rule = o.window_rule;
     r.duplicates = o.duplicates;
     r.threads = o.threads;
-    r.sync = o.sync;
+    r.sync = o.sync.0;
     r.allow_undetectable_readers = o.allow_undetectable_readers;
     r
 }
@@ -388,10 +391,11 @@ pub(super) fn finish<'py>(
 #[pyo3(signature = (inputs, output, variable=None, product=None, envelope=None, envelope_crs=None,
                     shapefile=None, target_crs=None, cell_size=None, method="bilinear", part_a="",
                     part_b="", part_c=None, part_f="", units=None, data_type=None, version=None,
-                    align="refuse", window_rule="refuse", duplicates="refuse", threads=1,
-                    sync=true, allow_undetectable_readers=true, progress=None, bbox=None,
+                    align="refuse", window_rule="refuse", duplicates="refuse", threads=None,
+                    sync=crate::PySync::DEFAULT, allow_undetectable_readers=true, progress=None, bbox=None,
                     times=None, max_seconds_per_read=None, max_decoded_bytes_per_read=None,
-                    chunk_cache_bytes=None, stop=None))]
+                    chunk_cache_bytes=None, stop=None, snodas_times="header",
+                    snodas_georeference="vortex", snodas_vortex_nodata_test_only=false))]
 #[allow(clippy::too_many_arguments)]
 fn import_gridded<'py>(
     py: Python<'py>,
@@ -415,8 +419,8 @@ fn import_gridded<'py>(
     align: &str,
     window_rule: &str,
     duplicates: &str,
-    threads: usize,
-    sync: bool,
+    threads: Option<usize>,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
     progress: Option<PyObject>,
     bbox: Option<(f64, f64, f64, f64)>,
@@ -425,7 +429,14 @@ fn import_gridded<'py>(
     max_decoded_bytes_per_read: Option<u64>,
     chunk_cache_bytes: Option<usize>,
     stop: Option<PyRef<'py, GriddedStop>>,
+    snodas_times: &str,
+    snodas_georeference: &str,
+    snodas_vortex_nodata_test_only: bool,
 ) -> PyResult<Bound<'py, PyList>> {
+    let mut snodas = snodas_options(snodas_times, snodas_georeference)?;
+    // Comparison with Vortex only: Vortex's SNODAS cells, -9999 divided by the scale and kept as data. Not
+    // exposed by `gridded.import_gridded`.
+    snodas.vortex_nodata = snodas_vortex_nodata_test_only;
     let selection = match (variable, product) {
         (Some(v), None) => Selection::Variable(v),
         (None, Some("mrms_qpe")) => Selection::Product(Product::MrmsQpe),
@@ -471,6 +482,7 @@ fn import_gridded<'py>(
         ..NetcdfOptions::default()
     };
     request.stop = stop.map(|s| s.handle.flag());
+    request.snodas = snodas;
     // P49: what of a Zarr store to read. Other sources refuse them.
     request.source_bbox = bbox.map(|(west, south, east, north)| [west, south, east, north]);
     request.source_times = times;
@@ -480,6 +492,37 @@ fn import_gridded<'py>(
     };
     let result = py.allow_threads(|| import::import_gridded(&request, &mut |p| callback.call(p)));
     finish(py, output, result, &callback)
+}
+
+/// Where SNODAS grids take their times, data types and corners from. Times: `"header"`
+/// (default) is the checked NOHRSC header with the product's data type; `"vortex"` is Vortex's
+/// reading of the file name; `"header_as_stated"` is the header's Start and Stop as written.
+/// Corners: `"vortex"` (default) is Vortex's fixed corners; `"header"` is the header's.
+fn snodas_options(times: &str, georeference: &str) -> PyResult<SnodasOptions> {
+    let times = match times {
+        "header" => SnodasTimes::Header,
+        "vortex" => SnodasTimes::Vortex,
+        "header_as_stated" => SnodasTimes::HeaderAsStated,
+        other => {
+            return Err(PyValueError::new_err(format!(
+                "snodas_times must be \"header\", \"vortex\" or \"header_as_stated\", not {other:?}"
+            )))
+        }
+    };
+    let georeference = match georeference {
+        "vortex" => SnodasGeoreference::Vortex,
+        "header" => SnodasGeoreference::Header,
+        other => {
+            return Err(PyValueError::new_err(format!(
+                "snodas_georeference must be \"vortex\" or \"header\", not {other:?}"
+            )))
+        }
+    };
+    Ok(SnodasOptions {
+        times,
+        georeference,
+        ..SnodasOptions::default()
+    })
 }
 
 /// What a cell size in metres becomes on a target CRS: the record's cell size in the CRS's unit,
@@ -504,7 +547,7 @@ fn gridded_cell_size(target_crs: &str, metres: f64, align: &str) -> PyResult<(f3
                     output, file_name="", envelope=None, envelope_crs=None, shapefile=None,
                     target_crs=None, cell_size=None, method="bilinear", part_a="", part_b="",
                     part_c=None, part_f="", units=None, data_type=None, version=None,
-                    align="refuse", duplicates="refuse", threads=1, sync=true,
+                    align="refuse", duplicates="refuse", threads=None, sync=crate::PySync::DEFAULT,
                     allow_undetectable_readers=true, progress=None))]
 #[allow(clippy::too_many_arguments)]
 fn import_arrays<'py>(
@@ -536,8 +579,8 @@ fn import_arrays<'py>(
     version: Option<u8>,
     align: &str,
     duplicates: &str,
-    threads: usize,
-    sync: bool,
+    threads: Option<usize>,
+    sync: crate::PySync,
     allow_undetectable_readers: bool,
     progress: Option<PyObject>,
 ) -> PyResult<Bound<'py, PyList>> {

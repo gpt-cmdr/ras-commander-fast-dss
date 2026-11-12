@@ -85,7 +85,7 @@ fn request(input: &Path, output: &Path) -> TemporalRequest {
         units: None,
         data_type: None,
         version: None,
-        sync: false,
+        sync: dss_core::dss7::write::SyncMode::None,
         allow_undetectable_readers: true,
         fault: None,
         limits: Default::default(),
@@ -605,7 +605,7 @@ fn raw_series(path: &Path, c: &str, units_text: &str, frames: &[(FrameTime, Vec<
             sink_dss::plan_record(&Parts::default(), meaning, &derived, Some(c), time).unwrap();
         let options = SinkOptions {
             version: 7,
-            sync: false,
+            sync: dss_core::dss7::write::SyncMode::None,
             allow_undetectable_readers: true,
             fault: None,
         };

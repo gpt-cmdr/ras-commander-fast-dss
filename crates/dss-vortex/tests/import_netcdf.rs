@@ -660,7 +660,7 @@ fn a_header_states_what_its_frame_does_on_every_step_of_every_fixture() {
     }
     // Counted on this run and pinned, so a file or step dropped from the loop fails. The 9 refused
     // steps are the fixtures' known refusals.
-    assert_eq!((files, variables, frames, refused), (64, 89, 150, 9));
+    assert_eq!((files, variables, frames, refused), (65, 90, 152, 9));
 
     // The comparison can fail on each field.
     let file = NetcdfFile::open(&aorc("AORC_APCP_TXPAN_2019092000.nc4")).unwrap();

@@ -132,6 +132,20 @@ impl FileSource {
             size,
         })
     }
+
+    /// Read through an already open handle (a `DssFile` session reads through a
+    /// duplicate of its read-write handle). The size is captured now, as by [`open`].
+    /// Reads seek before every read, so a handle that shares its file position with a
+    /// writer is read correctly as long as the two are not used at the same time.
+    ///
+    /// [`open`]: FileSource::open
+    pub fn from_file(file: File) -> io::Result<Self> {
+        let size = file.metadata()?.len();
+        Ok(Self {
+            file: Mutex::new(file),
+            size,
+        })
+    }
 }
 
 impl ReadAt for FileSource {
