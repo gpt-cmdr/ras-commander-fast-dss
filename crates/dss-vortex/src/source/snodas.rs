@@ -26,6 +26,17 @@
 //!   date;
 //! - SWE (`1034`) and snow depth (`1036`), time code `T0001`, are INST-VAL at 06:00 UTC of that date.
 //!
+//! Two historical NOHRSC header conventions are read as the header declares them, PER-CUM, and
+//! are neither refused nor shifted (maintainer decision 2026-11-14):
+//! - melt and sublimation (`1044`, `1039`, `1050`, `T0024`) dated before 2019-02-05: 06:00 UTC of
+//!   the previous day to a 05:00 UTC stop (from 2019-02-05, 06:00 to 06:00);
+//! - liquid and solid precipitation (`1025`, `T0024`) dated before 2008-10-23: 07:00 UTC of the
+//!   previous day to 06:00 UTC (from 2008-10-23, 06:00 to 06:00).
+//!
+//! A file dated on or after a convention's last day that still states it is refused. The days come
+//! from a survey of the public NSIDC G02158 archive's headers; the boundary headers are fixtures
+//! (`fixtures/public/snodas_headers`).
+//!
 //! The file name's timing fields are checked too, by the NOHRSC naming rules: a real date; `TS`, the
 //! start of the final integration step, `05`; the step, `D` for a total and `H` for a snapshot; and
 //! the offset, `P001` for precipitation, SWE and depth and `P000` for melt and sublimation, as the
@@ -33,9 +44,8 @@
 //! the name, and a member with no header are refused.
 //!
 //! These have no qualified interpretation and are refused unless the caller names one: the snowpack
-//! average temperature (`1038`, `A0024`); melt with time code `T0001` (historical files, for
-//! example 2010-02-15); and sublimation (`1039`, `1050`) whose header stops at 05:00, an hour before
-//! the 24 hours its name means (the 2010-02-15 headers; an open item until qualified).
+//! average temperature (`1038`, `A0024`); and melt with time code `T0001`, a 05:00 instant (files
+//! dated 2009-09-29 to 2010-02-16, for example 2010-02-15).
 //! [`SnodasTimes::Vortex`] gives Vortex's timing and types for every product;
 //! [`SnodasTimes::HeaderAsStated`] gives the header's `Start` and `Stop` as written.
 //!
@@ -83,9 +93,10 @@ fn refused(what: impl Into<String>, reason: impl Into<String>) -> VortexError {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SnodasTimes {
     /// The default: the header's times, checked against the file name and the product, with the
-    /// product's data type (PER-CUM daily totals, INST-VAL SWE and depth). A member without a
-    /// header, a header that disagrees, and the two ambiguous products (`1038`, melt `T0001`) are
-    /// refused.
+    /// product's data type (PER-CUM daily totals, INST-VAL SWE and depth). The two historical
+    /// header conventions (melt and sublimation before 2019-02-05, precipitation before
+    /// 2008-10-23) give the header's own period. A member without a header, a header that
+    /// disagrees, and the two ambiguous products (`1038`, melt `T0001`) are refused.
     #[default]
     Header,
     /// Vortex compatibility: `SnodasDataReader.getTimeSpan`, from the file name, typed by
@@ -106,7 +117,8 @@ impl SnodasTimes {
 /// What a product is, for its time and data type under [`SnodasTimes::Header`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProductKind {
-    /// A 24-hour total ending at 06:00 UTC: PER-CUM.
+    /// A daily total: PER-CUM over the 24 hours ending at 06:00 UTC, or over a historical
+    /// convention's header period.
     DailyTotal,
     /// A 06:00 UTC state: INST-VAL.
     Snapshot,
@@ -444,6 +456,69 @@ pub struct Grid {
     pub header: Option<Header>,
 }
 
+/// The two historical NOHRSC header conventions the default timing reads as declared
+/// (maintainer decision 2026-11-14). Each is a daily total whose header period differs from the 24
+/// hours ending 06:00 UTC that its file name means, and NOHRSC used each only for files dated
+/// before a known day. A file of the same product dated on or after that day with the same header
+/// is refused, as is any other header that disagrees with its name.
+///
+/// The days are where the convention changes in the public NSIDC G02158 masked archive, found by a
+/// day-by-day survey of its header members (2003-10-01 to 2026-07-15) and pinned by the boundary
+/// headers in `fixtures/public/snodas_headers` (see its README entries).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Historical {
+    /// Melt (`1044`) and sublimation (`1039`, `1050`), time code `T0024`, dated before 2019-02-05:
+    /// the header states 06:00 UTC of the previous day to a 05:00 UTC stop.
+    MeltSublimation,
+    /// Liquid and solid precipitation (`1025`), time code `T0024`, dated before 2008-10-23: the
+    /// header states a 07:00 UTC start on the previous day to 06:00 UTC.
+    Precipitation,
+}
+
+impl Historical {
+    fn of(p: &Product) -> Option<Self> {
+        if p.kind != ProductKind::DailyTotal {
+            return None;
+        }
+        match p.code.as_str() {
+            "1039" | "1050" | "1044" => Some(Historical::MeltSublimation),
+            "1025" => Some(Historical::Precipitation),
+            _ => None,
+        }
+    }
+
+    /// The header's (start, stop) under the convention, for a file whose time is `six`, 06:00 UTC
+    /// of its date.
+    fn period(self, six: (i64, i64)) -> ((i64, i64), (i64, i64)) {
+        match self {
+            Historical::MeltSublimation => ((six.0 - 1, six.1), (six.0, six.1 - 3600)),
+            Historical::Precipitation => ((six.0 - 1, six.1 + 3600), six),
+        }
+    }
+
+    /// The first file date (day since 1899-12-31) without the convention.
+    fn ended(self) -> i64 {
+        match self {
+            Historical::MeltSublimation => names::julian(2019, 2, 5),
+            Historical::Precipitation => names::julian(2008, 10, 23),
+        }
+    }
+
+    fn ended_text(self) -> &'static str {
+        match self {
+            Historical::MeltSublimation => "2019-02-05",
+            Historical::Precipitation => "2008-10-23",
+        }
+    }
+
+    fn what(self) -> &'static str {
+        match self {
+            Historical::MeltSublimation => "melt and sublimation (06:00 to a 05:00 stop)",
+            Historical::Precipitation => "precipitation (07:00 start)",
+        }
+    }
+}
+
 /// How a refusal names the options that read every product.
 const EXPLICIT: &str = "to import it, name an interpretation: snodas_times=\"vortex\" \
      (SnodasTimes::Vortex: Vortex's file-name times and types) or \
@@ -540,28 +615,38 @@ impl Grid {
                 if (h.start, h.stop) == (want_start, want_stop) {
                     return Ok((time, data_type));
                 }
-                // The 2010-02-15 sublimation headers (`1039`, `1050`, `P000`) state 05:00, the
-                // start of the last hourly step, as the stop; the 2020-01-01 ones state 06:00.
-                // The sources do not settle what the historical stop means, so it is an
-                // ambiguous product until qualified.
-                if matches!(p.code.as_str(), "1039" | "1050")
-                    && h.start == want_start
-                    && h.stop == (six.0, six.1 - 3600)
-                {
-                    return Err(refused(
-                        &self.dat_name,
-                        format!(
-                            "product {} ({}) has a header stopping at {}, an hour before the \
-                             24 hours its file name means ({} to {}). This historical \
-                             sublimation header convention is not qualified (snodas_times=\"header\", the default; an open item); \
-                             {EXPLICIT}",
-                            p.code,
-                            p.name,
-                            show(h.stop),
-                            show(want_start),
-                            show(want_stop)
-                        ),
-                    ));
+                // A historical NOHRSC header convention: read as the
+                // header declares it, for files dated before the convention ended, and refused
+                // from then on.
+                if let Some(old) = Historical::of(p) {
+                    if (h.start, h.stop) == old.period(six) {
+                        if six.0 < old.ended() {
+                            return Ok((
+                                FrameTime::Period {
+                                    start: h.start,
+                                    end: h.stop,
+                                },
+                                DataType::PerCum,
+                            ));
+                        }
+                        return Err(refused(
+                            &self.dat_name,
+                            format!(
+                                "product {} ({}) has a header stating {} to {}, the historical \
+                                 NOHRSC {} convention, which NOHRSC used only for files dated \
+                                 before {}, where its file name means {} to {} (snodas_times=\"header\", the default); \
+                                 {EXPLICIT}",
+                                p.code,
+                                p.name,
+                                show(h.start),
+                                show(h.stop),
+                                old.what(),
+                                old.ended_text(),
+                                show(want_start),
+                                show(want_stop)
+                            ),
+                        ));
+                    }
                 }
                 Err(refused(
                     &self.dat_name,

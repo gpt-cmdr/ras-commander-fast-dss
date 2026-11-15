@@ -1536,6 +1536,33 @@ fn race_hook(path: &str) {
     }
 }
 
+/// Test hook, not a supported API: force publication primitives of
+/// `create` and `repair` on this thread to fail. Names: `link_unsupported`,
+/// `link_permission`, `link_transient` (two transient failures), `rename_unavailable`,
+/// `rename_permission`; an empty list removes them. Compiled only with the `test-hooks`
+/// feature (the CI test wheel); release wheels have no fault-injection entry point.
+#[cfg(feature = "test-hooks")]
+#[pyfunction]
+fn _set_publish_faults(faults: Vec<String>) -> PyResult<()> {
+    use dss7::write::PublishFault as F;
+    use std::io::ErrorKind as K;
+    let parsed = faults
+        .iter()
+        .map(|f| match f.as_str() {
+            "link_unsupported" => Ok(F::LinkKind(K::Unsupported)),
+            "link_permission" => Ok(F::LinkKind(K::PermissionDenied)),
+            "link_transient" => Ok(F::LinkTransient(2)),
+            "rename_unavailable" => Ok(F::RenameUnavailable),
+            "rename_permission" => Ok(F::RenameKind(K::PermissionDenied)),
+            other => Err(PyValueError::new_err(format!(
+                "unknown publish fault {other:?}"
+            ))),
+        })
+        .collect::<PyResult<Vec<_>>>()?;
+    dss7::write::set_publish_faults(&parsed);
+    Ok(())
+}
+
 /// Test hook, not a supported API; see [`race_hook`].
 #[pyfunction]
 #[pyo3(signature = (aside, replacement=None))]
@@ -2437,6 +2464,8 @@ fn location_read_associated<'py>(
 
 #[pymodule]
 fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    // P76: the package version (maturin builds the wheel with the crate version).
+    m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add_function(wrap_pyfunction!(file_signature, m)?)?;
     m.add_function(wrap_pyfunction!(open, m)?)?;
     m.add_class::<NativeFile>()?;
@@ -2452,6 +2481,10 @@ fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(_flush_count, m)?)?;
     m.add_function(wrap_pyfunction!(_set_write_clock, m)?)?;
     m.add_function(wrap_pyfunction!(_set_session_race, m)?)?;
+    #[cfg(feature = "test-hooks")]
+    m.add_function(wrap_pyfunction!(_set_publish_faults, m)?)?;
+    // Whether this build has fault-injection hooks (false in every release wheel).
+    m.add("_TEST_HOOKS", cfg!(feature = "test-hooks"))?;
     m.add_function(wrap_pyfunction!(repair_dss7, m)?)?;
     m.add_function(wrap_pyfunction!(write_rts, m)?)?;
     m.add_function(wrap_pyfunction!(rts_value_times, m)?)?;
@@ -2464,6 +2497,7 @@ fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(write_its6, m)?)?;
     // P23: paired-data writer (DSS7 and DSS6).
     m.add_function(wrap_pyfunction!(write_pd, m)?)?;
+    m.add_function(wrap_pyfunction!(write_batch, m)?)?;
     // P38: time-series variants.
     m.add_function(wrap_pyfunction!(write_rts_variants, m)?)?;
     m.add_function(wrap_pyfunction!(write_its_variants, m)?)?;
@@ -3088,12 +3122,28 @@ fn user_header_into_py<'py>(
 // =================================================================================
 
 pyo3::import_exception!(ras_commander_fast_dss.exceptions, DssLockedError);
+pyo3::import_exception!(ras_commander_fast_dss.exceptions, DssPublishError);
 
 fn write_err(py: Python<'_>, path: &str, e: dss7::write::WriteError) -> PyErr {
     use dss7::write::WriteError as E;
     match e {
         E::Io(io) => BindErr::Os(io, path.to_string()).into_py(),
         E::AlreadyExists(_) => pyo3::exceptions::PyFileExistsError::new_err(ctx(path, &e)),
+        E::Unpublishable(ref r) => {
+            // A new file that could not be published safely. The
+            // destination was not created; `kept_path` names a kept complete copy.
+            let err = DssPublishError::new_err(ctx(path, &e));
+            let v = err.value(py);
+            let _ = v.setattr("dest", r.dest.to_string_lossy().into_owned());
+            let _ = v.setattr(
+                "kept_path",
+                r.kept.as_ref().map(|k| k.to_string_lossy().into_owned()),
+            );
+            let _ = v.setattr("link_error", r.link_error.to_string());
+            // Not `errno`/`filename`: setting those makes OSError's str() drop the message.
+            let _ = v.setattr("link_errno", r.link_error.raw_os_error());
+            err
+        }
         E::Dss7(d) => map_dss7(path, d).into_py(),
         E::Ts(t) => map_ts7(path, t).into_py(),
         E::Lock(l) => map_lock(path, l).into_py(),
@@ -3317,16 +3367,20 @@ fn write_rts<'py>(
     Ok(d)
 }
 
-/// HEC-second stamps of `n` values starting at `start` for the pathname's E part, as the
-/// writer assigns them (`incrementTime`); validates the pathname and start like a write.
+/// HEC-second stamps that `n` values written from `start` read back at (P76: the stored
+/// record's read-back placement); validates the pathname and start like a write. With
+/// `first_valid` > 0 the first values are missing: the stamps of values `first_valid..n`.
+/// Raises `ValueError` where HEC-DSS stores and reads values at other times.
 #[pyfunction]
+#[pyo3(signature = (pathname, start, n, first_valid=0))]
 fn rts_value_times<'py>(
     py: Python<'py>,
     pathname: &str,
     start: i64,
     n: usize,
+    first_valid: usize,
 ) -> PyResult<Bound<'py, numpy::PyArray1<i64>>> {
-    let v = dss7::write::value_times(pathname.as_bytes(), start, n)
+    let v = dss7::write::value_times_from(pathname.as_bytes(), start, n, first_valid)
         .map_err(|e| write_err(py, pathname, e))?;
     Ok(v.into_pyarray(py))
 }
@@ -3551,14 +3605,18 @@ fn write_rts6<'py>(
 
 /// HEC-second stamps of `n` regular values starting at `start`, as the DSS6 writer
 /// assigns them (`INCTIM` and the offset); validates the pathname and start like a write.
+/// P76: with `first_valid` > 0, the stamps of values `first_valid..n` (leading missing
+/// values are trimmed by reads); raises `ValueError` where HEC's read would move a kept value.
 #[pyfunction]
+#[pyo3(signature = (pathname, start, n, first_valid=0))]
 fn rts6_value_times<'py>(
     py: Python<'py>,
     pathname: &str,
     start: i64,
     n: usize,
+    first_valid: usize,
 ) -> PyResult<Bound<'py, numpy::PyArray1<i64>>> {
-    let v = dss_core::dss6::write::value_times6(pathname.as_bytes(), start, n)
+    let v = dss_core::dss6::write::value_times6_from(pathname.as_bytes(), start, n, first_valid)
         .map_err(|e| write_err(py, pathname, e))?;
     Ok(v.into_pyarray(py))
 }
@@ -3746,6 +3804,395 @@ fn write_pd<'py>(
     let d = report_dict6(py, &r)?;
     d.set_item("version", version)?;
     Ok(d)
+}
+
+// =================================================================================
+// P76: batch writer (`dss_core::dss7::write::write_batch`, `dss6::write::write_batch6`).
+//
+// `write_batch(path, version, items, ...)` stores many records with one open (or one
+// session write on the held handle), one lock test and lock, and one end-of-call flush.
+// Each item is a tuple whose first element names the record kind and whose remaining
+// elements are the arguments of the single-record binding, in its order (without
+// `path`, `allow_undetectable_readers`, `sync`, `version` and `handle`):
+//   ("rts", pathname, start, values, units, data_type, quality, time_zone, precision)
+//   ("its", pathname, times, values, units, data_type, quality, time_zone, precision,
+//    time_granularity)                                                    (DSS7)
+//   ("rts6", the arguments of "rts"), ("its6", pathname, times, values, units,
+//    data_type, quality, mode)                                            (DSS6)
+//   ("pd", pathname, ordinates, values, number_curves, units_independent,
+//    type_independent, units_dependent, type_dependent, labels, independent_is_x_axis,
+//    x_precision, y_precision, time_zone)                                 (both)
+// Returns `(reports, failed)`: one report dict per stored record (equal to what the
+// single-record binding returns) and `None`, or `(index, exception)` for the record that
+// stopped the batch.
+// =================================================================================
+
+/// One batch item with its arrays copied out of Python (the GIL is released while the
+/// batch is written).
+enum OwnedItem {
+    Rts {
+        pathname: Vec<u8>,
+        start: i64,
+        values: Owned6,
+        units: Vec<u8>,
+        data_type: Vec<u8>,
+        quality: Option<Vec<i32>>,
+        time_zone: Option<Vec<u8>>,
+        precision: i32,
+    },
+    Its {
+        pathname: Vec<u8>,
+        times: Vec<i64>,
+        values: Owned6,
+        units: Vec<u8>,
+        data_type: Vec<u8>,
+        quality: Option<Vec<i32>>,
+        time_zone: Option<Vec<u8>>,
+        precision: i32,
+        time_granularity: Option<i64>,
+        mode6: dss_core::dss6::write::ItsMode,
+    },
+    Pd {
+        pathname: Vec<u8>,
+        ordinates: Owned6,
+        values: Owned6,
+        number_curves: usize,
+        strings: [Vec<u8>; 4],
+        labels: Option<Vec<Vec<u8>>>,
+        independent_is_x_axis: i32,
+        x_precision: i32,
+        y_precision: i32,
+        time_zone: Option<Vec<u8>>,
+    },
+}
+
+fn opt_i32_array(o: &Bound<'_, PyAny>) -> PyResult<Option<Vec<i32>>> {
+    if o.is_none() {
+        Ok(None)
+    } else {
+        Ok(Some(
+            o.extract::<numpy::PyReadonlyArray1<'_, i32>>()?
+                .as_array()
+                .to_vec(),
+        ))
+    }
+}
+
+fn opt_bytes(o: &Bound<'_, PyAny>) -> PyResult<Option<Vec<u8>>> {
+    Ok(o.extract::<Option<String>>()?.map(String::into_bytes))
+}
+
+fn i64_array(o: &Bound<'_, PyAny>) -> PyResult<Vec<i64>> {
+    Ok(o.extract::<numpy::PyReadonlyArray1<'_, i64>>()?
+        .as_array()
+        .to_vec())
+}
+
+fn owned_item(item: &Bound<'_, PyAny>, version: i32) -> PyResult<OwnedItem> {
+    let t = item.downcast::<pyo3::types::PyTuple>()?;
+    let kind: String = t.get_item(0)?.extract()?;
+    let want = |n: usize| -> PyResult<()> {
+        if t.len() == n {
+            Ok(())
+        } else {
+            Err(PyValueError::new_err(format!(
+                "batch item {kind:?} needs {n} elements, not {}",
+                t.len()
+            )))
+        }
+    };
+    let s =
+        |i: usize| -> PyResult<Vec<u8>> { Ok(t.get_item(i)?.extract::<String>()?.into_bytes()) };
+    let kind_version = match kind.as_str() {
+        "rts" | "its" => 7,
+        "rts6" | "its6" => 6,
+        "pd" => version,
+        other => {
+            return Err(PyValueError::new_err(format!(
+                "unknown batch item kind {other:?}"
+            )))
+        }
+    };
+    if kind_version != version {
+        return Err(PyValueError::new_err(format!(
+            "batch item {kind:?} cannot be written in a DSS{version} batch"
+        )));
+    }
+    Ok(match kind.as_str() {
+        "rts" | "rts6" => {
+            want(9)?;
+            OwnedItem::Rts {
+                pathname: s(1)?,
+                start: t.get_item(2)?.extract()?,
+                values: values_owned6(&t.get_item(3)?)?,
+                units: s(4)?,
+                data_type: s(5)?,
+                quality: opt_i32_array(&t.get_item(6)?)?,
+                time_zone: opt_bytes(&t.get_item(7)?)?,
+                precision: t.get_item(8)?.extract()?,
+            }
+        }
+        "its" => {
+            want(10)?;
+            OwnedItem::Its {
+                pathname: s(1)?,
+                times: i64_array(&t.get_item(2)?)?,
+                values: values_owned6(&t.get_item(3)?)?,
+                units: s(4)?,
+                data_type: s(5)?,
+                quality: opt_i32_array(&t.get_item(6)?)?,
+                time_zone: opt_bytes(&t.get_item(7)?)?,
+                precision: t.get_item(8)?.extract()?,
+                time_granularity: t.get_item(9)?.extract()?,
+                mode6: dss_core::dss6::write::ItsMode::Replace,
+            }
+        }
+        "its6" => {
+            want(8)?;
+            let mode = match t.get_item(7)?.extract::<String>()?.as_str() {
+                "replace" => dss_core::dss6::write::ItsMode::Replace,
+                "merge" => dss_core::dss6::write::ItsMode::Merge,
+                other => {
+                    return Err(PyValueError::new_err(format!(
+                        "mode must be \"replace\" or \"merge\", not {other:?}"
+                    )))
+                }
+            };
+            OwnedItem::Its {
+                pathname: s(1)?,
+                times: i64_array(&t.get_item(2)?)?,
+                values: values_owned6(&t.get_item(3)?)?,
+                units: s(4)?,
+                data_type: s(5)?,
+                quality: opt_i32_array(&t.get_item(6)?)?,
+                time_zone: None,
+                precision: -1,
+                time_granularity: None,
+                mode6: mode,
+            }
+        }
+        _ => {
+            want(14)?;
+            let ordinates = values_owned6(&t.get_item(2)?)?;
+            let values = values_owned6(&t.get_item(3)?)?;
+            if ordinates.0.is_some() != values.0.is_some() {
+                return Err(PyValueError::new_err(
+                    "ordinates and values must have the same dtype (both float32 or both float64)",
+                ));
+            }
+            OwnedItem::Pd {
+                pathname: s(1)?,
+                ordinates,
+                values,
+                number_curves: t.get_item(4)?.extract()?,
+                strings: [s(5)?, s(6)?, s(7)?, s(8)?],
+                labels: t
+                    .get_item(9)?
+                    .extract::<Option<Vec<String>>>()?
+                    .map(|l| l.into_iter().map(String::into_bytes).collect()),
+                independent_is_x_axis: t.get_item(10)?.extract()?,
+                x_precision: t.get_item(11)?.extract()?,
+                y_precision: t.get_item(12)?.extract()?,
+                time_zone: opt_bytes(&t.get_item(13)?)?,
+            }
+        }
+    })
+}
+
+fn pd_arrays<'a>(o: &'a Owned6, v: &'a Owned6) -> dss7::write::PdArrays<'a> {
+    match (o, v) {
+        ((Some(a), _), (Some(b), _)) => dss7::write::PdArrays::F32 {
+            ordinates: a,
+            values: b,
+        },
+        ((_, Some(a)), (_, Some(b))) => dss7::write::PdArrays::F64 {
+            ordinates: a,
+            values: b,
+        },
+        _ => dss7::write::PdArrays::F64 {
+            ordinates: &[],
+            values: &[],
+        },
+    }
+}
+
+/// The time-series and paired-data inputs of an item.
+enum ItemInput<'a> {
+    Rts(dss7::write::RtsInput<'a>),
+    Its(
+        dss7::write::ItsInput<'a>,
+        dss_core::dss6::write::ItsInput<'a>,
+    ),
+    Pd(dss7::write::PdInput<'a>),
+}
+
+fn item_input(it: &OwnedItem) -> ItemInput<'_> {
+    match it {
+        OwnedItem::Rts {
+            pathname,
+            start,
+            values,
+            units,
+            data_type,
+            quality,
+            time_zone,
+            precision,
+        } => {
+            let mut input =
+                dss7::write::RtsInput::new(pathname, *start, values_ref6(values), units, data_type);
+            input.quality = quality.as_deref();
+            input.time_zone = time_zone.as_deref();
+            input.precision = *precision;
+            ItemInput::Rts(input)
+        }
+        OwnedItem::Its {
+            pathname,
+            times,
+            values,
+            units,
+            data_type,
+            quality,
+            time_zone,
+            precision,
+            time_granularity,
+            mode6,
+        } => {
+            let mut input =
+                dss7::write::ItsInput::new(pathname, times, values_ref6(values), units, data_type);
+            input.quality = quality.as_deref();
+            input.time_zone = time_zone.as_deref();
+            input.precision = *precision;
+            input.time_granularity = *time_granularity;
+            let input6 = dss_core::dss6::write::ItsInput {
+                pathname,
+                times,
+                values: values_ref6(values),
+                quality: quality.as_deref(),
+                units,
+                data_type,
+                mode: *mode6,
+            };
+            ItemInput::Its(input, input6)
+        }
+        OwnedItem::Pd {
+            pathname,
+            ordinates,
+            values,
+            number_curves,
+            strings,
+            labels,
+            independent_is_x_axis,
+            x_precision,
+            y_precision,
+            time_zone,
+        } => {
+            let mut input = dss7::write::PdInput::new(
+                pathname,
+                pd_arrays(ordinates, values),
+                *number_curves,
+                &strings[0],
+                &strings[1],
+                &strings[2],
+                &strings[3],
+            );
+            input.labels = labels.as_deref();
+            input.independent_is_x_axis = *independent_is_x_axis;
+            input.x_precision = *x_precision;
+            input.y_precision = *y_precision;
+            input.time_zone = time_zone.as_deref();
+            ItemInput::Pd(input)
+        }
+    }
+}
+
+/// Store many records in one write call; see the section comment.
+#[pyfunction]
+#[pyo3(signature = (path, version, items, allow_undetectable_readers=true,
+                    sync=PySync::DEFAULT, handle=None))]
+fn write_batch<'py>(
+    py: Python<'py>,
+    path: &str,
+    version: i32,
+    items: Vec<Bound<'py, PyAny>>,
+    allow_undetectable_readers: bool,
+    sync: PySync,
+    handle: Option<Bound<'py, NativeFile>>,
+) -> PyResult<(Bound<'py, PyList>, PyObject)> {
+    if version != 6 && version != 7 {
+        return Err(PyValueError::new_err(format!(
+            "version must be 6 or 7, not {version}"
+        )));
+    }
+    let owned: Vec<OwnedItem> = items
+        .iter()
+        .map(|it| owned_item(it, version))
+        .collect::<PyResult<_>>()?;
+    let p = path.to_string();
+    let held: Option<&NativeFile> = handle.as_ref().map(|h| h.get());
+    let result = py.allow_threads(|| {
+        let mut opts = dss7::write::WriteOptions::default();
+        opts.lock_policy.allow_undetectable_readers = allow_undetectable_readers;
+        opts.sync = sync.0;
+        if owned.is_empty() {
+            // No record, no write call: the file is not opened.
+            return Ok(dss7::write::BatchReport::default());
+        }
+        let inputs: Vec<ItemInput> = owned.iter().map(item_input).collect();
+        if version == 6 {
+            use dss_core::dss6::write::BatchItem6;
+            let b: Vec<BatchItem6> = inputs
+                .into_iter()
+                .map(|i| match i {
+                    ItemInput::Rts(x) => BatchItem6::Rts(x),
+                    ItemInput::Its(_, x) => BatchItem6::Its(x),
+                    ItemInput::Pd(x) => BatchItem6::Pd(x),
+                })
+                .collect();
+            on_target(
+                held,
+                &p,
+                6,
+                |q| dss_core::dss6::write::write_batch6(q, &b, &opts),
+                |f| dss_core::dss6::write::write_batch6_to(f, &b, &opts),
+            )
+        } else {
+            use dss7::write::BatchItem;
+            let b: Vec<BatchItem> = inputs
+                .into_iter()
+                .map(|i| match i {
+                    ItemInput::Rts(x) => BatchItem::Rts(x),
+                    ItemInput::Its(x, _) => BatchItem::Its(x),
+                    ItemInput::Pd(x) => BatchItem::Pd(x),
+                })
+                .collect();
+            on_target(
+                held,
+                &p,
+                7,
+                |q| dss7::write::write_batch(q, &b, &opts),
+                |f| dss7::write::write_batch_to(f, &b, &opts),
+            )
+        }
+    });
+    let r = result.map_err(|e| write_err(py, path, e))?;
+    let reports = PyList::empty(py);
+    for (rep, item) in r.reports.iter().zip(&owned) {
+        let d = report_dict6(py, rep)?;
+        match (item, version) {
+            // The DSS7 time-series bindings report no version; the others do.
+            (OwnedItem::Rts { .. } | OwnedItem::Its { .. }, 7) => d.del_item("version")?,
+            _ => d.set_item("version", version)?,
+        }
+        reports.append(d)?;
+    }
+    let failed = match r.failed {
+        None => py.None(),
+        Some((i, e)) => (i, write_err(py, path, e).into_value(py))
+            .into_pyobject(py)?
+            .into_any()
+            .unbind(),
+    };
+    Ok((reports, failed))
 }
 
 // =================================================================================

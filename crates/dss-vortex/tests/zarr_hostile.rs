@@ -8,6 +8,9 @@
 
 mod zarr_support;
 
+#[path = "common/example_exe.rs"]
+mod example_exe;
+
 use dss_vortex::source::zarr::ZarrStore;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -738,30 +741,9 @@ fn a_read_stops_when_asked_and_at_its_time_limit() {
     assert_eq!(v.read(0..4, &v.full_window()).unwrap().len(), 96);
 }
 
-/// `target/<profile>/examples/zarr_dump`, built here if this test ran alone.
+/// The `zarr_dump` example, built by Cargo with this test's profile (`common/example_exe.rs`).
 fn zarr_dump() -> PathBuf {
-    let test = std::env::current_exe().unwrap();
-    let profile = test.parent().unwrap().parent().unwrap();
-    let tool = profile
-        .join("examples")
-        .join(format!("zarr_dump{}", std::env::consts::EXE_SUFFIX));
-    if !tool.exists() {
-        let release = profile.file_name().is_some_and(|name| name == "release");
-        let mut build = Command::new(env!("CARGO"));
-        build.args([
-            "build",
-            "--locked",
-            "-p",
-            "dss-vortex",
-            "--example",
-            "zarr_dump",
-        ]);
-        if release {
-            build.arg("--release");
-        }
-        assert!(build.status().unwrap().success());
-    }
-    tool
+    example_exe::example_exe("zarr_dump")
 }
 
 fn has_job_object() -> bool {

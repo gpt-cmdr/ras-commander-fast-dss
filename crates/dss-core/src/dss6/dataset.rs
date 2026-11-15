@@ -564,6 +564,8 @@ impl<S: ReadAt> Dss6File<S> {
         };
         let mut quality: Option<Vec<i32>> = with_quality.then(Vec::new);
         let mut times = Vec::new();
+        // P76: the standard (end-of-period) stamp of every slot read, for HEC's C stamping.
+        let mut standard_times: Vec<i64> = Vec::new();
         let mut prev_stamp: Option<i64> = None;
         for (ymd_b, base, rec) in &blocks {
             // Standard slots of this block: positions 1.. up to the next block start
@@ -598,6 +600,7 @@ impl<S: ReadAt> Dss6File<S> {
                 }
                 used = true;
                 times.push(t);
+                standard_times.push(standard.as_ref().map_or(t, |s| s[k]));
                 match rec {
                     Some(r) if k < r.values.len() => {
                         buf.push_from(&r.values, k);
@@ -638,6 +641,13 @@ impl<S: ReadAt> Dss6File<S> {
         if wide {
             series.record_type = 105;
         }
+        hec_c_stamps(
+            &mut series,
+            &standard_times,
+            intl,
+            offset,
+            opts.trim_missing,
+        );
         if opts.read.no_data == NoDataPolicy::Refuse {
             // zrrtsi.f lines 653-658: no block of the window read -> ISTAT 5
             // ("no pathname(s) found"; a block found only in the padding is not read).
@@ -944,6 +954,67 @@ impl<S: ReadAt> Dss6File<S> {
 /// end (maintainer decision 2026-10-29, "Match HEC behavior"). HEC trims regular
 /// data only (`Public/ztsRetrieve.c` lines 618-626); irregular datasets are not trimmed.
 /// Returns the number removed.
+/// P76: the stamps of a DSS6 regular record with a
+/// calendar interval and an offset, as HEC's C library computes a value's stamp from its
+/// standard (end-of-period) stamp and the stored offset: `ztsOffsetAdjustToOffset()`
+/// (`Public/ztsRetrieve.c` lines 627-636; `Dss6/ztsRetrieveReg6.c` returns values and `IOFSET`
+/// only). Each slot is stamped from its own standard stamp, so a value's stamp never depends
+/// on which other values are missing, on trimming or on the read window (an
+/// unreleased earlier version restamped the kept values from the first non-missing slot, which put
+/// finite values on other values' dates after leading missing values). Where HEC's own
+/// chained stamps (`ztsRegAddTimes()` from the first kept slot) differ from these, HEC moves or
+/// merges values; `value_times6` refuses such writes, and the difference on reads is
+/// documented in `docs/format/dss6.md` §7.1. `standard` holds the standard stamp of every slot
+/// of `ts`; `_trim` is unused (the stamps do not depend on it).
+pub(crate) fn hec_c_stamps(
+    ts: &mut TimeSeries,
+    standard: &[i64],
+    intl: i64,
+    offset: i64,
+    _trim: bool,
+) {
+    if intl <= DAY_MINUTES || offset <= 0 || ts.times.is_empty() || standard.len() != ts.times.len()
+    {
+        return;
+    }
+    for (t, &st) in ts.times.iter_mut().zip(standard) {
+        *t = c_slot_stamp(st, intl, offset);
+    }
+}
+
+/// One slot's stamp: `ztsOffsetAdjustToOffset(offset)` of its standard stamp (seconds), for an
+/// interval and offset in minutes.
+pub(crate) fn c_slot_stamp(standard: i64, intl: i64, offset: i64) -> i64 {
+    use crate::dss7::interval as iv;
+    let (mut j, mut s) = (
+        standard.div_euclid(iv::SECS_IN_1_DAY),
+        standard.rem_euclid(iv::SECS_IN_1_DAY),
+    );
+    iv::clean_time(&mut j, &mut s, iv::SECOND_GRANULARITY);
+    iv::offset_adjust_to_offset(offset * 60, intl * 60, &mut j, &mut s);
+    j * iv::SECS_IN_1_DAY + s
+}
+
+/// `ztsOffsetAdjustToOffset()` + `ztsRegAddTimes()` from a standard stamp (seconds), for an
+/// interval and offset in minutes: `n` stamps in seconds.
+pub(crate) fn c_stamps(standard: i64, intl: i64, offset: i64, n: usize) -> Vec<i64> {
+    use crate::dss7::interval as iv;
+    let (mut j, mut s) = (
+        standard.div_euclid(iv::SECS_IN_1_DAY),
+        standard.rem_euclid(iv::SECS_IN_1_DAY),
+    );
+    iv::clean_time(&mut j, &mut s, iv::SECOND_GRANULARITY);
+    crate::dss7::ts::hec_reg_stamps(
+        intl * 60,
+        j,
+        s,
+        offset * 60,
+        iv::MINUTE_GRANULARITY,
+        0,
+        n as i64,
+    )
+}
+
 pub fn trim_missing(ts: &mut TimeSeries) -> usize {
     let vals = ts.values.to_f64();
     let first = vals.iter().position(|&v| !is_hec_missing(v));

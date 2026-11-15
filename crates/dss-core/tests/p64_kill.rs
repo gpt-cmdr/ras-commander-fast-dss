@@ -275,7 +275,7 @@ fn mode(sync: impl Into<Mode>) -> WriteOptions {
 /// of a deleted entry, and a write that deletes a record; then DSS6 regular merges
 /// that overlap part of a stored block, and that extend a series across block boundaries
 /// (float and double).
-const CASES: [&str; 28] = [
+const CASES: [&str; 30] = [
     "rts7_new",
     "rts7_multi",
     "its7",
@@ -306,10 +306,15 @@ const CASES: [&str; 28] = [
     "rts6_overlap",
     "rts6_extend",
     "rtd6_extend",
+    // P76: batch writes (one lock, many records): a new series, a multi-block merge, an
+    // irregular replacement, a paired-data replacement and a new paired-data record.
+    "batch7",
+    "batch6",
 ];
 
 /// DSS7 cases whose write takes a new pathname bin (so the F1 window exists).
-const NEW_BIN_CASES: [&str; 12] = [
+const NEW_BIN_CASES: [&str; 13] = [
+    "batch7",
     "rts7_new",
     "rts7_multi",
     "grid7",
@@ -405,6 +410,113 @@ fn paired(v: u8, f: &Path, p: &[u8], scale: f32, o: &WriteOptions) -> Result<(),
         write_pd6(f, &input, o).map(|_| ())
     } else {
         write_pd(f, &input, o).map(|_| ())
+    }
+}
+
+/// P76: the batch of the `batch7` / `batch6` cases, through the held handle in held mode.
+fn batch(v: u8, f: &Path, o: &WriteOptions) -> Result<(), WriteError> {
+    let new_rts = ramp(30, 10.0);
+    let multi = ramp(24 * 40, 500.0);
+    let times = [t(2021, 4, 4, 0), t(2021, 4, 6, 3600)];
+    let irr = [7.5f32, 8.5];
+    let ord = [0.0f32, 1.0, 2.5, 4.0, 7.0];
+    let pd_a: Vec<f32> = (0..10).map(|i| 3.0 * (i as f32 + 0.25)).collect();
+    let pd_b: Vec<f32> = (0..10).map(|i| 4.0 * (i as f32 + 0.25)).collect();
+    let rts_new = RtsInput::new(
+        b"/T/NEW/FLOW//1HOUR/S/",
+        t(2021, 3, 1, 3600),
+        RtsValues::F32(&new_rts),
+        b"CFS",
+        b"INST-VAL",
+    );
+    let rts_multi = RtsInput::new(
+        b"/T/MULTI/FLOW//1HOUR/S/",
+        t(2021, 3, 21, 3600),
+        RtsValues::F32(&multi),
+        b"CFS",
+        b"INST-VAL",
+    );
+    let pd_replace = PdInput::new(
+        b"/T/PD/STAGE-FLOW///S/",
+        PdArrays::F32 {
+            ordinates: &ord,
+            values: &pd_a,
+        },
+        2,
+        b"FT",
+        b"LINEAR",
+        b"CFS",
+        b"LINEAR",
+    );
+    let pd_new = PdInput::new(
+        b"/T/NEWPD/STAGE-FLOW///S/",
+        PdArrays::F32 {
+            ordinates: &ord,
+            values: &pd_b,
+        },
+        2,
+        b"FT",
+        b"LINEAR",
+        b"CFS",
+        b"LINEAR",
+    );
+    let held = HELD.with(|h| match h.borrow().as_ref() {
+        Some((p, file)) if p == f => Some(file.try_clone().unwrap()),
+        _ => None,
+    });
+    if held.is_some() {
+        HELD_WRITES.with(|c| c.set(c.get() + 1));
+        HELD_TOTAL.fetch_add(1, Ordering::SeqCst);
+    } else {
+        PATH_WRITES.with(|c| c.set(c.get() + 1));
+    }
+    let r = if v == 6 {
+        let its = ItsInput6 {
+            pathname: b"/T/IRR/STAGE//IR-MONTH/S/",
+            times: &times,
+            values: RtsValues::F32(&irr),
+            quality: None,
+            units: b"FT",
+            data_type: b"INST-VAL",
+            mode: ItsMode::Replace,
+        };
+        let items = [
+            w6::BatchItem6::Rts(rts_new),
+            w6::BatchItem6::Rts(rts_multi),
+            w6::BatchItem6::Its(its),
+            w6::BatchItem6::Pd(pd_replace),
+            w6::BatchItem6::Pd(pd_new),
+        ];
+        match &held {
+            Some(file) => w6::write_batch6_to(file, &items, o),
+            None => w6::write_batch6(f, &items, o),
+        }
+    } else {
+        let its = ItsInput::new(
+            b"/T/IRR/STAGE//IR-MONTH/S/",
+            &times,
+            RtsValues::F32(&irr),
+            b"FT",
+            b"INST-VAL",
+        );
+        let items = [
+            w7::BatchItem::Rts(rts_new),
+            w7::BatchItem::Rts(rts_multi),
+            w7::BatchItem::Its(its),
+            w7::BatchItem::Pd(pd_replace),
+            w7::BatchItem::Pd(pd_new),
+        ];
+        match &held {
+            Some(file) => w7::write_batch_to(file, &items, o),
+            None => w7::write_batch(f, &items, o),
+        }
+    }?;
+    match r.failed {
+        Some((_, e)) => Err(e),
+        None => {
+            assert_eq!(r.reports.len(), 5);
+            Ok(())
+        }
     }
 }
 
@@ -858,6 +970,8 @@ fn run_write(case: &str, f: &Path, o: &WriteOptions) -> Result<(), WriteError> {
             );
             write_rts6(f, &input, o).map(|_| ())
         }
+        // P76: a batch; its repair is the same batch again.
+        "batch7" | "batch6" => batch(v, f, o),
         // The copy-out repair, killed like a write (it writes only `dest`), in the mode
         // under test (`repair_dss7_with`).
         "repair7" => repair_dss7_with(f, &copy_dest(f), o.sync).map(|_| ()),
@@ -1501,7 +1615,9 @@ fn assert_f1_window_reached(counts: &Counts) {
     }
 }
 
-const SECOND_KILL_CASES: [&str; 9] = [
+const SECOND_KILL_CASES: [&str; 11] = [
+    "batch7",
+    "batch6",
     "rts7_new",
     "rts6_multi",
     "rts6_extend",

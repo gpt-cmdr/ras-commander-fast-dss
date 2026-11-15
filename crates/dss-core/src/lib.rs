@@ -33,6 +33,10 @@ pub use location::{
 // HEC lock-word detection for writers. Not built for wasm32 (no writer there).
 #[cfg(not(target_arch = "wasm32"))]
 pub mod lock;
+/// Exclusive temporary files and no-replace publication (creation and repair).
+#[doc(hidden)]
+#[cfg(not(target_arch = "wasm32"))]
+pub mod publish;
 // Record user-header text.
 pub mod user_header;
 pub use user_header::{parse_user_header_items, user_header_text};

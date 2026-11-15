@@ -1,4 +1,6 @@
 name: CI
+# Routine CI: Linux and Windows only. macOS wheels are built and tested only by the
+# approval-gated release workflow (release.yml, build.yml); see AGENTS.md.
 on:
   push:
     branches: [main]
@@ -72,11 +74,15 @@ jobs:
         id: py313
         with:
           python-version: '3.13'
-      - name: Build one abi3 wheel
+      # dist/: the release wheel. dist-test/: a test wheel with the `test-hooks` feature, the
+      # only build that exports fault injection. maturin's --features replaces the pyproject
+      # list, so the test build names `vortex` again.
+      - name: Build one abi3 wheel, and a test wheel with fault hooks
         shell: bash
         run: |
           "${{ steps.py313.outputs.python-path }}" -m pip install "maturin>=1.9,<2"
           "${{ steps.py313.outputs.python-path }}" -m maturin build --release --locked --out dist
+          "${{ steps.py313.outputs.python-path }}" -m maturin build --release --locked --features vortex,test-hooks --out dist-test
       - name: Python tests against the installed wheel
         shell: bash
         # -I keeps the repository's python/ tree off sys.path, so the tests import the wheel.
@@ -88,7 +94,9 @@ jobs:
             if [ -x "$venv/bin/python" ]; then py="$venv/bin/python"; else py="$venv/Scripts/python.exe"; fi
             "$py" -m pip install dist/*.whl pytest
             "$py" -I tests/smoke_wheel.py
-            "$py" -I -m pytest -q
+            FAST_DSS_RELEASE_WHEEL=1 "$py" -I -m pytest -q tests/python/test_release_surface.py
+            "$py" -m pip install --force-reinstall --no-deps dist-test/*.whl
+            FAST_DSS_TEST_HOOKS=1 "$py" -I -m pytest -q
           done
 
   sdist:

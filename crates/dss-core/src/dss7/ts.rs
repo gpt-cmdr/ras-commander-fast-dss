@@ -819,7 +819,8 @@ impl<R: Read + Seek> Dss7File<R> {
             });
         }
         if opts.trim_missing && interval.code > 0 {
-            trim(&mut a);
+            let lead = trim(&mut a);
+            restamp_after_trim(&mut a, &interval, &w, lead);
         }
         let t = a.record_type;
         self.finish(a, false, t)
@@ -1469,15 +1470,147 @@ fn missing_block(out: &mut Assembled, n: usize, stride: usize, elem: usize) {
     }
 }
 
+/// P76: where a whole-dataset read of this module stamps regular values that a writer
+/// stores in consecutive blocks. `blocks` lists, in order, each block's start julian (its D
+/// part), the block position of its first stored value (`blockStartPosition`) and the number
+/// of values stored there. `first_day` and `last_day` are the bin dates the writer stores for
+/// the first and last block (`kbinDates`), which set the read's window; the first
+/// `first_valid` stored values are missing and are trimmed by the read. The window, block
+/// positions and stamps are the ones the whole-dataset read computes (`ztsProcessTimes()`
+/// with `boolRetrieveAllTimes`, `ztsRetrieveReg7()`, `ztsRegAddTimes()`), so the result is
+/// what a read of the stored record returns. A stored value outside the slots that read
+/// takes is `None`.
+pub(crate) fn readback_times(
+    code: i64,
+    blocks: &[(i64, i64, i64)],
+    first_day: i64,
+    last_day: i64,
+    offset: i64,
+    granularity: i64,
+    first_valid: usize,
+) -> Result<Vec<Option<i64>>, TsError> {
+    if blocks.is_empty() {
+        return Ok(Vec::new());
+    }
+    let interval = StandardInterval {
+        code,
+        name: "",
+        pseudo_regular: false,
+    };
+    let s0 = if code >= iv::SECS_IN_1_MINUTE {
+        iv::SECS_IN_1_MINUTE
+    } else {
+        1
+    };
+    let (mut sj, mut ss, mut ej, mut es) = (first_day, s0, last_day, iv::SECS_IN_1_DAY);
+    iv::offset_adjust_to_standard(code, &mut sj, &mut ss);
+    iv::offset_adjust_to_standard(code, &mut ej, &mut es);
+    let w = resolve_window(&interval, WindowSource::Explicit((sj, ss), (ej, es)))?;
+    let gran = if granularity > 0 {
+        granularity
+    } else {
+        w.granularity
+    };
+    let times = reg_times(
+        code,
+        &w,
+        offset.max(0),
+        gran,
+        w.julian_base,
+        w.number_values,
+    );
+    // Read positions of the stored values; a read trims the leading empty slots and stamps
+    // from the moved start (`restamp_after_trim`).
+    let mut index: Vec<Option<i64>> = Vec::new();
+    let mut current: i64 = 0;
+    for &(bj, first_slot, count) in blocks {
+        // The read walks the blocks from the window's start block to its end block only
+        // (`read_blocks`); a value stored in a block outside them is not read (a weekly decade
+        // block's last week, when the window starts in the next block).
+        if bj < w.start_block || bj > w.end_block {
+            index.extend(std::iter::repeat(None).take(count.max(0) as usize));
+            continue;
+        }
+        let next = iv::increment_block(bj, w.block_size);
+        let in_block =
+            iv::number_periods(code, bj - 1, iv::SECS_IN_1_DAY, next - 1, iv::SECS_IN_1_DAY);
+        let rel = iv::number_periods(code, bj - 1, iv::SECS_IN_1_DAY, w.start_j, w.start_s) - 1;
+        let mut bsp = rel + current;
+        if code == iv::SECS_IN_1_WEEK && bsp == -1 {
+            bsp = 0;
+        }
+        let to_read = if bsp < 0 {
+            0
+        } else {
+            (in_block - bsp).min(w.number_values - current).max(0)
+        };
+        for m in 0..count {
+            let slot = first_slot + m;
+            let k = current + (slot - bsp);
+            index.push((bsp >= 0 && slot >= bsp && slot < bsp + to_read).then_some(k));
+        }
+        current += to_read;
+    }
+    // The read trims the values before the first valid one (`first_valid` missing values).
+    let lead = index
+        .iter()
+        .skip(first_valid)
+        .flatten()
+        .copied()
+        .min()
+        .unwrap_or(0)
+        .max(0);
+    let restamped = (lead > 0 && code > iv::SECS_IN_1_DAY && offset > 0).then(|| {
+        let (j, s) = iv::increment_time(code, lead, w.start_j, w.start_s);
+        hec_reg_stamps(
+            code,
+            j,
+            s,
+            offset,
+            gran,
+            w.julian_base,
+            w.number_values - lead,
+        )
+    });
+    Ok(index
+        .into_iter()
+        .map(|k| {
+            let k = k?;
+            match &restamped {
+                Some(r) => usize::try_from(k - lead)
+                    .ok()
+                    .and_then(|i| r.get(i).copied()),
+                None => usize::try_from(k).ok().and_then(|i| times.get(i).copied()),
+            }
+        })
+        .collect())
+}
+
 /// `ztsRegAddTimes()`: absolute seconds of each regular value, with HEC's integer
 /// arithmetic in granularity units (`times[i] = (julian - base) * (86400 / g) + secs / g`).
 fn reg_times(interval: i64, w: &Window, offset: i64, gran: i64, base: i64, n: i64) -> Vec<i64> {
+    hec_reg_stamps(interval, w.start_j, w.start_s, offset, gran, base, n)
+}
+
+/// P76: `ztsRetrieve()`'s regular stamps, from the window's standard start `(start_j,
+/// start_s)` and the record's offset: `ztsOffsetAdjustToOffset()` of the start, then
+/// `ztsRegAddTimes()` (`Public/ztsRetrieve.c` lines 627-636). HEC's C library stamps DSS6
+/// regular reads the same way (`ztsRetrieveReg6()` returns only values and the offset).
+pub(crate) fn hec_reg_stamps(
+    interval: i64,
+    start_j: i64,
+    start_s: i64,
+    offset: i64,
+    gran: i64,
+    base: i64,
+    n: i64,
+) -> Vec<i64> {
     let g = if gran < 1 {
         iv::MINUTE_GRANULARITY
     } else {
         gran
     };
-    let (mut j0, mut s0) = (w.start_j, w.start_s);
+    let (mut j0, mut s0) = (start_j, start_s);
     iv::offset_adjust_to_offset(offset, interval, &mut j0, &mut s0);
     let abs = |j: i64, s: i64| -> i64 {
         let t = (j - base) * (iv::SECS_IN_1_DAY / g) + s / g;
@@ -1509,7 +1642,7 @@ fn reg_times(interval: i64, w: &Window, offset: i64, gran: i64, base: i64, n: i6
 
 /// `ztsTrim()`: drop leading and trailing missing values (HEC's missing test; for
 /// profiles a row is missing when every element is).
-fn trim(a: &mut Assembled) {
+fn trim(a: &mut Assembled) -> usize {
     let n = a.times.len();
     let stride = a.elem * a.depths.max(1);
     let per = a.depths.max(1);
@@ -1535,7 +1668,7 @@ fn trim(a: &mut Assembled) {
         if let Some(c) = a.cnotes.as_mut() {
             c.clear();
         }
-        return;
+        return n;
     };
     let last = (0..n).rev().find(|&i| !row_missing(i)).unwrap_or(first);
     let keep = first..last + 1;
@@ -1556,6 +1689,37 @@ fn trim(a: &mut Assembled) {
         }
         *c = v;
     }
+    first
+}
+
+/// P76: after a leading trim, stamp the kept values as `ztsRetrieve()` does: the trim moves the
+/// window's standard start by `incrementTime()` (`ztsTrimAdjustTimeWindow()`), and the stamps
+/// are then made from that start (`ztsOffsetAdjustToOffset()`, `ztsRegAddTimes()`). For a
+/// calendar interval with an offset this can differ from slicing the untrimmed stamps (a day
+/// of the month that a later month lacks).
+fn restamp_after_trim(a: &mut Assembled, interval: &StandardInterval, w: &Window, lead: usize) {
+    let code = interval.code;
+    if lead == 0 || code <= iv::SECS_IN_1_DAY || a.times.is_empty() {
+        return;
+    }
+    let offset = a
+        .first
+        .as_ref()
+        .map(|l| i64::from(TsInternalHeader::decode(&l.ih_words).time_offset).max(0))
+        .unwrap_or(0);
+    if offset == 0 {
+        return;
+    }
+    let (j, s) = iv::increment_time(code, lead as i64, w.start_j, w.start_s);
+    a.times = hec_reg_stamps(
+        code,
+        j,
+        s,
+        offset,
+        a.granularity,
+        a.julian_base,
+        a.times.len() as i64,
+    );
 }
 
 // ---------------------------------------------------------------------------------
@@ -1683,7 +1847,8 @@ impl<R: Read + Seek> Dss7File<R> {
             });
         }
         if opts.trim_missing {
-            trim(&mut a);
+            let lead = trim(&mut a);
+            restamp_after_trim(&mut a, &interval, &w, lead);
         }
         let depths_n = a.depths;
         let elem = a.elem;

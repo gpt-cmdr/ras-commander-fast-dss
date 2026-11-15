@@ -13,6 +13,15 @@ publish.workspace = true
 [dependencies]
 miniz_oxide = "0.8"
 
+[features]
+# Fault injection for the publication of new files (`set_publish_faults`).
+# Never on in a release build; this crate's own tests turn it on (self dev-dependency below).
+test-hooks = []
+
+# The tests of this crate run with the fault hooks; release builds of dependents do not.
+[dev-dependencies]
+dss-core = { path = ".", features = ["test-hooks"] }
+
 # P19a lock detection: safe fcntl(F_GETLK / F_OFD_GETLK) wrapper, so dss-core keeps
 # #![forbid(unsafe_code)]. libc (its only runtime dependency besides bitflags/cfg-if)
 # is already in the workspace through pyo3/numpy. Windows needs no dependency.

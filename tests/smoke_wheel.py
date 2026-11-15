@@ -45,4 +45,9 @@ with tempfile.TemporaryDirectory() as tmp:
         df = dss.read_timeseries(out, "/SMOKE/LOC/FLOW//1HOUR/SIM/")
         assert np.array_equal(df["value"].to_numpy(), values), df
 assert "gridded_import" in dss.FEATURES
+# A release wheel has no fault-injection entry point: the hooks exist only in a test build
+# made with `--features test-hooks`.
+assert dss._native._TEST_HOOKS is False, "a test-hooks build is not a release wheel"
+assert not [n for n in dir(dss._native) if "fault" in n.lower()], dir(dss._native)
+assert dss.__version__ == version, (dss.__version__, version)
 print(f"smoke passed on Python {sys.version.split()[0]}")

@@ -969,6 +969,33 @@ fn tag_scheme_refused_and_last_write_stamped() {
     assert_eq!(std::fs::read(&tagged).unwrap(), b);
 }
 
+#[cfg(windows)]
+thread_local! {
+    static PROBE_HERE: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+#[cfg(windows)]
+static PROBE_PATH: std::sync::Mutex<Option<PathBuf>> = std::sync::Mutex::new(None);
+#[cfg(windows)]
+static PROBE_SEEN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+#[cfg(windows)]
+static PROBE_RAN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Barrier hook of `lock_held_during_write_and_released`: on the writer thread of that test
+/// only, probe the lock once at block 30 through a new handle.
+#[cfg(windows)]
+fn probe_hook(block: usize, _step: Option<WriteStep>) {
+    use std::sync::atomic::Ordering::SeqCst;
+    if block != 30 || !PROBE_HERE.with(|c| c.get()) || PROBE_RAN.swap(true, SeqCst) {
+        return;
+    }
+    let path = PROBE_PATH.lock().unwrap().clone().unwrap();
+    let held = match dss_core::lock::lock_status(&path) {
+        Ok(r) => r.locked(),
+        Err(_) => true,
+    };
+    PROBE_SEEN.store(held, SeqCst);
+}
+
 /// The DSS6 write lock is held while a write runs and released after it and after an
 /// error. Windows: the whole-file lock is visible to another handle of this process.
 #[test]
@@ -983,8 +1010,14 @@ fn lock_held_during_write_and_released() {
         Err(_) => true,
     };
     assert!(!held_now(&f));
+    // P76: the probe also runs inside the write, at a barrier of block 30, from the writer's
+    // own thread through another handle, so the check does not depend on a racing observer
+    // catching a write that now takes a few milliseconds.
+    *PROBE_PATH.lock().unwrap() = Some(f.clone());
+    assert!(dss_core::dss7::write::set_barrier_hook(probe_hook));
     let fp = f.clone();
     let writer = std::thread::spawn(move || {
+        PROBE_HERE.with(|c| c.set(true));
         let v: Vec<f32> = (0..1440 * 60).map(|i| (i % 97) as f32).collect();
         let input = RtsInput::new(
             b"/L/H/FLOW//1MIN/S/",
@@ -1001,7 +1034,16 @@ fn lock_held_during_write_and_released() {
     }
     let rep = writer.join().unwrap();
     assert_eq!(rep.blocks.len(), 61);
-    assert!(seen, "the lock was never seen held during a 61-block write");
+    assert!(
+        PROBE_RAN.load(std::sync::atomic::Ordering::SeqCst),
+        "the in-write probe ran"
+    );
+    assert!(
+        PROBE_SEEN.load(std::sync::atomic::Ordering::SeqCst),
+        "the lock was not seen held inside a 61-block write"
+    );
+    // The racing observer may or may not have caught it; it must not see it after the write.
+    let _ = seen;
     assert_eq!(rep.lock_method, "whole_file_lockfileex");
     assert!(!held_now(&f), "released after the write");
     let o = WriteOptions {

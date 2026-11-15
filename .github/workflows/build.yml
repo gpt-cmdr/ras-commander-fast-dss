@@ -1,16 +1,20 @@
 name: Wheels
+# Called only by release.yml for a published GitHub Release; it has no trigger of its own.
+# Every job runs on a GitHub-hosted runner, macOS included, and is attached to the
+# protected `pypi` environment, so no runner starts before the environment's required
+# reviewer approves the run. Routine CI (ci.yml) builds and tests Linux and Windows only.
 on:
   workflow_call:
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  # Release wheels: Windows x86_64, manylinux x86_64/aarch64 and musllinux x86_64/aarch64.
-  # macOS is not built or tested; macOS users build from the sdist.
+  # Release wheels: Windows x86_64, manylinux x86_64/aarch64, musllinux x86_64/aarch64,
+  # and macOS arm64 (macos-15) and x86_64 (macos-15-intel).
   wheels:
     name: Wheel ${{ matrix.platform }}
+    environment: pypi
     strategy:
       fail-fast: false
       matrix:
@@ -37,12 +41,23 @@ jobs:
             manylinux: musllinux_1_2
             platform: musllinux-aarch64
             container_smoke: python:3.13-alpine
+          - os: macos-15
+            target: aarch64-apple-darwin
+            manylinux: 'off'
+            platform: macos-arm64
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+            manylinux: 'off'
+            platform: macos-x86_64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
+      - name: Release gate (tag and versions)
+        shell: bash
+        run: python scripts/check_release_tag.py
       # The engine has no C dependencies; maturin builds one abi3 (CPython 3.10+) wheel per target.
       - uses: PyO3/maturin-action@v1
         with:
@@ -53,7 +68,8 @@ jobs:
           args: --release --locked --out dist
       # Install the wheel just built, by its file path, so the index can supply only its
       # dependencies and never a published ras-commander-fast-dss. smoke_wheel.py then checks
-      # the installed version against Cargo.toml and, on a tag, against the tag.
+      # the installed version against Cargo.toml and the tag, and that the wheel has no
+      # fault-injection entry point.
       - name: Installed-wheel smoke test
         if: ${{ !matrix.container_smoke }}
         shell: bash
@@ -65,6 +81,40 @@ jobs:
           if [ -x smoke-venv/bin/python ]; then py=smoke-venv/bin/python; else py=smoke-venv/Scripts/python.exe; fi
           "$py" -m pip install "${wheels[0]}"
           "$py" -I tests/smoke_wheel.py
+      # A macOS wheel must load nothing outside the OS: delocate-listdeps lists non-system
+      # libraries (it must list none), and every load command is under /usr/lib or
+      # /System/Library.
+      - name: Wheel links only system libraries (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          python -m venv delocate-venv
+          delocate-venv/bin/python -m pip install delocate==0.13.0
+          deps="$(delocate-venv/bin/delocate-listdeps dist/*.whl)"
+          if [ -n "$deps" ]; then echo "non-system libraries: $deps"; exit 1; fi
+          rm -rf wheel-x && mkdir wheel-x && (cd wheel-x && unzip -q ../dist/*.whl)
+          for so in $(find wheel-x -name '*.so'); do
+            otool -L "$so"
+            otool -l "$so" | grep -A4 -E 'LC_BUILD_VERSION|LC_VERSION_MIN_MACOSX' || true
+            # Dependencies only (LC_LOAD*_DYLIB / LC_REEXPORT_DYLIB), not the library's own
+            # @rpath install name (LC_ID_DYLIB), which otool -L also prints.
+            libs="$(otool -l "$so" | awk '/cmd LC_(LOAD|LOAD_WEAK|REEXPORT|LAZY_LOAD|LOAD_UPWARD)_DYLIB/{d=1} d && $1=="name"{print $2; d=0}')"
+            echo "$libs"
+            [ -n "$libs" ] || { echo "$so: no load commands found"; exit 1; }
+            if echo "$libs" | grep -vE '^(/usr/lib/|/System/Library/)'; then
+              echo "$so links a library outside /usr/lib and /System/Library"; exit 1
+            fi
+          done
+          rm -rf wheel-x delocate-venv
+      # Routine CI has no macOS jobs, so the release run is where the public macOS wheels are
+      # tested: the Python suite against the installed release wheel (the fault-injection
+      # tests skip; they need a test build).
+      - name: Python tests against the installed release wheel (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          smoke-venv/bin/python -m pip install pytest
+          FAST_DSS_RELEASE_WHEEL=1 smoke-venv/bin/python -I -m pytest -q
       - name: Installed-wheel smoke test (${{ matrix.container_smoke }})
         if: ${{ matrix.container_smoke }}
         run: |

@@ -8,9 +8,14 @@ handle's identity is checked against the file the path names now. These tests co
 - a write by another process between two session writes is seen and kept;
 - the file replaced, renamed away or deleted under the held handle;
 - the handle closed on ``close()``, ``__exit__`` and garbage collection (Windows: an
-  exclusive open succeeds only when no handle is left);
+  exclusive open succeeds only when no handle is left; Linux and macOS: no descriptor of
+  this process refers to the file, by device and inode);
 - a lock held by an HEC-style holder still refuses a session write;
-- the held path writes the same bytes as the module functions.
+- the held path writes the same bytes as the module functions;
+- on a case-insensitive volume (default APFS, NTFS), names that differ only in case are
+  one file: the session's identity check (device + inode, or volume + file ID) keeps the
+  held handle across a case-only rename and across writes through an alias, and create
+  and repair refuse an alias of an existing file.
 
 Checks with HEC software (hecdss and HEC Monolith writing between session writes) and on a
 network share need those programs or a share, so they are not part of this suite.
@@ -274,6 +279,56 @@ def test_pure_read_session_holds_no_write_handle(tmp_path):
         os.chmod(p, 0o666)
 
 
+def open_descriptors_on(path) -> list[int]:
+    """Linux and macOS: the access modes (``O_RDONLY``/``O_WRONLY``/``O_RDWR``) of this
+    process's descriptors that refer to ``path``'s file, matched by device and inode."""
+    import fcntl  # noqa: PLC0415
+
+    st = os.stat(path)
+    fd_dir = "/proc/self/fd" if os.path.isdir("/proc/self/fd") else "/dev/fd"
+    modes = []
+    for name in os.listdir(fd_dir):
+        fd = int(name)
+        try:
+            o = os.fstat(fd)
+            if (o.st_dev, o.st_ino) == (st.st_dev, st.st_ino):
+                modes.append(fcntl.fcntl(fd, fcntl.F_GETFL) & os.O_ACCMODE)
+        except OSError:
+            continue  # the listing's own descriptor, closed by now
+    return modes
+
+
+@pytest.mark.skipif(os.name == "nt", reason="the Windows variant uses the exclusive-open probe")
+@pytest.mark.parametrize("how", ["close", "exit", "gc"])
+def test_descriptor_released_on_close_exit_and_gc_unix(tmp_path, how):
+    p = new(tmp_path, f"relu_{how}", 7)
+    assert open_descriptors_on(p) == []
+    f = dss.open(p)
+    f.write_paired_data("/A/ONE/STAGE-FLOW///S/", [0.0, 1.0], [1.0, 2.0], **PD_KW)
+    f.read_paired_data("/A/ONE/STAGE-FLOW///S/")
+    assert os.O_RDWR in open_descriptors_on(p)
+    if how == "close":
+        f.close()
+    elif how == "exit":
+        with f:
+            f.write_paired_data("/A/TWO/STAGE-FLOW///S/", [0.0, 1.0], [1.0, 2.0], **PD_KW)
+    else:
+        del f
+        gc.collect()
+    assert open_descriptors_on(p) == []
+
+
+@pytest.mark.skipif(os.name == "nt", reason="the Windows variant uses the exclusive-open probe")
+def test_pure_read_session_holds_no_writable_descriptor_unix(tmp_path):
+    p = new(tmp_path, "rou", 7)
+    dss.write_paired_data(p, "/A/ONE/STAGE-FLOW///S/", [0.0, 1.0], [1.0, 2.0], **PD_KW)
+    with dss.open(p) as f:
+        assert pd_values(f, "/A/ONE/STAGE-FLOW///S/") == [1.0, 2.0]
+        assert not f._native._holds_write_handle
+        assert all(m == os.O_RDONLY for m in open_descriptors_on(p))
+    assert open_descriptors_on(p) == []
+
+
 def test_session_write_refused_while_an_hec_style_lock_is_held(tmp_path, holder_factory_p74):
     p = new(tmp_path, "lock", 7)
     with dss.open(p) as f:
@@ -510,3 +565,95 @@ def test_write_location_after_replacement_by_dss6_uses_the_dss6_writer(tmp_path,
         assert f.version == 6
         loc = f.read_associated_location("/A/G/FLOW/01JAN2021/1HOUR/S/")
         assert (loc.x, loc.y, loc.z) == (-97.25, 30.5, 612.5)
+
+
+# ---------------------------------------------------------------------------------------
+# Filesystem names that differ only in case.
+# ---------------------------------------------------------------------------------------
+
+
+def _case_insensitive(directory) -> bool:
+    probe = directory / "CaseProbe.tmp"
+    probe.write_bytes(b"x")
+    try:
+        return (directory / "caseprobe.tmp").exists()
+    finally:
+        probe.unlink()
+
+
+@pytest.fixture
+def case_dir(tmp_path):
+    if not _case_insensitive(tmp_path):
+        pytest.skip(f"case-sensitive volume ({tmp_path}): no case aliases to test")
+    return tmp_path
+
+
+@pytest.mark.parametrize("v", [7, 6])
+def test_case_alias_writes_reach_the_held_file(case_dir, v):
+    p = new(case_dir, "Case", v)
+    alias = p.with_name(p.name.upper())
+    assert alias.name != p.name and alias.exists()
+    with dss.open(p) as f:
+        f.write_paired_data("/A/ONE/STAGE-FLOW///S/", [0.0, 1.0], [1.0, 2.0], **PD_KW)
+        # Another writer reaches the same file through the alias.
+        dss.write_paired_data(alias, "/A/TWO/STAGE-FLOW///S/", [0.0, 1.0], [3.0, 4.0],
+                              version=v, **PD_KW)
+        f.write_paired_data("/A/THREE/STAGE-FLOW///S/", [0.0, 1.0], [5.0, 6.0], **PD_KW)
+        assert f._native._held_opens == 1  # same file: the handle was kept
+        want = ["/A/ONE/STAGE-FLOW///S/", "/A/THREE/STAGE-FLOW///S/", "/A/TWO/STAGE-FLOW///S/"]
+        assert sorted(f.pathnames()) == want
+    with dss.open(alias) as g:
+        assert sorted(g.pathnames()) == want
+    assert [q.name for q in case_dir.iterdir() if q.suffix.lower() == ".dss"] == [p.name]
+
+
+@pytest.mark.parametrize("v", [7, 6])
+def test_case_only_rename_keeps_the_held_handle(case_dir, v):
+    p = new(case_dir, "Renamed", v)
+    lower = p.with_name(p.name.lower())
+    with dss.open(p) as f:
+        f.write_paired_data("/A/ONE/STAGE-FLOW///S/", [0.0, 1.0], [1.0, 2.0], **PD_KW)
+        os.rename(p, lower)
+        assert [q.name for q in case_dir.iterdir()] == [lower.name]
+        # The session's path still names the same file (same identity): no reopen.
+        f.write_paired_data("/A/TWO/STAGE-FLOW///S/", [0.0, 1.0], [3.0, 4.0], **PD_KW)
+        assert f._native._held_opens == 1
+        assert sorted(f.pathnames()) == ["/A/ONE/STAGE-FLOW///S/", "/A/TWO/STAGE-FLOW///S/"]
+    with dss.open(lower) as g:
+        assert len(g.pathnames()) == 2
+
+
+def test_a_handle_is_never_used_through_a_case_alias_spelling(case_dir):
+    """The internal handle check compares spellings: an alias is refused, not written."""
+    p = new(case_dir, "Spell", 7)
+    with dss.open(p) as f:
+        with pytest.raises(ValueError, match="handle is open on"):
+            dss._native.write_pd(str(p.with_name(p.name.upper())), "/A/X/STAGE-FLOW///S/",
+                                 np.array([0.0, 1.0]), np.array([1.0, 2.0]), 1, "FT", "LINEAR",
+                                 "CFS", "LINEAR", handle=f._native)
+    assert dss.open(p).pathnames() == []
+
+
+@pytest.mark.parametrize("v", [7, 6])
+def test_create_refuses_a_case_alias_of_an_existing_file(case_dir, v):
+    existing = case_dir / "Model.dss"
+    existing.write_bytes(b"keep me")
+    with pytest.raises(FileExistsError):
+        dss.create(case_dir / "MODEL.DSS", version=v)
+    assert existing.read_bytes() == b"keep me"
+    assert [q.name for q in case_dir.iterdir()] == ["Model.dss"]
+
+
+def test_repair_refuses_a_case_alias_destination(case_dir):
+    src = new(case_dir, "Src", 7)
+    dss.write_paired_data(src, "/A/ONE/STAGE-FLOW///S/", [0.0, 1.0], [1.0, 2.0], **PD_KW)
+    before = src.read_bytes()
+    existing = case_dir / "Out.dss"
+    existing.write_bytes(b"keep me")
+    with pytest.raises(FileExistsError):
+        dss.repair(src, case_dir / "OUT.dss")
+    with pytest.raises(FileExistsError):
+        dss.repair(src, src.with_name(src.name.upper()))  # an alias of the source itself
+    assert existing.read_bytes() == b"keep me"
+    assert src.read_bytes() == before
+    assert sorted(q.name for q in case_dir.iterdir()) == ["Out.dss", src.name]

@@ -1,5 +1,174 @@
 # Changelog
 
+## 0.1.3
+
+Entries marked **Behaviour change** can change what existing code does or writes. Read them
+before upgrading.
+
+### Added
+
+- **macOS wheels.** Separate abi3 wheels for macOS arm64 (deployment target 11.0) and x86_64
+  (10.12), linking only system libraries. They are built in the release workflow on macOS 15,
+  checked to link only system libraries, smoke-tested and tested with the Python suite there.
+  The engine's killed-process matrix, including writes through a held handle, was qualified
+  on macOS 15 arm64 and x86_64 before release. Routine CI stays on Linux and Windows. numpy
+  and pandas set their own macOS requirements (see the README).
+- **`write_batch(dss_file, records, *, version=7, sync="end", allow_undetectable_readers=True)`**
+  and **`DssFile.write_batch(records, ...)`**: store many time-series and paired-data records in
+  one call. Each record is a mapping with `"kind"` (`"timeseries"` or `"paired_data"`) and the
+  arguments of `write_timeseries` or `write_paired_data` by name.
+  - The file is opened once, the HEC lock is tested once and held until the last record, and
+    the default `sync="end"` flushes once, after the last record.
+  - Each record is checked by the same code and written by the same transaction, with the
+    same in-progress marker, as its own `write_timeseries` / `write_paired_data` call. So the
+    file holds the same records, and a process killed during a batch is recovered as for
+    separate calls.
+  - Every record is checked before anything is written. A record refused while the batch is
+    written stops it: the records before it stay written, and its exception carries
+    `batch_index` and `batch_reports`.
+  - Patterns, notes and multi-word quality are written one record per call, with
+    `write_timeseries`.
+  - `FEATURES` gains `write_batch`. Rust: `dss7::write::write_batch[_to]` and
+    `dss6::write::write_batch6[_to]`.
+- **`align="snap_out"`** for `gridded.import_gridded`, `import_arrays` and `import_zarr`. When
+  no envelope is stated and GDAL's suggested extent is not on whole cells, its corners are
+  rounded outward to whole cells and the warp samples on that lattice, so each record is
+  stored where it was sampled. This does not give every cell source support: corners of a
+  reprojected footprint and the added perimeter can still be missing. The default
+  (`"refuse"`) is unchanged.
+- **Alignment diagnostics.** Under `align="vortex"` or `"snap_out"` each import record has an
+  `alignment` dict. It holds the transform the cells were sampled on, the corner and cell size
+  the record stores, the shift between them in map units and in cells, and the number of
+  missing cells. For a warped record it also holds the number of cells whose centre maps
+  outside the source. It is `None` under the default.
+- `ras_commander_fast_dss.__version__`.
+- `DssPublishError` (a `DssError` and an `OSError`), raised by `create` and `repair` when they
+  cannot publish a new file safely (below).
+- `benchmarks/bench_public.py`: write modes `engine_batch` and `engine_batch_none`.
+
+### Changed
+
+- **Behaviour change: `create` and `repair` refuse when they cannot publish safely.**
+  - A new file is built in full under a unique temporary name beside the destination. It is
+    then given its name by a hard link, or, on glibc Linux, an atomic no-replace rename. So a
+    process killed at any moment leaves the destination absent or complete.
+  - When neither works, the call raises `DssPublishError` and the destination is not created.
+    This happens on a filesystem without hard links such as FAT or exFAT, on an SMB share that
+    does not support hard links (such as a continuously available or scale-out share), on a
+    permission problem, or with too many links.
+  - `create(version=7)` used to write the destination directly. On such filesystems, create
+    the file on one with hard links and copy it.
+  - `repair` keeps its verified copy and names it in `kept_path`.
+- **Behaviour change (fix): `times=` for weekly, monthly, semi-monthly, tri-monthly and yearly
+  series accepts only times the values read back at.** Up to 0.1.2, `write_timeseries(...,
+  times=...)` checked the times against a calendar progression from the first time. That does
+  not always match where HEC-DSS stores and reads a regular series, so it accepted and wrote
+  some series whose values then read back at other times, in this library and in HEC's:
+  - DSS7: a start on a day of the month that a later month lacks (for example `1MON` from
+    30 January reads back with two values on 30 March), and a weekly series starting in the
+    first week of a DSS decade block (read back one week later, or with a value lost when the
+    first values are missing).
+  - DSS6: yearly series whose times cross 29 February (HEC reads them a day off), and monthly,
+    semi-monthly and tri-monthly series whose offset does not fit February.
+
+  Such series are now refused with `ValueError` before anything is written. Leading missing
+  values are taken into account, because HEC trims them when reading, which can move
+  calendar times. Data already written is unchanged; writes with `start=` store what HEC's
+  library stores.
+- **Behaviour change (fix): DSS6 calendar series read at HEC's times.** Reading a DSS6 weekly,
+  monthly, semi-monthly, tri-monthly or yearly series stored with a time offset now gives, for
+  every value, the time HEC's current library gives, however many values are missing. Up to
+  0.1.2 the times followed HEC's older Fortran routines, which read some values a day early:
+  for example, a yearly series from 2019-03-03 read 2020-03-02 (HEC: 2020-03-03), and a series
+  HEC Monolith wrote from 2020-06-15 read 2020-06-14. Fixed intervals and series without an
+  offset are unchanged.
+  - Qualified difference: where a value's offset does not fit February (a monthly offset of
+    29–31 days, semi-monthly 14–15, tri-monthly 9–10), HEC reads that value at the next
+    period's time, next to the following value (two values at one time), or drops it. This
+    library keeps it at its own period's time (2 or 3 March), as 0.1.2 did.
+- **Behaviour change: historical SNODAS header times are imported, not refused.** With the
+  default `snodas_times="header"`, two historical NOHRSC header conventions now import with
+  the header's own period as the D and E parts, typed PER-CUM:
+  - melt (`1044`) and sublimation (`1039`, `1050`) files dated **before 2019-02-05**: 06:00 UTC
+    of the previous day to a **05:00 UTC** stop. For 2019-02-04 the record is
+    `03FEB2019:0600` to `04FEB2019:0500`;
+  - liquid and solid precipitation (`1025`) files dated **before 2008-10-23**: a **07:00 UTC**
+    start on the previous day to 06:00 UTC. For 2008-10-22 the record is `21OCT2008:0700` to
+    `22OCT2008:0600`.
+
+  **These historical records are 23-hour DSS periods, so consecutive daily records leave one
+  hour uncovered:** 05:00 to 06:00 UTC for melt and sublimation, and 06:00 to 07:00 UTC for
+  precipitation. Nothing is filled, prorated, rescaled or shifted, so summing the records does
+  not give continuous coverage in DSS time. The times are the archive's header metadata. The
+  NSIDC SNODAS user guide describes these products as 24-hour integrations, so the 23-hour
+  periods do not show that a stored total leaves out an hour of water.
+
+  From 2019-02-05 and 2008-10-23 the headers state 06:00 to 06:00, as before. Earlier releases
+  refused files using these historical header conventions under the default timing. A file
+  dated on or after a convention's end that still states it is refused, as is any other header
+  that disagrees with its file name. `snodas_times="vortex"` (Vortex's timing, for
+  compatibility) and `"header_as_stated"` are unchanged. Melt with time code `T0001` (files
+  dated 2009-09-29 to 2010-02-16) and the snowpack temperature (`1038`) still need an explicit
+  `snodas_times`. Source: the headers of NSIDC's public SNODAS archive (collection G02158),
+  surveyed from 2003-10-01 to 2026-07-15; the boundary-day headers are test fixtures.
+- **Writes cost less per call and per record.** The HEC lock test now checks each run of
+  adjacent lock words with one call, and checks word by word only when a lock is found, so it
+  reports exactly what it reported before. `gridded.grid_to_point` opens its output file once
+  per call instead of once per series; each series is still its own write, with its own lock.
+  No new cross-tool figures are published for 0.1.3; measure with `benchmarks/bench_public.py`
+  (see the README's Performance section).
+- **`DssUnsupportedRecordError` is also a `ValueError`**, as the Java path through
+  hms-commander raised for a record of another kind. It is still a `DssError` and a
+  `RuntimeError`.
+- `read_paired_data_compat` logs a record of another kind at WARNING, not ERROR, and returns
+  `None` as before.
+
+### Fixed
+
+- The `times=` acceptance of calendar-interval series and the DSS6 calendar read times (above).
+- `create(version=6)` could remove a file it had not created when its fixed temporary name
+  was already taken. Temporary names are now unique and created exclusively; only files the
+  call created are ever removed.
+- `create(version=7)` could leave an empty or partial file at the destination if the process
+  died during the call.
+
+### Intentional behaviour (unchanged, confirmed)
+
+These were already true in 0.1.2. The maintainer confirmed them as intended:
+
+- **DSS6 compressed blocks:** a native merge into a block HEC stored with delta compression
+  leaves the stored values outside the written window exactly as stored, and stores the block
+  uncompressed; HEC re-quantizes the whole block
+  ([`docs/format/dss6.md` §9.4](docs/format/dss6.md#94-regular-merge-and-extend-into-existing-blocks)).
+- **Pathnames outside printable ASCII** are refused for writing.
+- **DSS6 irregular-pattern writes** (record type 111) need
+  `allow_unconfirmed_dss6_irregular_pattern=True`.
+- **`repair` is DSS7-only.** A DSS6 file is not repaired by a copy; the next native write to it
+  reconciles an interrupted write in place.
+
+### Documentation
+
+- `align="vortex"` reproduces observed Vortex output and is meant for matching existing Vortex
+  output. The cells are sampled on GDAL's unsnapped suggested lattice, where cells outside the
+  source's transformed support come out missing. The write then rounds the declared origin to
+  whole cells, which moves the whole array, missing mask included, without resampling it. For
+  new forcing, state an envelope and a cell size inside the source's coverage and check the
+  result against the source.
+- On macOS the flushes use `F_FULLFSYNC` (Rust's `sync_all` and `sync_data`), which is
+  stronger, and typically slower, than `fsync` on Linux. No power-loss claim is made on any
+  platform (`docs/format/dss7.md`).
+
+### Correction to 0.1.2
+
+- The 0.1.2 entry said the file gridded import writes is "byte-identical whatever the count" of
+  `threads`. The records written for any thread count have equal values, metadata and
+  pathnames; their write-time stamps differ, as they do between any two runs.
+
+### Unchanged
+
+- Every default: `sync="end"`, the lock policy, `align="refuse"`, the flush and crash behaviour
+  of each write call, the held `DssFile` handle and its identity checks, and every file format.
+
 ## 0.1.2
 
 Entries marked **Behaviour change** can change what existing code does or writes. Read them

@@ -69,7 +69,8 @@ def test_bench_public_quick_engine(tmp_path):
     assert rep["tools"]["engine"]["ras-commander-fast-dss"]
     writes = [r for r in rep["rows"] if r["op"] == "write"]
     assert {(r["mode"], r["width"]) for r in writes} == {
-        (m, w) for m in ("engine", "engine_none", "engine_session", "engine_session_none")
+        (m, w) for m in ("engine", "engine_none", "engine_session", "engine_session_none",
+                         "engine_batch", "engine_batch_none")
         for w in ("float32", "float64")}
     for r in writes:  # every repetition (warm-up included) verified
         assert r["status"] == "pass" and r["files_written"] == r["files_verified_equal"] == 2

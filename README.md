@@ -14,10 +14,19 @@ FAST-DSS on the [RAS Commander website](https://rascommander.info/ras/native-eng
 pip install ras-commander-fast-dss
 ```
 
-Wheels are abi3 (one wheel covers CPython 3.10 and later) for Windows x86_64 and for Linux
-x86_64 and aarch64 (manylinux and musllinux). There are no macOS wheels, and CI does not build
-or test on macOS. The source distribution is published with every release: macOS users, and
-other platforms, can build it with a Rust toolchain; the build has no C dependencies.
+Wheels are abi3 (one wheel covers CPython 3.10 and later) for Windows x86_64, for Linux
+x86_64 and aarch64 (manylinux and musllinux), and, from 0.1.3, for macOS arm64 and x86_64
+(separate wheels, not universal2). Routine CI builds and tests on Linux and Windows. The
+macOS wheels are built and tested in the release workflow on macOS 15, and the engine's
+killed-process matrix was qualified on macOS 15 arm64 and x86_64 before release. The source
+distribution is published with every release: other platforms can build it with a Rust
+toolchain; the build has no C dependencies.
+
+On macOS, the extension module itself targets macOS 11.0 (arm64) and 10.12 (x86_64) and
+links only system libraries. Its dependencies set their own requirements: recent numpy
+releases publish macOS wheels for macOS 14 and later, and so does your Python build. On an
+older macOS, pip may choose an older compatible numpy or pandas, or none; only macOS 15 is
+tested.
 
 ## Quick example
 
@@ -76,7 +85,17 @@ and is not guaranteed, and the known limitations.
   and after each write. Close the `DssFile` before renaming, replacing or deleting its file:
   a write that loses a race with such a change raises `OSError`, and on Windows `os.replace`
   onto a file held by a session fails.
-- `repair(src, dest)` copies the readable records of a damaged DSS7 file into a new file:
+- `write_batch(path, records)` and `DssFile.write_batch(records)` store many time-series
+  and paired-data records in one call: one open, one lock test held until the last record,
+  and with the default `sync="end"` one flush after the last record. Each record is written
+  by the same transaction as its own `write_timeseries` / `write_paired_data` call, so a
+  process killed during a batch is recovered as for separate calls.
+- `create` and `repair` build a new file under a unique temporary name beside the
+  destination and give it its name by a hard link (or, on glibc Linux, an atomic no-replace
+  rename), so a killed process leaves the destination absent or complete. Where neither is
+  possible (FAT, exFAT, some network shares) they raise `DssPublishError` and create
+  nothing; create the file on a filesystem with hard links and copy it.
+- `repair(src, dest)` (DSS7 only) copies the readable records of a damaged DSS7 file into a new file:
   every readable record that its documented discovery procedure reaches
   ([`dss7.md`](docs/format/dss7.md), copy-out repair). It does not find everything a
   catalog might: a bin block whose declared span does not fit the file is reported as
@@ -94,7 +113,11 @@ if not report["complete"]:
 `FEATURES` lists optional capabilities by name, so callers can test for them. Flags added in
 0.1.2: `write_sync_modes`, `gridded_threads_all_cores`, `dssfile_held_handle`,
 `gridded_grib1_stage4`, `gridded_prism_bil`, `gridded_snodas` and
-`write_ts_dss6_irregular_pattern_opt_in`.
+`write_ts_dss6_irregular_pattern_opt_in`. Added in 0.1.3: `write_batch`. The package version is
+`ras_commander_fast_dss.__version__`.
+
+`repair` is for DSS7 files only. A DSS6 file is not repaired by a copy: the next native write
+to it reconciles an interrupted write in place.
 
 DSS6 irregular patterns (record type 111) are written only with
 `allow_unconfirmed_dss6_irregular_pattern=True`, on a path or through a `DssFile` session, because no
@@ -145,7 +168,11 @@ linked or shipped.
   NSIDC products and Vortex's own test resources, bit for bit where the fixtures say so.
   Where this package differs from Vortex on purpose, the difference is documented: SNODAS
   times (Vortex's timing is the explicit option `snodas_times="vortex"`) and SNODAS missing
-  cells (masked here, kept as numbers by Vortex).
+  cells (masked here, kept as numbers by Vortex). Two historical NOHRSC header conventions
+  are imported as their headers declare them: melt and sublimation dated before 2019-02-05
+  (06:00 to 05:00 UTC) and precipitation dated before 2008-10-23 (07:00 to 06:00 UTC). These
+  are 23-hour DSS periods, so consecutive daily records leave one hour uncovered; nothing is
+  filled or shifted (see the CHANGELOG).
 - **Hostile input:** parsers bounds-check every offset and length and return errors; `dss-core`
   forbids `unsafe` code; fuzz and allocation-limit tests run in CI.
 

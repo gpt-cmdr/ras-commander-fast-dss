@@ -781,6 +781,15 @@ These are byte-range locks on 8-byte words. The byte offset is the address × 8.
 - HEC tests for another holder by taking a lock and immediately releasing it (mode 3)
   (`zlockDss()`; `zlockPassive()` LOCK_TEST loop).
 
+**Native locks on Linux and macOS.** The native writer holds its lock words with
+`fcntl(F_SETLK, F_WRLCK)`, the POSIX record locks heclib's `lockf` uses, so the two see
+each other on both systems. They belong to the process: closing *any* descriptor of the
+file in that process releases them, on Linux and macOS alike. The lock test
+(`lock_status`) differs: Linux uses `F_OFD_GETLK`, which also reports the calling
+process's own locks; macOS has no OFD locks and uses `F_GETLK`, which never reports locks
+the calling process holds. On macOS a lock held by this process (for example a
+`DssFile` session's held handle) therefore reads as unlocked to `lock_status`.
+
 ### 6.2 What "refuse to write to a file locked by HEC software" should test
 
 A writer opens the file and, without writing, performs a non-blocking test lock (try
@@ -920,7 +929,74 @@ was never qualified against power loss, and `End` and `None` do not order it at 
 Damaged files are recovered by copy-out (`repair_dss7`, Python `repair`; threat model
 below).
 
-**Interrupted Publish of a new bin (finding F1, repaired in 0.1.1).** The
+**macOS.** The writers call Rust's `File::sync_all` and `File::sync_data`. On macOS (Apple
+targets) the standard library implements **both** with `fcntl(F_FULLFSYNC)` (Rust
+`library/std/src/sys/fs/unix.rs`, 1.99 and 1.100), which also asks the drive to flush
+its write cache; plain `fsync` on macOS does not. A flush on macOS is therefore stronger,
+and typically slower, than `fsync` on Linux, and `sync_data` is no cheaper than
+`sync_all` there (no timing is published). `Step` makes one such call per flush point, so it costs most on macOS;
+`End`, the default, makes one per write call. The process-death model and its
+qualification are the same on every platform: the macOS qualification runs the killed-process matrix on macOS
+arm64 and x86_64 through the path entry points and through a held handle
+(`P64_HELD=1`), in all three modes. **The no-power-loss statement above applies on macOS
+too**: `F_FULLFSYNC` is not qualified against power loss either. The parent directory is
+not flushed after a copy-out publishes `dest` on any platform.
+
+**New files: creation and copy-out (0.1.3).** The killed-process matrix
+above covers record transactions on a file that already exists. Making a new file is a
+separate step, used by `create_dss7`, `create_dss6` (Python `create`) and the copy-out of
+`repair_dss7` (Python `repair`), and qualified separately:
+
+1. The file is built in full under a **unique temporary name** in the destination's
+   directory, `.<name>.<pid>.<nanos>.<seq>.<tag>` (tags `dss7-create`, `dss6-create`,
+   `partial`), which the call creates exclusively (`create_new`). A name that already
+   exists is skipped and never opened, written or removed; only a file the call itself
+   created is ever removed.
+2. It is flushed (`sync_all`) in the `End` and `Step` modes, then **published** by a hard
+   link, which fails if the destination exists. A link error that may be transient
+   (interrupted, busy, a Windows sharing or lock violation) is retried, up to five
+   attempts. After any other link failure only glibc Linux
+   `renameat2(RENAME_NOREPLACE)` is tried, which is as safe (atomic, never replaces).
+   After a hard link the temporary name is removed.
+3. **Otherwise the call refuses.** If the link fails for any other reason (no hard links
+   on this filesystem, permissions, too many links) and no no-replace rename succeeds,
+   the call returns `WriteError::Unpublishable` (Python `DssPublishError`, which is
+   also an `OSError`). The error names the real link error and the rename's outcome, and
+   the destination is **not created**. Create removes its temporary file; repair keeps
+   its verified copy and names it. The destination is never opened or written directly,
+   so no failure path can leave an incomplete destination. Workaround on a filesystem
+   without hard links (FAT, exFAT, some network shares; Windows and macOS have no
+   no-replace rename available to `dss-core`, which forbids `unsafe` FFI): create or
+   repair the file on a filesystem that has hard links (such as NTFS, APFS, HFS+, ext4,
+   XFS or Btrfs) and copy it. ReFS is not listed: Microsoft's `CreateHardLinkW`
+   documentation lists it as unsupported, and it has not been tested here.
+
+Under process death the destination is therefore **absent or complete** on Windows, Linux
+and macOS, on every filesystem: where publication cannot be done safely the call refuses
+before the destination exists. A kill after the link and before the temporary name
+is removed leaves that name as a second name of the complete file; it can be deleted. An
+existing destination, including one that appears between the existence check and the
+link, or a name that differs only in case on a case-insensitive volume, is refused
+(`WriteError::AlreadyExists`, Python `FileExistsError`) and never replaced.
+`crates/dss-core/tests/publish_kill.rs` kills a real process at every boundary (temporary
+file created, written, immediately before the link, published, temporary name removed) for
+DSS7 create in two flush modes, DSS6 create and repair, on Windows and Linux in every CI run and on macOS in the macOS qualification; it also
+checks the race, concurrent creates of one destination, files beside the destination that
+the call did not create, and case aliases. `crates/dss-core/tests/publish_refuse.rs`
+forces each primitive to fail (no hard links, permission and too-many-links OS errors,
+a failed or unavailable rename, transient and persistent link errors) and provokes a real
+ordinary failure: NTFS's 1024-names-per-file limit, reached with extra links to the
+temporary file. In each case it checks the refusal, an absent destination and untouched
+neighbours. As everywhere, no power-loss claim is made and the parent directory is not
+flushed.
+
+Compared with earlier releases: DSS6 create already refused when its hard link failed
+(as a plain I/O error); it now refuses with the typed error and retries transient
+errors. DSS7 create used to create and write the destination directly on every
+filesystem; it now refuses on a filesystem where it cannot publish safely (**behaviour
+change** on FAT/exFAT volumes and some network shares). Repair already refused there.
+
+**Interrupted Publish of a new bin (repaired in 0.1.1).** The
 killed-process matrix (`crates/dss-core/tests/p64_kill.rs`) kills the writing process at
 every flush point, not only between the steps above. Up to 0.1.0 one point was not
 repaired: a write killed inside **Publish** for a record in a **new bin**, after the
@@ -1114,23 +1190,29 @@ and the `knumberRecords` mismatch. Native writes leave the hole as it is.
    was copied. A record that neither file's reader decodes, or of a kind without a
    decoder, is compared by its raw areas alone. The file must also catalog without
    anomalies. Otherwise nothing is published.
-4. **Publish.** The new file is built under a temporary name next to `dest`
-   (`.<name>.<pid>.<nanos>.partial`) and only then published at `dest`, never replacing
-   anything:
+4. **Publish.** The new file is built under a unique temporary name next to `dest`
+   (`.<name>.<pid>.<nanos>.<seq>.partial`, created exclusively; see "New files" in §6)
+   and only then published at `dest`, never replacing anything:
    - first by a hard link, which fails if `dest` exists;
-   - if hard links are not available, by an atomic no-replace rename: Linux
-     `renameat2(RENAME_NOREPLACE)`;
-   - if neither exists (for example Windows on a filesystem without hard links;
-     `MoveFileExW` would need `unsafe` code, which `dss-core` forbids), it fails with an
-     error that names the verified temporary copy, which it keeps.
+   - if hard links are not available, by an atomic no-replace rename: glibc Linux
+     `renameat2(RENAME_NOREPLACE)`. musl Linux and macOS have no such rename here
+     (`nix` exposes `renameat2` for glibc only; macOS `renameatx_np(RENAME_EXCL)` would
+     need `unsafe` FFI, which `dss-core` forbids), so they rely on the hard link. APFS
+     and HFS+ support hard links; a macOS volume without them (FAT, exFAT, some network
+     shares) takes the next branch;
+   - if neither works (for example Windows on a filesystem without hard links;
+     `MoveFileExW` would need `unsafe` code, which `dss-core` forbids), it fails with
+     `WriteError::Unpublishable` (Python `DssPublishError`), which names the link error
+     and the verified temporary copy, which it keeps.
 
    `dest` must not exist (`WriteError::AlreadyExists`, Python `FileExistsError`). There
    is no check-then-rename fallback.
 
 Every returned error removes the temporary file, except the "cannot publish
-without replacing" error above. A process killed before publication leaves `src`
+safely" refusal above. A process killed before publication leaves `src`
 byte-identical, no `dest`, and the temporary file. A process killed just after the hard
-link leaves the verified `dest` and the temporary name, which can be deleted.
+link leaves the verified `dest` and the temporary name, which can be deleted. These
+publication boundaries are killed one by one in `crates/dss-core/tests/publish_kill.rs`.
 
 **The ledger.** Every source candidate gets exactly one ledger entry
 with one outcome. A candidate is each distinct info block that a pathname's lookup or
@@ -1205,6 +1287,26 @@ in-place shrink leaves the old bytes in the unused half of the last values1/valu
   start (minutes for IR-Century), divided by the granularity with C truncation. Absolute
   seconds equal hecdss's `julianBaseDate*86400 + times*granularity` (432/432 dataset
   requests bit-identical).
+- **Stamps after a trim, and where a stored series reads back (0.1.3)**
+  **[VERIFIED-ORACLE, Monolith 3.3.27]**: `ztsTrim()` moves the window's standard
+  start by `incrementTime(firstValid)` (`ztsTrimAdjustTimeWindow()`) and the stamps are then
+  made from that start, so for a calendar interval with an offset they are not a slice of the
+  untrimmed stamps; the reader does the same. A regular series written from a start does not
+  always read back at the `incrementTime()` progression from that start: a day of the month
+  that a later month lacks reads back with two values at one time (from 2019-01-30:
+  01-30, 03-30, 03-30, 04-30), and a weekly series starting in the week that holds 1 January
+  of a decade block reads back one week later. HEC Monolith stores and reads the same.
+  `value_times` (the `times=` check) therefore gives the stamps a whole-dataset read returns
+  for the record the writer stores (`ts.rs::readback_times`, from the writer's block plan and
+  bin dates) and refuses a start whose values would read back at one time or be lost. With
+  leading missing values (`value_times_from`, the first valid index) the bin dates and the trim
+  start at the first valid value, an all-missing block is dated from its position 0
+  (`ztsFirstLastValidValues()`), and only the blocks from the window's start block to its end
+  block are read (a weekly decade block's last week is not read when the window starts in the
+  next block, and its value is lost, in HEC as here; such series are refused). 3,997 of 3,997
+  dense and 7,212 of 7,212 missing-value DSS7 reference series agree with Monolith both ways, and
+  every accepted series reads in Monolith at its accepted times. The public fixtures `p76_*` hold these cases
+  (`fixtures/public/README.md`).
 
 ### 7.2 Regular-interval blocks (`Internal/ztsRegGetBlockStart.c:ztsRegGetBlockStart()`)
 

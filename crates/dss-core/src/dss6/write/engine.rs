@@ -1177,58 +1177,107 @@ pub(super) fn write_with<F>(
 where
     F: FnOnce(&mut Engine) -> Result<Vec<BlockReport>, WriteError>,
 {
-    let report = lock::lock_status_of(file).map_err(WriteError::Lock)?;
-    let guard =
-        lock::ensure_unlocked_for_write(&report, &opts.lock_policy).map_err(WriteError::Locked)?;
-    // Header checks before taking the lock (a non-DSS6 file is refused cleanly).
-    let klockb = {
-        let eng = Engine::new(file, opts)?;
-        let mut head = vec![0u8; HEADER_BYTES];
-        for (i, w) in eng.h.iter().enumerate() {
-            head[4 * i..4 * i + 4].copy_from_slice(&w.to_le_bytes());
-        }
-        Dss6Header::parse(&head)
-            .map_err(|e| corrupt(e.to_string()))?
-            .lock_byte_range()
-            .0
-    };
-    let mut lock_method = "none";
-    let held = if opts.lock_policy.hold_primary_lock_during_write {
-        // HEC's DSS6 write lock is the word at KLOCKB (zmultu6.f lines 113-114); POSIX
-        // holds KLOCKB..+8 (write and request words), Windows the whole file
-        // (as the DSS7 `lockhold`).
-        match lockhold::take(file, klockb, &[]) {
-            Ok(l) => {
-                lock_method = l.method;
-                Some(l)
+    let mut session = Locked::begin(file, opts)?;
+    let blocks = body(&mut session.eng)?;
+    let report = session.report(blocks);
+    session.end()?;
+    Ok(report)
+}
+
+/// One locked DSS6 write session, shared by [`write_with`] and the batch writer.
+pub(super) struct Locked<'a> {
+    file: &'a File,
+    pub eng: Engine<'a>,
+    held: Option<lockhold::HeldLock<'a>>,
+    readers_undetected: bool,
+    reconciled: bool,
+    lock_method: &'static str,
+}
+
+impl<'a> Locked<'a> {
+    /// Lock guard (the lock policy), held write lock at `KLOCKB`, header re-read and
+    /// reconciliation.
+    pub fn begin(file: &'a File, opts: &'a WriteOptions) -> Result<Self, WriteError> {
+        let report = lock::lock_status_of(file).map_err(WriteError::Lock)?;
+        let guard = lock::ensure_unlocked_for_write(&report, &opts.lock_policy)
+            .map_err(WriteError::Locked)?;
+        // Header checks before taking the lock (a non-DSS6 file is refused cleanly).
+        let klockb = {
+            let eng = Engine::new(file, opts)?;
+            let mut head = vec![0u8; HEADER_BYTES];
+            for (i, w) in eng.h.iter().enumerate() {
+                head[4 * i..4 * i + 4].copy_from_slice(&w.to_le_bytes());
             }
-            Err(lockhold::HoldError::Busy) => {
-                return Err(WriteError::Locked(LockRefusal {
-                    reasons: vec![LockReason::PrimaryWrite],
-                    readers_undetectable: false,
-                    holder_pids: Vec::new(),
-                }))
+            Dss6Header::parse(&head)
+                .map_err(|e| corrupt(e.to_string()))?
+                .lock_byte_range()
+                .0
+        };
+        let mut lock_method = "none";
+        let held = if opts.lock_policy.hold_primary_lock_during_write {
+            // HEC's DSS6 write lock is the word at KLOCKB (zmultu6.f lines 113-114); POSIX
+            // holds KLOCKB..+8 (write and request words), Windows the whole file
+            // (the held lock).
+            match lockhold::take(file, klockb, &[]) {
+                Ok(l) => {
+                    lock_method = l.method;
+                    Some(l)
+                }
+                Err(lockhold::HoldError::Busy) => {
+                    return Err(WriteError::Locked(LockRefusal {
+                        reasons: vec![LockReason::PrimaryWrite],
+                        readers_undetectable: false,
+                        holder_pids: Vec::new(),
+                    }))
+                }
+                Err(lockhold::HoldError::Io(e)) => return Err(e.into()),
             }
-            Err(lockhold::HoldError::Io(e)) => return Err(e.into()),
-        }
-    } else {
-        None
-    };
-    // HEC re-reads the header once it holds the lock (zmultu6 -> zrdprm6).
-    let mut eng = Engine::new(file, opts)?;
-    let reconciled = eng.reconcile()?;
-    let blocks = body(&mut eng)?;
-    if opts.sync.at_end() {
-        crate::dss7::write::count_flush();
-        file.sync_all()?;
+        } else {
+            None
+        };
+        // HEC re-reads the header once it holds the lock (zmultu6 -> zrdprm6).
+        let mut eng = Engine::new(file, opts)?;
+        let reconciled = eng.reconcile()?;
+        Ok(Locked {
+            file,
+            eng,
+            held,
+            readers_undetected: guard.readers_undetected,
+            reconciled,
+            lock_method,
+        })
     }
-    drop(held);
-    Ok(WriteReport {
-        blocks,
-        readers_undetected: guard.readers_undetected,
-        reconciled_interrupted_write: reconciled,
-        lock_method,
-    })
+
+    /// P76: start the next record of a batch as a separate write call would start it,
+    /// after its lock test and lock: a new engine on the header read again (counters,
+    /// allocation state, write date and time, per-write settings) and the
+    /// reconciliation check (nothing is pending after a completed record).
+    pub fn next_record(&mut self) -> Result<(), WriteError> {
+        let opts = self.eng.opts;
+        self.eng = Engine::new(self.file, opts)?;
+        self.reconciled = self.eng.reconcile()?;
+        Ok(())
+    }
+
+    /// The report of a write in this session.
+    pub fn report(&self, blocks: Vec<BlockReport>) -> WriteReport {
+        WriteReport {
+            blocks,
+            readers_undetected: self.readers_undetected,
+            reconciled_interrupted_write: self.reconciled,
+            lock_method: self.lock_method,
+        }
+    }
+
+    /// The end-of-call flush (modes `End` and `Step`), then the lock is released.
+    pub fn end(self) -> Result<(), WriteError> {
+        if self.eng.opts.sync.at_end() {
+            crate::dss7::write::count_flush();
+            self.file.sync_all()?;
+        }
+        drop(self.held);
+        Ok(())
+    }
 }
 
 #[cfg(test)]

@@ -13,9 +13,11 @@ Run with an interpreter that has ``ras-commander-fast-dss`` installed::
 
 Tools, each used only if it imports in its interpreter (otherwise skipped with the reason):
 
-* ``engine``: ``ras_commander_fast_dss``. Writes run in four modes: module-level writers
-  with the default ``sync`` (``"end"``) and with ``sync="none"``, and a held ``DssFile``
-  session with the default and with ``"none"``.
+* ``engine``: ``ras_commander_fast_dss``. Writes run in six modes: module-level writers
+  with the default ``sync`` (``"end"``) and with ``sync="none"``, a held ``DssFile``
+  session with the default and with ``"none"``, and one ``write_batch`` call for all the
+  records of a case with the default and with ``"none"`` (time series and paired data; the
+  batch modes need ``write_batch``, added in 0.1.3).
 * ``pydsstools``.
 * ``hecdss`` (HEC's Python wrapper of the DSS C library; DSS7 only).
 * ``monolith``: HEC Monolith through ``pyjnius``, only if ``DSS_BENCH_MONOLITH`` names a
@@ -91,12 +93,18 @@ ENGINE_WRITE_MODES = {
     "engine_none": ("module writers", "none"),
     "engine_session": ("DssFile session", "end"),
     "engine_session_none": ("DssFile session", "none"),
+    "engine_batch": ("write_batch", "end"),
+    "engine_batch_none": ("write_batch", "none"),
 }
+# Record kinds the batch modes write (``write_batch`` takes no grids).
+BATCH_KINDS = ("ts_regular", "small", "ts_irregular", "catalog", "pd")
 MODE_LABEL = {
     "engine": "engine, module writers",
     "engine_none": "engine, module writers",
     "engine_session": "engine, DssFile session",
     "engine_session_none": "engine, DssFile session",
+    "engine_batch": "engine, write_batch",
+    "engine_batch_none": "engine, write_batch",
     "pydsstools": "pydsstools",
     "hecdss": "hecdss",
     "monolith": "HEC Monolith (pyjnius)",
@@ -515,6 +523,8 @@ class Engine:
         session = api == "DssFile session"
         value_type = "float" if width == "float32" else "double"
         fd.create(path, version=version, sync=sync)
+        if api == "write_batch":
+            return self.write_batch(path, kind, version, its, value_type, sync)
         f = fd.open(path) if session else None
         try:
             for it in its:
@@ -551,6 +561,26 @@ class Engine:
         finally:
             if f is not None:
                 f.close()
+        return len(its)
+
+    def write_batch(self, path, kind, version, its, value_type, sync):
+        """All the records of a case in one ``write_batch`` call (records built in the timer)."""
+        fd = self.fd
+        if not hasattr(fd, "write_batch"):
+            raise RuntimeError("this ras-commander-fast-dss has no write_batch (added in 0.1.3)")
+        if kind in ("ts_regular", "small"):
+            recs = [{"kind": "timeseries", "pathname": it[0], "values": it[1], "start": hec_time(T0),
+                     "units": "CFS", "data_type": "INST-VAL", "value_type": value_type} for it in its]
+        elif kind in ("ts_irregular", "catalog"):
+            recs = [{"kind": "timeseries", "pathname": it[0], "values": it[2], "times": it[1],
+                     "units": "FEET", "data_type": "INST-VAL", "value_type": value_type} for it in its]
+        elif kind == "pd":
+            recs = [{"kind": "paired_data", "pathname": it[0], "x": it[1], "y": it[2], "x_units": "FEET",
+                     "x_type": "LINEAR", "y_units": "CFS", "y_type": "LINEAR", "value_type": value_type}
+                    for it in its]
+        else:
+            raise ValueError(f"write_batch takes no {kind} records")
+        fd.write_batch(path, recs, version=version, sync=sync)
         return len(its)
 
     def verify(self, path, kind, version, its):
@@ -1558,6 +1588,10 @@ def run_cases(a, rep, run, work, tools, sizes, ops, widths, write_modes, version
                         api, sync = ENGINE_WRITE_MODES[mode] if tool == "engine" else ("tool API", "os")
                         base = {"case": f"write: {kind}", "op": "write", "kind": desc, "dss": v, "tool": tool,
                                 "mode": mode, "api": api, "width": width, "sync": SYNC_TEXT[sync], "expected": exp}
+                        if api == "write_batch" and kind not in BATCH_KINDS:
+                            rep.add(**base, status="skip",
+                                    problems=["write_batch stores time series and paired data, not grids"])
+                            continue
                         if kind != "grid" and width not in WRITE_WIDTHS[tool]:
                             rep.add(**base, status="skip", problems=[WIDTH_REASON[tool]])
                             continue

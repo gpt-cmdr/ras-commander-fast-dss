@@ -82,6 +82,23 @@ pub(super) fn record_dict<'py>(
     d.set_item("accumulation_stated_by", note.map(|n| n.stated_by))?;
     d.set_item("overlaps_earlier", note.map(|n| n.overlaps_earlier))?;
     d.set_item("gap_before", note.map(|n| n.gap_before))?;
+    // P76: under align="vortex" or "snap_out", the sampled and stored grids (else None).
+    let alignment = match &w.alignment {
+        None => None,
+        Some(a) => {
+            let x = PyDict::new(py);
+            x.set_item("sampled_transform", a.sampled_transform.to_vec())?;
+            x.set_item("sampled_lower_left", a.sampled_lower_left)?;
+            x.set_item("stored_lower_left", a.stored_lower_left)?;
+            x.set_item("stored_cell_size", a.stored_cell_size)?;
+            x.set_item("shift_map_units", a.shift_map_units)?;
+            x.set_item("shift_cells", a.shift_cells)?;
+            x.set_item("missing_cells", a.missing_cells)?;
+            x.set_item("uncovered_centres", a.uncovered_centres)?;
+            Some(x)
+        }
+    };
+    d.set_item("alignment", alignment)?;
     Ok(d)
 }
 
@@ -199,9 +216,11 @@ pub(super) fn options(
     let align = match align {
         "refuse" => Align::Refuse,
         "vortex" => Align::Vortex,
+        // P76: snap GDAL's suggested extent outward to whole cells.
+        "snap_out" => Align::SnapOut,
         other => {
             return Err(PyValueError::new_err(format!(
-                "align must be \"refuse\" or \"vortex\", not {other:?}"
+                "align must be \"refuse\", \"snap_out\" or \"vortex\", not {other:?}"
             )))
         }
     };
@@ -534,6 +553,7 @@ fn gridded_cell_size(target_crs: &str, metres: f64, align: &str) -> PyResult<(f3
         .map_err(|e| DssUnsupportedRecordError::new_err(e.to_string()))?;
     let align = match align {
         "vortex" => dss_vortex::warp::Align::Vortex,
+        "snap_out" => dss_vortex::warp::Align::SnapOut,
         _ => dss_vortex::warp::Align::Refuse,
     };
     let size = dss_vortex::warp::CellSize::of(metres, &target, align);

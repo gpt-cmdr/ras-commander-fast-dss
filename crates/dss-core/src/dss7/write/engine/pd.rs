@@ -227,8 +227,18 @@ pub(crate) fn write_pd_planned(
     opts: &WriteOptions,
 ) -> Result<WriteReport, WriteError> {
     let mut session = Session::begin(file, opts)?;
+    let blocks = pd_body(&mut session, plan)?;
+    session.finish(blocks)
+}
+
+/// The transaction of one paired-data write inside a locked session (shared by
+/// [`write_pd_planned`] and the batch writer).
+pub(in crate::dss7::write) fn pd_body(
+    session: &mut Session,
+    plan: &PdPlan,
+) -> Result<Vec<BlockReport>, WriteError> {
     let prepared = session.eng.prepare_pd(plan)?;
     session.eng.block_index = 0;
     let report: BlockReport = session.eng.commit(prepared)?;
-    session.finish(vec![report])
+    Ok(vec![report])
 }

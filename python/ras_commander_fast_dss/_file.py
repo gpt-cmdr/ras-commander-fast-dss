@@ -6,7 +6,7 @@ import operator
 import os
 import struct  # P15
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -1082,6 +1082,19 @@ class DssFile:
 
         kwargs.setdefault("version", self._write_version())
         return self._session_write(_write_paired_data, pathname, x, y, **kwargs)
+
+    def write_batch(self, records: Any, **kwargs: Any) -> List[Dict[str, Any]]:
+        """Store many time-series and paired-data records in this file in one call.
+
+        Same arguments and result as :func:`ras_commander_fast_dss.write_batch`;
+        ``version`` defaults to this file's DSS version. The batch goes through this
+        object's held handle, with one lock test, one lock and one end-of-call flush for
+        all its records.
+        """
+        from ._batch import write_batch as _write_batch
+
+        kwargs.setdefault("version", self._write_version())
+        return self._session_write(_write_batch, records, **kwargs)
 
     # -- P39: profile and location writers --------------------------------------------
 

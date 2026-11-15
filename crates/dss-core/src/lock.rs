@@ -466,8 +466,9 @@ mod sys {
     /// with `ERROR_LOCK_VIOLATION`. The layout keeps every range inside the file, so a
     /// short read is an error, never "free".
     pub fn probe(file: &File, off: u64, len: u32, _method: &mut &'static str) -> io::Result<Probe> {
-        let mut buf = [0u8; 8];
-        let want = (len as usize).min(buf.len());
+        // P76: a run of adjacent words is read whole (at most 8 KiB, see `MAX_RUN`).
+        let mut buf = vec![0u8; len as usize];
+        let want = buf.len();
         let mut done = 0;
         while done < want {
             match file.seek_read(&mut buf[done..want], off + done as u64) {
@@ -647,6 +648,31 @@ fn read_at(_file: &File, _buf: &mut [u8], _off: u64) -> io::Result<usize> {
 
 /// Test every range of `layout` through `file`.
 pub fn probe_layout(file: &File, layout: &LockLayout) -> Result<LockReport, LockError> {
+    probe_ranges(file, layout, true)
+}
+
+/// Longest run of adjacent lock words tested by one call: 8 KiB, the largest DSS7
+/// lock array (1024 words, `MAX_LOCK_ARRAY`).
+const MAX_RUN: u64 = 8 * 1024;
+
+/// Test and measurement reference, not a supported API: [`probe_layout`] with one
+/// test per lock word, as before 0.1.3. The result must equal [`probe_layout`]'s.
+#[doc(hidden)]
+pub fn probe_layout_each_range(file: &File, layout: &LockLayout) -> Result<LockReport, LockError> {
+    probe_ranges(file, layout, false)
+}
+
+/// P76: with `coalesce`, each run of adjacent ranges (each starts where the previous one
+/// ends: the DSS7 lock arrays, the DSS6 read slots) is first tested with one call over
+/// the whole run. A lock on any byte of the run makes that call report it (Windows: the
+/// read of the run fails with `ERROR_LOCK_VIOLATION` as the read of the locked word
+/// does; POSIX: `F_OFD_GETLK` / `F_GETLK` over the run returns a conflicting lock if any
+/// range of it has one), and the run is then tested range by range exactly as without
+/// `coalesce`, so `held`, the holder pids and their order are unchanged. A free run is
+/// free in every range of it. Only adjacent ranges are joined: no byte outside the
+/// layout is tested. The test is a snapshot either way: a lock taken or released while
+/// it runs may or may not be seen, as before.
+fn probe_ranges(file: &File, layout: &LockLayout, coalesce: bool) -> Result<LockReport, LockError> {
     if sys::METHOD == "unsupported" {
         return Err(LockError::Unsupported(
             "no byte-range lock test for this target",
@@ -659,18 +685,50 @@ pub fn probe_layout(file: &File, layout: &LockLayout) -> Result<LockReport, Lock
         held.push((LockReason::StaleWriteMarker, KFSIZE_BYTE, 4));
     }
     let mut method = sys::METHOD;
-    for &(reason, off, len) in &layout.ranges {
-        let probe = sys::probe(file, off, len, &mut method).map_err(|source| LockError::Probe {
-            method,
-            byte: off,
-            source,
-        })?;
-        if let Probe::Held(pid) = probe {
-            held.push((reason, off, len));
-            if let Some(p) = pid {
-                pids.push(p);
+    let ranges = &layout.ranges;
+    let mut i = 0;
+    while i < ranges.len() {
+        let (_, start, first) = ranges[i];
+        let mut end = start + u64::from(first);
+        let mut j = i + 1;
+        if coalesce {
+            while j < ranges.len()
+                && ranges[j].1 == end
+                && end + u64::from(ranges[j].2) - start <= MAX_RUN
+            {
+                end += u64::from(ranges[j].2);
+                j += 1;
             }
         }
+        if j - i > 1 {
+            // `end - start` is at most MAX_RUN, so it fits a u32.
+            let run = u32::try_from(end - start).unwrap_or(u32::MAX);
+            let probe =
+                sys::probe(file, start, run, &mut method).map_err(|source| LockError::Probe {
+                    method,
+                    byte: start,
+                    source,
+                })?;
+            if probe == Probe::Free {
+                i = j;
+                continue;
+            }
+        }
+        for &(reason, off, len) in &ranges[i..j] {
+            let probe =
+                sys::probe(file, off, len, &mut method).map_err(|source| LockError::Probe {
+                    method,
+                    byte: off,
+                    source,
+                })?;
+            if let Probe::Held(pid) = probe {
+                held.push((reason, off, len));
+                if let Some(p) = pid {
+                    pids.push(p);
+                }
+            }
+        }
+        i = j;
     }
     pids.sort_unstable();
     pids.dedup();

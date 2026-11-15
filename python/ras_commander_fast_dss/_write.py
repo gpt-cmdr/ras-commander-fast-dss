@@ -52,6 +52,24 @@ def _held() -> Dict[str, Any]:
     return {} if h is None else {"handle": h}
 
 
+#: P76: while a batch write (:func:`ras_commander_fast_dss.write_batch`) prepares its
+#: records, the single-record writers run as usual (every argument check and conversion)
+#: but hand their native call to this collector instead of making it.
+_COLLECT: "contextvars.ContextVar[Any]" = contextvars.ContextVar(
+    "ras_commander_fast_dss_batch", default=None
+)
+
+
+def _native_write(name: str, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+    """Make the native write call ``name`` (``_native.<name>``), or, while a batch is
+    being prepared, give it to the batch collector, which returns an empty report."""
+    collect = _COLLECT.get()
+    if collect is None:
+        return getattr(_native, name)(*args, **kwargs)
+    collect(name, args, kwargs)
+    return {}
+
+
 def _file_version(dss_file: PathLike) -> int:
     """DSS major version of ``dss_file``: inside a ``DssFile`` write, the version of the file
     the path names now (``NativeFile._write_version``: the held handle when it is still that
@@ -85,6 +103,14 @@ def create(path: PathLike, version: int = 7, *, sync: Union[bool, str] = "end") 
     ``sync`` is the flush policy of :func:`write_timeseries`. The new file is written by
     one write and, by default, flushed once before this returns; ``"step"`` does the
     same, and only ``"none"`` (or ``False``) skips the flush.
+
+    The file is written in full under a unique temporary name beside ``path`` and then
+    published by a hard link that fails if ``path`` exists, so a process killed during
+    the call leaves ``path`` absent or complete (``dss7.md`` §6, "New files"). When that
+    cannot be done safely (a filesystem without hard links such as FAT or exFAT, a
+    permission problem, too many links), it raises :class:`DssPublishError` (an
+    ``OSError``) and ``path`` is not created; create the file on a filesystem with hard
+    links and copy it.
     """
     sync = _sync_mode(sync)
     if version == 6:
@@ -134,10 +160,11 @@ def repair(src: PathLike, dest: PathLike, *, sync: Union[bool, str] = "end") -> 
     ``not_copied``. ``complete`` is then ``False`` and ``dest`` is still published.
     Always check ``complete`` and ``not_copied``. An existing ``dest`` raises
     ``FileExistsError``; nothing is ever replaced (hard link, else an atomic no-replace
-    rename where available, else an ``OSError`` naming the kept, verified copy). Other
+    rename where available, else :class:`DssPublishError`, an ``OSError`` whose
+    ``kept_path`` names the kept, verified copy). Other
     errors remove the temporary file. A copy killed before publication leaves ``src``
-    unchanged, no ``dest``, and a ``.<name>.<pid>.<nanos>.partial`` file that can be
-    deleted. Each record is written under its own identity (the pathname its info block
+    unchanged, no ``dest``, and a ``.<name>.<pid>.<nanos>.<seq>.partial`` file that can
+    be deleted. Each record is written under its own identity (the pathname its info block
     stores; an alias's primary). Only an alias or a pure case difference may change the
     name; a record whose info block names another record, or a duplicate with a
     different payload, is listed in ``not_copied`` (``complete`` is then false).
@@ -552,16 +579,7 @@ def write_timeseries(
         t = _times_array(times)
         if len(t) != n:
             raise ValueError(f"{len(t)} times for {n} values")
-        expected = _native.rts_value_times(pathname, int(t[0]), n)
-        bad = np.nonzero(expected != t)[0]
-        if len(bad):
-            i = int(bad[0])
-            raise ValueError(
-                f"times are not regular for {pathname!r}: value {i} is at "
-                f"{_EPOCH + np.timedelta64(int(t[i]), 's')}, expected "
-                f"{_EPOCH + np.timedelta64(int(expected[i]), 's')}"
-            )
-        start_s = int(t[0])
+        start_s = _check_regular_times(_native.rts_value_times, pathname, t, vals)
     else:
         _refuse_tz(start, "start")
         start_s = to_hec_seconds(start)
@@ -581,7 +599,8 @@ def write_timeseries(
         if (q < np.iinfo(np.int32).min).any() or (q > np.iinfo(np.int32).max).any():
             raise ValueError("quality flags must fit in 32 bits")
         q = q.astype(np.int32)
-    report = _native.write_rts(
+    report = _native_write(
+        "write_rts",
         str(Path(os.fspath(dss_file))),
         pathname,
         start_s,
@@ -608,6 +627,33 @@ def write_timeseries(
 
 
 # -- P21: irregular series ---------------------------------------------------------
+
+
+def _check_regular_times(value_times, pathname: str, t: np.ndarray, vals: Any) -> int:
+    """P76: the ``times=`` of a regular series must be where its values read back.
+
+    ``value_times`` is ``_native.rts_value_times`` or ``rts6_value_times``: the stamps the
+    stored record reads back at, from ``t[0]``. Reads trim leading missing values, which can
+    move calendar stamps, so the stamps are taken for the values from the first non-missing
+    one (``first_valid``), and only those are compared. Raises ``ValueError`` (also from the
+    native check, where HEC-DSS would store or read values at other times). Returns ``t[0]``.
+    """
+    from ._file import missing_mask
+
+    n = len(t)
+    valid = ~missing_mask(np.asarray(vals))
+    first_valid = int(np.argmax(valid)) if valid.any() else n
+    expected = value_times(pathname, int(t[0]), n, first_valid=first_valid)
+    kept = t[first_valid:]
+    bad = np.nonzero(np.asarray(expected) != kept)[0]
+    if len(bad):
+        i = int(bad[0]) + first_valid
+        raise ValueError(
+            f"times are not regular for {pathname!r}: value {i} is at "
+            f"{_EPOCH + np.timedelta64(int(t[i]), 's')}, but HEC-DSS reads it back at "
+            f"{_EPOCH + np.timedelta64(int(expected[i - first_valid]), 's')}"
+        )
+    return int(t[0])
 
 
 def _is_irregular(pathname: str) -> bool:
@@ -725,7 +771,8 @@ def _write_variants(
             if isinstance(time_granularity, bool) or not isinstance(time_granularity, (int, np.integer)):
                 raise ValueError("time_granularity must be an integer number of seconds")
             time_granularity = int(time_granularity)
-        report = _native.write_its_variants(
+        report = _native_write(
+            "write_its_variants",
             path, pathname, t, vals, units, data_type, time_granularity=time_granularity, **kw,
             **_held(),
         )
@@ -738,14 +785,12 @@ def _write_variants(
             t = _times_array(times)
             if len(t) != n:
                 raise ValueError(f"{len(t)} times for {n} values")
-            expected = _native.rts_value_times(pathname, int(t[0]), n)
-            if (expected != t).any():
-                raise ValueError(f"times are not regular for {pathname!r}")
-            start_s = int(t[0])
+            start_s = _check_regular_times(_native.rts_value_times, pathname, t, vals)
         else:
             _refuse_tz(start, "start")
             start_s = to_hec_seconds(start)
-        report = _native.write_rts_variants(
+        report = _native_write(
+            "write_rts_variants",
             path, pathname, start_s, vals, units, data_type, **kw, **_held()
         )
     _warn_old_scheme(report, dss_file)
@@ -828,7 +873,8 @@ def _write_pattern(
             if (np.diff(given) <= 0).any():
                 raise ValueError("pattern times must be strictly ascending")
     prec = _precision(precision)
-    report = _native.write_pattern(
+    report = _native_write(
+        "write_pattern",
         str(Path(os.fspath(dss_file))), pathname, vals, units, data_type, times=t,
         time_zone=time_zone, precision=prec, time_granularity=time_granularity,
         version=int(version), allow_undetectable_readers=bool(allow_undetectable_readers),
@@ -898,7 +944,8 @@ def _write_irregular(
         ):
             raise ValueError("time_granularity must be an integer number of seconds")
         time_granularity = int(time_granularity)
-    report = _native.write_its(
+    report = _native_write(
+        "write_its",
         str(Path(os.fspath(dss_file))),
         pathname,
         t,
@@ -994,7 +1041,8 @@ def _write_timeseries6(
         t = np.ascontiguousarray(_times_array(times), dtype=np.int64)
         if t.ndim != 1 or len(t) != n:
             raise ValueError(f"{len(t)} times for {n} values")
-        report = _native.write_its6(
+        report = _native_write(
+            "write_its6",
             path, pathname, t, vals, units, data_type, q, "replace",
             bool(allow_undetectable_readers), sync=sync,
             **_held(),
@@ -1006,20 +1054,12 @@ def _write_timeseries6(
             t = _times_array(times)
             if len(t) != n:
                 raise ValueError(f"{len(t)} times for {n} values")
-            expected = _native.rts6_value_times(pathname, int(t[0]), n)
-            bad = np.nonzero(expected != t)[0]
-            if len(bad):
-                i = int(bad[0])
-                raise ValueError(
-                    f"times are not regular for {pathname!r}: value {i} is at "
-                    f"{_EPOCH + np.timedelta64(int(t[i]), 's')}, expected "
-                    f"{_EPOCH + np.timedelta64(int(expected[i]), 's')}"
-                )
-            start_s = int(t[0])
+            start_s = _check_regular_times(_native.rts6_value_times, pathname, t, vals)
         else:
             _refuse_tz(start, "start")
             start_s = to_hec_seconds(start)
-        report = _native.write_rts6(
+        report = _native_write(
+            "write_rts6",
             path, pathname, start_s, vals, units, data_type, q, None, prec,
             bool(allow_undetectable_readers), sync=sync,
             **_held(),

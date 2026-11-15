@@ -668,6 +668,19 @@ pub(in crate::dss7::write) fn write_rts_v(
 ) -> Result<WriteReport, WriteError> {
     let x = check_extras(input.values.len(), input.quality, v)?;
     let mut session = Session::begin(file, opts)?;
+    let blocks = rts_v_body(&mut session, input, plan, &x)?;
+    session.finish(blocks)
+}
+
+/// The transactions of one regular-series write inside a locked session (shared by
+/// [`write_rts_v`] and the batch writer, which runs it once per record).
+pub(in crate::dss7::write) fn rts_v_body(
+    session: &mut Session,
+    input: &RtsInput,
+    plan: &Plan,
+    x: &Extras,
+) -> Result<Vec<BlockReport>, WriteError> {
+    let x = *x;
     // Preflight every block before the first commit (without it, a refusal in block k
     // would leave blocks 0..k-1 written).
     let mut prepared = Vec::with_capacity(plan.blocks.len());
@@ -683,7 +696,7 @@ pub(in crate::dss7::write) fn write_rts_v(
         session.eng.block_index = i;
         blocks.push(session.eng.commit(p).map_err(|e| e.after_planning(count))?);
     }
-    session.finish(blocks)
+    Ok(blocks)
 }
 
 pub(in crate::dss7::write) fn check_rts_variants(
@@ -702,6 +715,19 @@ pub(in crate::dss7::write) fn write_its_v(
 ) -> Result<WriteReport, WriteError> {
     let x = check_extras(input.values.len(), input.quality, v)?;
     let mut session = Session::begin(file, opts)?;
+    let blocks = its_v_body(&mut session, input, plan, &x)?;
+    session.finish(blocks)
+}
+
+/// The transactions of one irregular-series write inside a locked session (shared
+/// by [`write_its_v`] and the batch writer).
+pub(in crate::dss7::write) fn its_v_body(
+    session: &mut Session,
+    input: &ItsInput,
+    plan: &ItsPlan,
+    x: &Extras,
+) -> Result<Vec<BlockReport>, WriteError> {
+    let x = *x;
     // Preflight: every lookup, read and refusal of every block and
     // every delete, before the first transaction. Later transactions touch other
     // pathnames only, so what was read stays valid while earlier ones commit.
@@ -754,7 +780,7 @@ pub(in crate::dss7::write) fn write_its_v(
             .map_err(|e| e.after_planning(count))?,
         );
     }
-    session.finish(blocks)
+    Ok(blocks)
 }
 
 pub(in crate::dss7::write) fn check_its_variants(
