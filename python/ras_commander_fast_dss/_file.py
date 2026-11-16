@@ -6,7 +6,7 @@ import operator
 import os
 import struct  # P15
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -97,15 +97,27 @@ def _safe_resolve(path: Path) -> Path:
     return resolved
 
 
+def _trim_marker_mask(values: np.ndarray) -> np.ndarray:
+    """Values a regular-series read trims at either end, as ``ztsTrim`` does: the HEC
+    markers -901, -902 and -FLT_MAX, compared in the array's own width. NaN is *not*
+    trimmed (unlike :func:`missing_mask`); a raw NaN reads back where it was written.
+
+    The single rule shared by the read path (:func:`_trim_missing`) and the writer's
+    ``times=`` check, so the two cannot disagree about which stamps a read keeps.
+    """
+    v = np.asarray(values)
+    miss = np.zeros(v.shape, dtype=bool)
+    for m in MISSING_MARKERS:
+        miss |= v == v.dtype.type(m)
+    return miss
+
+
 def _trim_missing(times: np.ndarray, values: np.ndarray, regular: bool):
     """Drop leading and trailing missing values (regular data only), as ``ztsTrim``
     does: -901, -902 and -FLT_MAX are trimmed, NaN is not."""
     if not regular or len(values) == 0:
         return times, values
-    v = np.asarray(values)
-    miss = np.zeros(len(v), dtype=bool)
-    for m in MISSING_MARKERS:
-        miss |= v == v.dtype.type(m)
+    miss = _trim_marker_mask(values)
     keep = np.flatnonzero(~miss)
     if len(keep) == 0:
         return times[:0], values[:0]
@@ -280,8 +292,9 @@ class DssFile:
         if self.closed:
             raise ValueError("I/O operation on a closed DssFile")
         # Every per-object cache derived from the file's contents is dropped before the
-        # write, so it is rebuilt even when the write fails part way. The only one is the
-        # DSS6 dataset-location index of `_p15_ts_blocks` (up to 0.1.1 the writes
+        # write, so it is rebuilt even when the write fails part way, and again when the
+        # write returns or fails (`_session_write`). The only one is the DSS6
+        # dataset-location index of `_p15_ts_blocks` (up to 0.1.1 the writes
         # cleared a misspelled `_p15_block_index`, which no code reads).
         self.__dict__.pop("_p15_ts_index", None)
 
@@ -307,6 +320,11 @@ class DssFile:
             return write(self._path, *args, **kwargs)
         finally:
             _SESSION.reset(token)
+            # Drop the contents-derived caches again on the way out, including after a
+            # partial failure: a read made while the write ran (for example by a
+            # generator that `write_batch` consumes) can rebuild them from the file as it
+            # was before the native write.
+            self.__dict__.pop("_p15_ts_index", None)
 
     # -- file facts -------------------------------------------------------------------
 
@@ -1082,6 +1100,19 @@ class DssFile:
 
         kwargs.setdefault("version", self._write_version())
         return self._session_write(_write_paired_data, pathname, x, y, **kwargs)
+
+    def write_batch(self, records: Any, **kwargs: Any) -> List[Dict[str, Any]]:
+        """Store many time-series and paired-data records in this file in one call.
+
+        Same arguments and result as :func:`ras_commander_fast_dss.write_batch`;
+        ``version`` defaults to this file's DSS version. The batch goes through this
+        object's held handle, with one lock test, one lock and one end-of-call flush for
+        all its records.
+        """
+        from ._batch import write_batch as _write_batch
+
+        kwargs.setdefault("version", self._write_version())
+        return self._session_write(_write_batch, records, **kwargs)
 
     # -- P39: profile and location writers --------------------------------------------
 

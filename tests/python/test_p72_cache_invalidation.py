@@ -91,3 +91,79 @@ def test_a_failed_write_also_drops_the_index(tmp_path):
             f.write_timeseries(SERIES, [1.0], start="01JAN2021 0100", units="CFS",
                                data_type="INST-VAL", sync="sometimes")
         assert "_p15_ts_index" not in f.__dict__
+
+
+# -- a read made while write_batch consumes its records --------------------------------
+#
+# `_begin_write` drops the index before the batch consumes `records`. A generator that
+# reads a dataset location while it is consumed rebuilds the index from the file as it
+# was before the native batch writes anything; the session must drop it again on exit,
+# including when the batch fails part way. Before the fix the rebuilt index survived, so a
+# later dataset-level lookup skipped the new blocks.
+
+OLD = "/CACHE/OLD/FLOW//1HOUR/T/"
+NEW = "/CACHE/NEW/FLOW//1HOUR/T/"
+TS6 = dict(units="CFS", data_type="INST-VAL")
+
+
+def _located_dss6(tmp_path):
+    p = tmp_path / "batch-cache.dss"
+    dss.create(p, version=6)
+    dss.write_timeseries(p, OLD, [1.0, 2.0], start="2020-01-01 01:00", version=6, **TS6)
+    dss.write_location(p, OLD, x=1.0, y=2.0, coordinate_system=1)
+    return p
+
+
+def _reading(f, *recs):
+    """Records for ``f.write_batch`` that read ``OLD``'s location (caching the index)
+    before yielding."""
+    assert tuple(f.read_associated_location(OLD).coordinates)[:2] == (1.0, 2.0)
+    assert f.__dict__.get("_p15_ts_index") is not None
+    yield from recs
+
+
+def test_batch_generator_read_then_new_dataset(tmp_path):
+    p = _located_dss6(tmp_path)
+    with dss.open(p) as f:
+        f.write_batch(_reading(f, dict(kind="timeseries", pathname=NEW, values=[3.0, 4.0],
+                                       start="2020-01-01 01:00", **TS6)))
+        # The new dataset has no location: None, not "missing".
+        assert f.read_associated_location(NEW) is None
+        assert list(f.read_timeseries(NEW)["value"]) == [3.0, 4.0]
+    with dss.open(p) as f:
+        assert f.read_associated_location(NEW) is None
+
+
+def test_batch_generator_read_then_new_block_conflicts(tmp_path):
+    p = _located_dss6(tmp_path)
+    with dss.open(p) as f:
+        f.write_batch(_reading(f, dict(kind="timeseries", pathname=OLD, values=[5.0, 6.0],
+                                       start="2021-01-01 01:00", **TS6)))
+        # The 2021 block stores no coordinates and the 2020 block does: the dataset-level
+        # lookup must see both and refuse, not return the 2020 block's location.
+        with pytest.raises(dss.DssLocationConflictError):
+            f.read_associated_location(OLD)
+    with dss.open(p) as f:
+        with pytest.raises(dss.DssLocationConflictError):
+            f.read_associated_location(OLD)
+
+
+def test_batch_generator_read_then_partial_failure(tmp_path):
+    p = _located_dss6(tmp_path)
+    with dss.open(p) as f:
+        recs = _reading(
+            f,
+            dict(kind="timeseries", pathname=OLD, values=[5.0, 6.0],
+                 start="2021-01-01 01:00", **TS6),
+            # Paired data onto the stored 2020 time-series block is refused while the batch
+            # is written, after the 2021 block is stored.
+            dict(kind="paired_data", pathname="/CACHE/OLD/FLOW/01JAN2020/1HOUR/T/",
+                 x=[0.0, 1.0], y=[1.0, 2.0], x_units="FT", x_type="LINEAR", y_units="CFS",
+                 y_type="LINEAR"),
+        )
+        with pytest.raises(dss.DssUnsupportedRecordError) as err:
+            f.write_batch(recs)
+        assert err.value.batch_index == 1
+        assert len(err.value.batch_reports) == 1
+        with pytest.raises(dss.DssLocationConflictError):
+            f.read_associated_location(OLD)

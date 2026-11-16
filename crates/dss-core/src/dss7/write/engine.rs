@@ -33,6 +33,9 @@ pub(super) use variants::{
 // Profiles (`Public/ztsStore.c`) and locations (`Public/zlocationStore.c`).
 mod location;
 mod profile;
+// P76: many records in one locked write session.
+mod batch;
+pub(super) use batch::write_batch;
 pub(super) use location::{plan_location, write_location_planned};
 pub(super) use profile::{plan_profile, write_profile_planned};
 
@@ -3073,7 +3076,7 @@ pub(super) fn write_its_planned(
 
 /// One locked write session: the lock guard, the held lock, reconciliation of an
 /// interrupted write, then the caller's transactions (`dss7.md` §6.4).
-struct Session<'a> {
+pub(in crate::dss7::write) struct Session<'a> {
     file: &'a File,
     eng: Engine<'a>,
     held: Option<lockhold::HeldLock<'a>>,
@@ -3142,17 +3145,42 @@ impl<'a> Session<'a> {
     }
 
     fn finish(self, blocks: Vec<BlockReport>) -> Result<WriteReport, WriteError> {
+        let report = self.report(blocks);
+        self.end()?;
+        Ok(report)
+    }
+
+    /// The report of a write in this session.
+    fn report(&self, blocks: Vec<BlockReport>) -> WriteReport {
+        WriteReport {
+            blocks,
+            readers_undetected: self.readers_undetected,
+            reconciled_interrupted_write: self.reconciled,
+            lock_method: self.lock_method,
+        }
+    }
+
+    /// End the session: the flush of [`SyncMode::End`] and [`SyncMode::Step`] (one
+    /// `sync_all`), then the lock is released.
+    fn end(self) -> Result<(), WriteError> {
         if self.eng.opts.sync.at_end() {
             super::count_flush();
             self.file.sync_all()?;
         }
         drop(self.held);
-        Ok(WriteReport {
-            blocks,
-            readers_undetected: self.readers_undetected,
-            reconciled_interrupted_write: self.reconciled,
-            lock_method: self.lock_method,
-        })
+        Ok(())
+    }
+
+    /// P76: start the next record of a batch as a separate write call would start it,
+    /// after its lock test and lock: the header is read again into a new engine
+    /// (allocation state, counters, a new write time), and any interrupted write is
+    /// reconciled (none can be pending after a completed record; the check is kept so
+    /// the record starts from exactly the state a new call would).
+    fn next_record(&mut self) -> Result<(), WriteError> {
+        let opts = self.eng.opts;
+        self.eng = Engine::new(self.file, opts)?;
+        self.reconciled = self.eng.reconcile()?;
+        Ok(())
     }
 }
 
@@ -3302,46 +3330,6 @@ fn plausible_pathname(p: &[u8]) -> bool {
         && p.first() == Some(&b'/')
         && p.last() == Some(&b'/')
         && p.iter().filter(|&&c| c == b'/').count() == 7
-}
-
-/// The temporary file of a copy-out, removed when dropped unless `keep` is set:
-/// every returned error after the file was created removes it. Only a file
-/// this call created (`create_new` succeeded) is ever owned, so a pre-existing file is
-/// never removed.
-struct TempFile {
-    path: std::path::PathBuf,
-    keep: bool,
-}
-
-impl Drop for TempFile {
-    fn drop(&mut self) {
-        if !self.keep {
-            let _ = std::fs::remove_file(&self.path);
-        }
-    }
-}
-
-/// Publish `tmp` at `dest` with an atomic rename that never replaces an
-/// existing file. `Ok(true)`: renamed; `Ok(false)`: no such primitive here (the caller
-/// fails, keeping `tmp`); an existing `dest` is `ErrorKind::AlreadyExists`.
-// nix exposes renameat2 only for glibc targets; musl falls back to the hard link alone.
-#[cfg(all(target_os = "linux", target_env = "gnu"))]
-fn rename_noreplace(tmp: &std::path::Path, dest: &std::path::Path) -> std::io::Result<bool> {
-    use nix::errno::Errno;
-    use nix::fcntl::{renameat2, RenameFlags, AT_FDCWD};
-    match renameat2(AT_FDCWD, tmp, AT_FDCWD, dest, RenameFlags::RENAME_NOREPLACE) {
-        Ok(()) => Ok(true),
-        Err(Errno::EEXIST) => Err(std::io::Error::from(std::io::ErrorKind::AlreadyExists)),
-        Err(Errno::EINVAL) | Err(Errno::ENOSYS) | Err(Errno::EOPNOTSUPP) => Ok(false),
-        Err(e) => Err(std::io::Error::from(e)),
-    }
-}
-
-/// No atomic no-replace rename is available to this crate here (Windows'
-/// `MoveFileExW` would need `unsafe` FFI, which `dss-core` forbids).
-#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
-fn rename_noreplace(_tmp: &std::path::Path, _dest: &std::path::Path) -> std::io::Result<bool> {
-    Ok(false)
 }
 
 /// A copy-out candidate as read: the record, its areas (or why they do not read), and
@@ -3748,32 +3736,11 @@ pub(super) fn copy_out(
         }
     }
     drop(rdr);
-    // Write a new file next to `dest`, under a temporary name, with the normal writer.
-    let name = dest
-        .file_name()
-        .map(|n| n.to_string_lossy().to_string())
-        .unwrap_or_else(|| "repair".into());
-    let nanos = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
-    let tmp = dest.with_file_name(format!(".{name}.{}.{nanos}.partial", std::process::id()));
-    let mut created = match std::fs::OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(&tmp)
-    {
-        Ok(f) => f,
-        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
-            return Err(WriteError::AlreadyExists(tmp));
-        }
-        Err(e) => return Err(e.into()),
-    };
-    // From here on the temporary file is ours: every returned error removes it (R16).
-    let mut guard = TempFile {
-        path: tmp.clone(),
-        keep: false,
-    };
+    // Write a new file next to `dest`, under a unique temporary name this call creates
+    // exclusively (`crate::publish`), with the normal writer. From here on
+    // the temporary file is ours: every returned error removes it.
+    let (guard, mut created) = crate::publish::OwnedTemp::create_beside(dest, "partial")?;
+    let tmp = guard.path().to_path_buf();
     fault("create")?;
     {
         use std::io::Write as _;
@@ -3903,52 +3870,37 @@ pub(super) fn copy_out(
     }
     drop(check);
     drop(orig);
-    // Publish without replacing anything (R13): a hard link fails if `dest` exists.
-    let linked = match super::copy_out_fault_is(&["hard_link", "hard_link_race"]) {
-        Some(step) => {
-            if step == "hard_link_race" {
-                std::fs::write(dest, b"created by another process")?;
-            }
-            Err(std::io::Error::other(format!("injected fault at {step}")))
+    // Publish without replacing anything: a hard link fails if `dest` exists; a
+    // no-replace rename where hard links are unavailable (`crate::publish`).
+    guard.written();
+    match guard.publish(dest)? {
+        crate::publish::Published::Done => Ok(report),
+        crate::publish::Published::Exists => Err(WriteError::AlreadyExists(dest.to_path_buf())),
+        crate::publish::Published::Refused(guard, link_error, rename) => {
+            // Nothing here can publish without risking an incomplete or replaced file:
+            // fail, keeping the verified copy for the caller.
+            Err(WriteError::Unpublishable(Box::new(
+                crate::publish::PublishRefusal {
+                    dest: dest.to_path_buf(),
+                    link_error,
+                    rename,
+                    kept: Some(guard.keep()),
+                },
+            )))
         }
-        None => std::fs::hard_link(&tmp, dest),
-    };
-    match linked {
-        Ok(()) => Ok(report), // the guard removes the temporary name
-        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
-            Err(WriteError::AlreadyExists(dest.to_path_buf()))
-        }
-        Err(link_err) => match rename_noreplace(&tmp, dest) {
-            Ok(true) => {
-                guard.keep = true; // renamed: the temporary name no longer exists
-                Ok(report)
-            }
-            Ok(false) => {
-                // Nothing here can publish without risking replacing a file that appears
-                // meanwhile: fail, keeping the verified copy for the caller.
-                guard.keep = true;
-                Err(WriteError::Io(std::io::Error::new(
-                    link_err.kind(),
-                    format!(
-                        "cannot publish {} without risking replacing an existing file: the \
-                         hard link failed ({link_err}) and no atomic no-replace rename is \
-                         available here; the verified copy is kept at {}",
-                        dest.display(),
-                        tmp.display()
-                    ),
-                )))
-            }
-            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
-                Err(WriteError::AlreadyExists(dest.to_path_buf()))
-            }
-            Err(e) => Err(e.into()),
-        },
     }
 }
 
-/// See [`super::value_times`].
-pub(super) fn value_times(pathname: &[u8], start: i64, n: usize) -> Result<Vec<i64>, WriteError> {
-    let path = validate_rts_pathname(pathname)?;
+/// See [`super::value_times_from`]. `first_valid` values at the start are missing: the writer's
+/// bin dates and the read's trim start at the first valid one. Returns the stamps of values
+/// `first_valid..n`.
+pub(super) fn value_times(
+    pathname: &[u8],
+    start: i64,
+    n: usize,
+    first_valid: usize,
+) -> Result<Vec<i64>, WriteError> {
+    validate_rts_pathname(pathname)?;
     if n == 0 || n > i32::MAX as usize {
         return Err(bad_input("n must be 1..=2^31-1"));
     }
@@ -3963,12 +3915,92 @@ pub(super) fn value_times(pathname: &[u8], start: i64, n: usize) -> Result<Vec<i
         return Err(bad_input("start year must be 1..=9999"));
     }
     iv::clean_time(&mut sj, &mut ss, iv::SECOND_GRANULARITY);
-    Ok((0..n as i64)
-        .map(|i| {
-            let (j, s) = iv::increment_time(path.interval_seconds, i, sj, ss);
-            j * iv::SECS_IN_1_DAY + s
-        })
-        .collect())
+    // P76: the stamps the stored record reads back at, from the
+    // writer's own block plan and the reader's stamping, not the `incrementTime()` progression
+    // from the start. The two differ for calendar intervals where HEC's storage moves values:
+    // a day of the month that a later month lacks (two values read back at one time) and a
+    // weekly series that starts in the week holding 1 January of a decade block (read back
+    // one week later). HEC Monolith reads such records at the same moved times.
+    let zeros = vec![0f32; n];
+    let input = RtsInput::new(pathname, start, RtsValues::F32(&zeros), b"", b"");
+    let p = plan(&input)?;
+    let blocks: Vec<(i64, i64, i64)> = p
+        .blocks
+        .iter()
+        .map(|b| (b.julian, b.block_start_position, b.number_to_store))
+        .collect();
+    // The bin dates `prepare_block` stores for a new dataset (no existing record, no
+    // quality): from the block start for a block it reads (lines 783-788), else from the
+    // series start (lines 313-327). Only the first block's first and the last block's last
+    // date set the read window.
+    let first_valid = first_valid.min(n);
+    if first_valid == n {
+        return Ok(Vec::new());
+    }
+    let bin_date = |b: &BlockPlan, pos_in_block: i64, pos_in_values: i64| -> i64 {
+        if b.read_block {
+            iv::increment_time(p.interval, pos_in_block, b.julian, p.interval).0
+        } else {
+            iv::increment_time(p.interval, pos_in_values, p.start_julian, p.start_seconds).0
+        }
+    };
+    // First and last valid value of a block's stored values (`ztsFirstLastValidValues()`;
+    // an all-missing block gives positions 0, 0), as `prepare_block` dates the block.
+    let fv = first_valid as i64;
+    let block_dates = |b: &BlockPlan| -> (i64, i64) {
+        let lo = (fv - b.position_in_values).clamp(0, b.number_to_store);
+        let any_valid = lo < b.number_to_store;
+        let (f, l) = if any_valid {
+            (lo, b.number_to_store - 1)
+        } else {
+            (0, 0)
+        };
+        if b.read_block {
+            // The whole block's first and last valid positions; an all-missing block gives
+            // block positions 0, 0 (not the series' first slot).
+            let base = if any_valid { b.block_start_position } else { 0 };
+            (bin_date(b, base + f, 0), bin_date(b, base + l, 0))
+        } else {
+            (
+                bin_date(b, 0, b.position_in_values + f),
+                bin_date(b, 0, b.position_in_values + l),
+            )
+        }
+    };
+    let (b0, bn) = (&p.blocks[0], &p.blocks[p.blocks.len() - 1]);
+    let first_day = block_dates(b0).0;
+    let last_day = block_dates(bn).1;
+    let read = crate::dss7::ts::readback_times(
+        p.interval,
+        &blocks,
+        first_day,
+        last_day,
+        p.time_offset,
+        p.granularity,
+        first_valid,
+    )
+    .map_err(|e| bad_input(format!("the read-back stamps cannot be computed: {e}")))?;
+    let mut out = Vec::with_capacity(n - first_valid);
+    for (i, t) in read.into_iter().enumerate().skip(first_valid) {
+        let Some(t) = t else {
+            return Err(bad_input(format!(
+                "value {i} of a series starting here would not be read back; HEC-DSS stores \
+                 it outside the values a read returns"
+            )));
+        };
+        if let Some(&prev) = out.last() {
+            if t <= prev {
+                return Err(bad_input(format!(
+                    "a {} series starting here reads back with values {} and {i} at one time, as \
+                     HEC-DSS stores it; start on another day",
+                    p.path.e_part,
+                    i - 1
+                )));
+            }
+        }
+        out.push(t);
+    }
+    Ok(out)
 }
 
 #[cfg(test)]

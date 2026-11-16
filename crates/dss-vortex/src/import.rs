@@ -2126,12 +2126,20 @@ fn write_item(
     };
     let mut parts = frame.into_parts();
     let place = sink_dss::placement(&parts.transform, parts.ny, request.align).map_err(vortex)?;
+    let sampled = parts.transform;
     sink_dss::to_stored_cells(&mut parts, item.planned.meaning.conversion).map_err(vortex)?;
+    // P76: under a non-default alignment, report the sampled and stored grids and the missing cells.
+    let note = (request.align != Align::Refuse).then(|| {
+        let missing = sink_dss::stored_missing(&parts.cells);
+        let mut n = sink_dss::alignment_note(&sampled, parts.ny, place, missing);
+        n.uncovered_centres = dest.plan.as_ref().map(WarpPlan::uncovered_cells);
+        n
+    });
     if !*created {
         create_output(&request.output, version, request.sync).map_err(Failure::Write)?;
         *created = true;
     }
-    sink_dss::write_record(
+    let mut written = sink_dss::write_record(
         &request.output,
         &item.planned,
         &dest.sink_crs,
@@ -2141,7 +2149,9 @@ fn write_item(
         parts.ny,
         options,
     )
-    .map_err(Failure::Write)
+    .map_err(Failure::Write)?;
+    written.alignment = note;
+    Ok(written)
 }
 
 pub(crate) fn create_output(

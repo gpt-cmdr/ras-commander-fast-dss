@@ -198,20 +198,22 @@ fn default_is_the_checked_header() {
             &date[6..8]
         ));
         match g.product.kind {
-            // The 2010 sublimation headers stop at 05:00: refused until qualified.
+            // The 2010 sublimation headers stop at 05:00, the historical NOHRSC convention for
+            // melt and sublimation dated before 2019-02-05: read as the header declares it.
             ProductKind::DailyTotal if stamp(stop) != six => {
                 historical += 1;
                 assert!(matches!(code, "1039" | "1050"), "{stem}");
                 assert_eq!(stamp(stop), (six.0, six.1 - 3600), "{stem}");
-                let error = refusal(g.time_and_type(SnodasOptions::default()));
-                for words in [
-                    "historical",
-                    "snodas_times=\"header\"",
-                    "snodas_times=\"vortex\"",
-                    "\"header_as_stated\"",
-                ] {
-                    assert!(error.contains(words), "{stem}: {error}");
-                }
+                let (time, data_type) = g.time_and_type(SnodasOptions::default()).unwrap();
+                assert_eq!(
+                    time,
+                    FrameTime::Period {
+                        start: stamp(start),
+                        end: stamp(stop)
+                    },
+                    "{stem}"
+                );
+                assert_eq!(data_type, DataType::PerCum, "{stem}");
                 assert!(g.time_and_type(options(SnodasTimes::Vortex)).is_ok());
                 assert!(g
                     .time_and_type(options(SnodasTimes::HeaderAsStated))
@@ -265,7 +267,7 @@ fn default_is_the_checked_header() {
         }
     }
     // Seven totals; four snapshots; 1038 twice and the 2010 melt (T0001) ambiguous by code; the
-    // two 2010 sublimation totals refused by their 05:00 stop.
+    // two 2010 sublimation totals read with their historical 05:00 stop.
     assert_eq!((totals, snapshots, ambiguous, historical), (7, 4, 3, 2));
 }
 
@@ -353,13 +355,13 @@ fn check_fields(stem: &str, header: &snodas::Header) {
     }
 }
 
-/// The rows of the table the default reads: not ambiguous by code, no historical 05:00 stop.
+/// The rows of the table the default reads: those not ambiguous by code, the two 2010
+/// sublimation rows with the historical 05:00 stop among them.
 fn qualified() -> Vec<(&'static str, &'static str, &'static str)> {
     HEADERS
         .into_iter()
-        .filter(|(stem, _, stop)| {
+        .filter(|(stem, _, _)| {
             snodas::product(&format!("{stem}.dat")).unwrap().kind != ProductKind::Ambiguous
-                && !stop.ends_with("T05")
         })
         .collect()
 }
@@ -367,7 +369,7 @@ fn qualified() -> Vec<(&'static str, &'static str, &'static str)> {
 #[test]
 fn every_filename_timing_field_is_checked() {
     let rows = qualified();
-    assert_eq!(rows.len(), 11);
+    assert_eq!(rows.len(), 13);
     for (stem, start, stop) in rows {
         check_fields(stem, grid(stem, start, stop).header.as_ref().unwrap());
     }
@@ -382,17 +384,22 @@ fn every_filename_timing_field_is_checked() {
 }
 
 #[test]
-fn a_05_stop_is_the_historical_refusal_for_sublimation_and_a_disagreement_otherwise() {
-    // The 2020 sublimation header with its stop moved to 05:00.
-    let error = refusal(
-        grid(STEM, "2019-12-31T06", "2020-01-01T05").time_and_type(SnodasOptions::default()),
-    );
-    assert!(error.contains("historical"), "{error}");
-    // Other daily totals with a 05:00 stop: a plain disagreement, never accepted.
+fn a_05_stop_after_2019_02_04_is_the_historical_refusal_and_a_disagreement_for_precipitation() {
+    // The 2020 sublimation header with its stop moved to 05:00. The 05:00 stop is accepted
+    // only for files dated before 2019-02-05.
+    for stem in [STEM, "us_ssmv11044bS__T0024TTNATS2020010105DP000"] {
+        let error = refusal(
+            grid(stem, "2019-12-31T06", "2020-01-01T05").time_and_type(SnodasOptions::default()),
+        );
+        assert!(
+            error.contains("historical") && error.contains("2019-02-05"),
+            "{stem}: {error}"
+        );
+    }
+    // Precipitation with a 05:00 stop: a plain disagreement in any era, never accepted.
     for stem in [
         "us_ssmv01025SlL00T0024TTNATS2020010105DP001",
         "us_ssmv01025SlL00T0024TTNATS2010021505DP001",
-        "us_ssmv11044bS__T0024TTNATS2020010105DP000",
     ] {
         let date = &stem[stem.len() - 15..stem.len() - 7];
         let (start, stop) = if date == "20100215" {
@@ -416,7 +423,7 @@ fn every_filename_timing_field_is_checked_on_the_real_headers() {
         return;
     };
     let rows = qualified();
-    assert_eq!(rows.len(), 11);
+    assert_eq!(rows.len(), 13);
     for (stem, _, _) in rows {
         let date = &stem[stem.len() - 15..stem.len() - 7];
         let path = Path::new(&root)

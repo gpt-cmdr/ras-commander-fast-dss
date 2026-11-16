@@ -47,7 +47,7 @@ pub mod profile;
 
 use std::fmt;
 use std::fs::{File, OpenOptions};
-use std::io::{self, Write};
+use std::io;
 use std::path::{Path, PathBuf};
 
 pub use block::{BlockValues, MAX_HEADER_STRING_BYTES};
@@ -94,6 +94,10 @@ pub enum WriteError {
     Unsupported(String),
     /// `create_dss7` refuses to replace an existing file.
     AlreadyExists(PathBuf),
+    /// A new file (create, repair) could not be published without risking an incomplete
+    /// destination: the hard link failed and no no-replace rename succeeded (Python
+    /// `DssPublishError`, an `OSError`). The destination was not created.
+    Unpublishable(Box<crate::publish::PublishRefusal>),
     /// Structures the write would modify are damaged (Python `DssFormatError`).
     Corrupt(String),
     /// A store refused after planning passed: a defect in the writer, not in the file. Planning
@@ -117,6 +121,7 @@ impl fmt::Display for WriteError {
             WriteError::BadPathname(m) => write!(f, "invalid pathname: {m}"),
             WriteError::BadInput(m) => write!(f, "invalid input: {m}"),
             WriteError::Unsupported(m) => write!(f, "not supported by the writer: {m}"),
+            WriteError::Unpublishable(r) => write!(f, "{r}"),
             WriteError::AlreadyExists(p) => write!(f, "file already exists: {}", p.display()),
             WriteError::Corrupt(m) => write!(f, "refusing to write to a damaged file: {m}"),
             WriteError::Internal(m) => write!(f, "internal writer error after planning: {m}"),
@@ -721,6 +726,14 @@ pub(crate) fn copy_out_fault(step: &'static str) -> Result<(), WriteError> {
     Ok(())
 }
 
+/// Fault injection for publication tests: only with the `test-hooks` feature.
+#[cfg(feature = "test-hooks")]
+#[doc(hidden)]
+pub use crate::publish::{link_attempts, set_publish_faults, PublishFault};
+#[doc(hidden)]
+pub use crate::publish::{set_publish_hook, PublishHook, PublishPoint};
+pub use crate::publish::{PublishRefusal, RenameAttempt};
+
 pub(crate) fn copy_out_fault_is(steps: &[&'static str]) -> Option<&'static str> {
     COPY_OUT_FAULT
         .with(|c| c.get())
@@ -734,34 +747,26 @@ pub fn new_file_words(now_ms: i64) -> Vec<i64> {
 }
 
 /// Create an empty DSS7 file at `path`. Refuses an existing path
-/// ([`WriteError::AlreadyExists`]); the file is written in full and synced before
-/// returning.
+/// ([`WriteError::AlreadyExists`]); the file is written in full under a temporary name,
+/// synced and published by a hard link, so `path` is absent or complete. Where that
+/// cannot be done safely the call refuses ([`WriteError::Unpublishable`]) and `path` is
+/// not created.
 pub fn create_dss7(path: &Path) -> Result<(), WriteError> {
     create_dss7_with(path, SyncMode::End)
 }
 
-/// [`create_dss7`] with a flush policy: [`SyncMode::None`] skips the `sync_all` (the file
-/// is still written in full by one `write`); the other two modes flush once, as
-/// `create_dss7` does.
+/// [`create_dss7`] with a flush policy: [`SyncMode::None`] skips the `sync_all` of the
+/// temporary file (it is still written in full and published by the same hard link); the
+/// other two modes flush once, as `create_dss7` does.
 pub fn create_dss7_with(path: &Path, sync: SyncMode) -> Result<(), WriteError> {
     let words = engine::new_file_words(engine::now_ms());
-    let mut f = match OpenOptions::new().write(true).create_new(true).open(path) {
-        Ok(f) => f,
-        Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {
-            return Err(WriteError::AlreadyExists(path.to_path_buf()))
-        }
-        Err(e) => return Err(e.into()),
-    };
     let mut bytes = Vec::with_capacity(words.len() * 8);
     for w in &words {
         bytes.extend_from_slice(&w.to_le_bytes());
     }
-    f.write_all(&bytes)?;
-    if sync.at_end() {
-        count_flush();
-        f.sync_all()?;
-    }
-    Ok(())
+    // Written in full under a temporary name, then published without
+    // replacing anything (`crate::publish`), so `path` names nothing or the complete file.
+    crate::publish::create_file(path, "dss7-create", &bytes, sync.at_end())
 }
 
 /// Copy the readable records that discovery reaches in the DSS7 file `src` into a new
@@ -795,10 +800,12 @@ pub fn create_dss7_with(path: &Path, sync: SyncMode) -> Result<(), WriteError> {
 /// without a decoder or records neither reader decodes), and the new file must catalog
 /// without anomalies, or nothing is published.
 ///
-/// The new file is built under a temporary name next to `dest`
-/// (`.<name>.<pid>.<nanos>.partial`) and published at `dest` once every record selected
-/// for copying has been written and verified, never replacing anything: by a hard link, else by an atomic no-replace
-/// rename where one exists (Linux), else the call fails naming the kept, verified copy.
+/// The new file is built under a unique temporary name next to `dest`
+/// (`.<name>.<pid>.<nanos>.<seq>.partial`, created exclusively) and published at `dest`
+/// once every record selected for copying has been written and verified, never replacing
+/// anything: by a hard link, else by an atomic no-replace rename where one exists (glibc
+/// Linux), else the call fails with [`WriteError::Unpublishable`], naming the kept,
+/// verified copy.
 /// `dest` must not exist ([`WriteError::AlreadyExists`]). Every other returned error
 /// removes the temporary file. A process killed before publication leaves `src`
 /// unchanged, no `dest`, and the temporary file, which can be deleted; one killed just
@@ -878,7 +885,19 @@ pub fn validate_rts_input(input: &RtsInput) -> Result<(), WriteError> {
 /// `n` values of `pathname` starting at `start`: `incrementTime` from the start, as
 /// `ztsRegStoreBlock()` places values (lines 320-327). Validates like a write.
 pub fn value_times(pathname: &[u8], start: i64, n: usize) -> Result<Vec<i64>, WriteError> {
-    engine::value_times(pathname, start, n)
+    engine::value_times(pathname, start, n, 0)
+}
+
+/// [`value_times`] for a series whose first `first_valid` values are missing:
+/// the stamps values `first_valid..n` read back at. The writer dates its blocks from the first
+/// valid value and a read trims the leading missing values, which can move calendar stamps.
+pub fn value_times_from(
+    pathname: &[u8],
+    start: i64,
+    n: usize,
+    first_valid: usize,
+) -> Result<Vec<i64>, WriteError> {
+    engine::value_times(pathname, start, n, first_valid)
 }
 
 /// Store an irregular-interval series in the existing DSS7 file at `path`.
@@ -932,6 +951,58 @@ pub fn write_pd_to(
 ) -> Result<WriteReport, WriteError> {
     let plan = engine::plan_pd(input)?;
     engine::write_pd_planned(file, &plan, opts)
+}
+
+/// One record of a batch write: the input of [`write_rts`], [`write_its`] or
+/// [`write_pd`].
+#[derive(Debug, Clone)]
+pub enum BatchItem<'a> {
+    Rts(RtsInput<'a>),
+    Its(ItsInput<'a>),
+    Pd(PdInput<'a>),
+}
+
+/// What a batch write did.
+#[derive(Debug, Default)]
+pub struct BatchReport {
+    /// One report per record written, in order: what the record's own write call
+    /// would have returned.
+    pub reports: Vec<WriteReport>,
+    /// The index of the record that stopped the batch and its error, if one did. The
+    /// records before it are written (`reports`); it and the records after it are not
+    /// (a failed record can leave an interrupted write, which the next write reconciles,
+    /// as after a failed write call). A record refused while the batch was planned
+    /// stops it before anything is written (`reports` empty).
+    pub failed: Option<(usize, WriteError)>,
+}
+
+/// Store many records in the existing DSS7 file at `path` with one open, one lock and
+/// one end-of-call flush. Each record is written exactly as its own call to
+/// [`write_rts`], [`write_its`] or [`write_pd`] writes it (same transaction steps, same
+/// in-progress marker, so the same recovery after process death). The differences: the
+/// HEC lock is tested once and held until the last record is written, and
+/// [`SyncMode::End`] flushes once, after the last record. Every record is validated
+/// before anything is written. `Err` means nothing was started (the open, the lock test
+/// or the lock failed), or the final flush failed.
+pub fn write_batch(
+    path: &Path,
+    items: &[BatchItem],
+    opts: &WriteOptions,
+) -> Result<BatchReport, WriteError> {
+    if items.is_empty() {
+        return Ok(BatchReport::default());
+    }
+    let file = OpenOptions::new().read(true).write(true).open(path)?;
+    engine::write_batch(&file, items, opts)
+}
+
+/// Same as [`write_batch`] on an already open read-write handle.
+pub fn write_batch_to(
+    file: &File,
+    items: &[BatchItem],
+    opts: &WriteOptions,
+) -> Result<BatchReport, WriteError> {
+    engine::write_batch(file, items, opts)
 }
 
 /// Validate a paired-data input for DSS7 without touching any file.

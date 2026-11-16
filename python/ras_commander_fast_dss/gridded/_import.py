@@ -42,6 +42,18 @@ class ImportResult:
     ``accumulation_stated_by``, which is ``"caller"`` when nothing in the file states a duration and
     otherwise ``"variable"``, ``"file_name"`` or ``"variable+file_name"``; ``overlaps_earlier``; and
     ``gap_before``. These four are ``None`` under other rules.
+
+    ``alignment`` is ``None`` under the default ``align="refuse"``. Under
+    ``align="vortex"`` or ``"snap_out"`` it is a dict of diagnostics: ``sampled_transform``, the
+    transform the cells were sampled on, in GDAL's order, and ``sampled_lower_left``, its lower-left
+    corner, in the CRS's units; ``stored_lower_left`` and ``stored_cell_size``, what the record
+    declares; ``shift_map_units`` and ``shift_cells``, stored less sampled corner, non-zero only under
+    ``"vortex"``, where the write rounds the declared corner and so moves every value and the missing
+    mask that far without resampling; ``missing_cells``, the cells stored as missing; and, for a warped
+    record, ``uncovered_centres``, the cells whose centre maps outside the source grid (``None``
+    unwarped). ``uncovered_centres`` is geometry of cell centres only and is not the same count as
+    ``missing_cells``: a bilinear kernel at the edge, or nodata inside the source, also leaves cells
+    missing.
     """
 
     output: str
@@ -272,7 +284,24 @@ def import_gridded(
     version:
         6 or 7 for a new file (default 7). On an existing file it must match.
     align:
-        ``"refuse"`` (default) or ``"vortex"``; see below.
+        What to do with a grid whose origin is not on whole cells of its cell size. It matters when
+        no envelope is stated, so that the warp uses GDAL's suggested extent, and for a grid written
+        unwarped.
+
+        - ``"refuse"`` (default): refuse it, naming the corner.
+        - ``"snap_out"`` (added in 0.1.3): round the suggested extent's minimum corner down and its
+          maximum corner up to whole cells, and warp onto that snapped lattice, so each value is
+          stored where it was sampled. Cells without source support stay missing: corners of a
+          reprojected footprint and the added perimeter can be, and there can be more than on the
+          unsnapped lattice. A grid written unwarped is refused as by default; state a cell size to
+          warp it.
+        - ``"vortex"``: reproduces observed Vortex output, for matching existing Vortex output. The
+          cells are sampled on GDAL's unsnapped lattice, where cells outside the source's
+          transformed support come out missing; the write then rounds the declared origin to whole
+          cells, which moves the whole array, missing mask included, by up to half a cell without
+          resampling it. Each record's ``alignment`` reports both grids, the shift and the missing
+          cells. For new forcing, state a target lattice (``envelope`` and ``cell_size``) inside the
+          source's coverage and check the result against the source.
     window_rule:
         ``"refuse"`` (default), ``"vortex"``, or ``"accumulation:<duration>"`` for GRIB input, with a
         duration of ``15M``, ``01H``, ``03H``, ``06H``, ``12H``, ``24H``, ``48H`` or ``72H``. The last
@@ -293,8 +322,9 @@ def import_gridded(
         Warp workers, at least 1. ``None`` (the default since 0.1.2) uses every
         core available to the process (Rust's ``std::thread::available_parallelism``); give
         ``threads=1`` for a single worker. The warp caps the count at 64 and at the rows of a
-        chunk. The records written do not depend on this: the
-        output file is byte-identical whatever the count.
+        chunk. The records written do not depend on this: whatever the count, they hold
+        equal values, metadata and pathnames. Only the write-time stamps differ, as between
+        any two runs.
     sync:
         Flush policy of the run: ``"end"`` (default; ``True`` means the same) flushes once,
         after the last record; ``"step"`` flushes at every flush point of every record;
@@ -331,11 +361,26 @@ def import_gridded(
         SWE and depth and ``P000`` for melt and sublimation. A grid with no header, a file-name
         field with another value, or a header that disagrees with the name is refused.
 
+        Two historical NOHRSC header conventions are imported as the header declares them,
+        PER-CUM, and are neither refused nor shifted: melt and sublimation (``1044``, ``1039``,
+        ``1050``) dated before 2019-02-05 run from 06:00 UTC of the previous day to a 05:00 UTC
+        stop (D part ``03FEB2019:0600``, E part ``04FEB2019:0500`` for 2019-02-04); and liquid and
+        solid precipitation (``1025``) dated before 2008-10-23 runs from 07:00 UTC of the previous
+        day to 06:00 UTC. From those dates the headers state 06:00 to 06:00. A file dated on or
+        after a convention's end that still states it is refused. Source: the headers of NSIDC's
+        public SNODAS archive (collection G02158), surveyed from 2003-10-01 to 2026-07-15.
+
+        The historical records are therefore 23-hour DSS periods, and consecutive daily records
+        leave one hour uncovered: 05:00 to 06:00 UTC for melt and sublimation, and 06:00 to
+        07:00 UTC for precipitation. The records are not filled, prorated, rescaled or shifted to
+        close the gap, so summing them does not give continuous coverage in DSS time. The times
+        are the archive's header metadata. The NSIDC SNODAS user guide describes these products
+        as 24-hour integrations, so the 23-hour periods do not show that a stored total leaves
+        out an hour of water.
+
         These have no qualified interpretation and are refused, naming the two options below: the
-        snowpack average temperature (product ``1038``); melt with time code ``T0001``
-        (historical files such as 2010's); and sublimation (``1039``, ``1050``) whose header stops
-        at 05:00, an hour before the 24 hours its name means, as the 2010 headers do. The last is an
-        open item until it is qualified.
+        snowpack average temperature (product ``1038``); and melt with time code ``T0001``, a
+        05:00 instant (files dated 2009-09-29 to 2010-02-16, such as 2010-02-15).
 
         ``"vortex"`` reads as Vortex 1.1.0 does, for compatibility: times from the file name, which
         puts each daily total one day later than its header (06:00 of the file's date to 06:00 the
@@ -603,7 +648,8 @@ def import_arrays(
         cells, the frame is refused: state a marker the data cannot reach.
 
     The remaining arguments are :func:`import_gridded`'s. Without a target, cell size or bounds, the
-    grid is written unwarped, and must be on whole cells unless ``align="vortex"``.
+    grid is written unwarped, and must be on whole cells unless ``align="vortex"`` (which moves it;
+    see ``align`` under :func:`import_gridded`).
     """
     mask = np.ma.getmaskarray(data) if np.ma.isMaskedArray(data) else None
     a = np.asarray(np.ma.getdata(data) if mask is not None else data)

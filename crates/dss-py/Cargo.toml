@@ -30,3 +30,6 @@ windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage
 
 [features]
 vortex = ["dep:dss-vortex"]
+# Export `_set_publish_faults` for the Python fault tests. Only the CI
+# test wheel is built with it (`maturin build --features test-hooks`); release wheels never.
+test-hooks = ["dss-core/test-hooks"]

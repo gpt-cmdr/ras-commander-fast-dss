@@ -39,11 +39,17 @@ from .exceptions import (
     DssError,
     DssFormatError,
     DssLockedError,
+    DssPublishError,
     DssPathnameNotFoundError,
     DssUnsupportedRecordError,
 )
 
+#: The package version: the version of the native engine it was built with, which is the
+#: version of the ``ras-commander-fast-dss`` distribution.
+__version__: str = _native.__version__
+
 __all__ = [
+    "__version__",
     "DssFile",
     "open",
     "get_catalog",
@@ -65,6 +71,7 @@ __all__ = [
     "DssUnsupportedRecordError",
     "DssPathnameNotFoundError",
     "DssLockedError",
+    "DssPublishError",
     "FEATURES",
 ]
 
@@ -113,12 +120,16 @@ __all__ = [
 #: No power-loss claim for any mode; ``repair`` is the path for a damaged DSS7 file.
 #: ``gridded_threads_all_cores``: ``gridded.import_gridded``, ``import_arrays`` and
 #: ``import_zarr`` default to ``threads=None``, every core available to the process
-#: (``1`` up to 0.1.1). The written file is byte-identical for any count.
+#: (``1`` up to 0.1.1). For any count the written records have equal values,
+#: metadata and pathnames; only the write-time stamps differ between runs.
 #: ``dssfile_held_handle``: a ``DssFile`` keeps one read+write handle from its first write
 #: until ``close()``, ``__exit__`` or garbage collection, and its writes and reads use it.
 #: The lock is still tested, taken and released by every write;
 #: the handle's identity is checked against the path before each write and reopened if the
 #: file was replaced.
+#: ``write_batch``: :func:`write_batch` and :meth:`DssFile.write_batch` store many time-series
+#: and paired-data records with one open, one lock and one end-of-call flush; each record is
+#: written by the same transaction as its own call.
 FEATURES = frozenset(
     {
         "grid_srs_monolith_parity",
@@ -153,6 +164,8 @@ FEATURES = frozenset(
         "gridded_snodas",
         # P66: DSS6 irregular-pattern writes need an explicit opt-in.
         "write_ts_dss6_irregular_pattern_opt_in",
+        # P76: ``write_batch`` / ``DssFile.write_batch``: many records, one lock, one flush.
+        "write_batch",
     }
 )
 
@@ -258,6 +271,11 @@ def read_paired_data_compat(dss_file: Union[str, Path], pathname: str) -> Option
         pdata = read_paired_data(path, pathname, dtype="float64")
     except DssPathnameNotFoundError:
         _log.warning("No data found for pathname: %s", pathname)
+        return None
+    except DssUnsupportedRecordError as e:
+        # P76: a record of another kind is an expected outcome, logged
+        # once at WARNING as the Java path logs it, not as an error.
+        _log.warning("Not a paired-data record: %s (%s)", pathname, e)
         return None
     except Exception as e:  # noqa: BLE001 - the original returns None on any failure
         _log.error("Error reading paired data from %s: %s", pathname, e)
@@ -404,6 +422,11 @@ __all__ += ["write_grid", "GRID_NODATA", "SHG_WKT"]
 from ._write_profile_location import write_location, write_profile  # noqa: E402
 
 __all__ += ["write_profile", "write_location"]
+
+# P76: many records in one write call.
+from ._batch import BATCH_KINDS, write_batch  # noqa: E402
+
+__all__ += ["write_batch", "BATCH_KINDS"]
 
 # P46: gridded import.
 from . import gridded  # noqa: E402

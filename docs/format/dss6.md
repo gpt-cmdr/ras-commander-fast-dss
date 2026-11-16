@@ -778,6 +778,42 @@ Monolith exactly (30 dataset requests on that file). Writers must never write 15
     (`zrrtsi.f` line 576).
   - Absent blocks inside a window are filled with `-902.0` (`zrrtsx6` behaviour, §7.4).
   - Irregular windows are inclusive at both ends.
+  - **Calendar stamps as HEC's C library gives them (0.1.3)**
+    **[VERIFIED-ORACLE, Monolith 3.3.27]**: HEC's C library reads a DSS6 regular
+    record with `zrrtsi6`, which returns the values and `IOFSET` only, and stamps them in C
+    (`Public/ztsRetrieve.c` lines 627-636, `Dss6/ztsRetrieveReg6.c`): `ztsOffsetAdjustToOffset()`
+    with `IOFSET·60`, and `ztsRegAddTimes()` (dss7.md §7.1). The dataset reader stamps each slot
+    from its own standard stamp, `ztsOffsetAdjustToOffset(IOFSET·60)` of it
+    (`dataset.rs::hec_c_stamps`, `c_slot_stamp`), so a value's stamp never depends on the other
+    values, on trimming or on the window. For intervals up to a day, and records with offset 0,
+    this equals the Fortran stamp above; for a calendar interval with an offset it does not: a
+    yearly `IOFSET` is a day count from 1 January (`zofset6.f`), which C reads past 29 February
+    (a series written from 2020-06-15 reads back at 2020-06-16).
+    - HEC's own read chains the stamps from the first kept slot (`ztsTrim()` moves the start past
+      leading missing values, `ztsTrimAdjustTimeWindow()`), and where the offset of a slot
+      overflows a shorter period (a 29-31 day monthly offset, a 14-15 day semi-monthly or 9-10
+      day tri-monthly offset across February) that chain stamps the value at the next period's
+      stamp: two values at one time, or, in Monolith's reader, a value dropped. **Qualified
+      difference:** this crate keeps such a value at its own period's stamp (2 or 3 March, as the
+      0.1.2 Fortran stamps did); every other value reads as HEC reads it. An unreleased first
+      version of this change restamped the kept values from the first non-missing slot,
+      which put finite values on other values' dates after leading missing values (never
+      released: 0.1.2 stamps slot by slot).
+    - `value_times6` (the `times=` check, with the index of the first valid value) gives the
+      per-slot stamps of the kept values and refuses a series whose stamps HEC's chain from the
+      first kept slot would not reproduce, or that would read with two values at one time.
+    - Checked against HEC Monolith: 7,994 dense series and 14,138 series with leading (1-3), trailing, interior and
+      leading+trailing missing values, every calendar interval, day and hour, leap-year starts in
+      1904, 2000, 2016, 2020 and 2024, DSS6 and DSS7. Every series `times=` accepts reads in HEC
+      Monolith at exactly its accepted (time, value) pairs; trimmed and untrimmed reads agree in
+      every case; the only reader differences from Monolith are the February-overflow values
+      above (16 dense, 91 missing-value series) and Monolith's DSS6 weekly read dropping the
+      first value. Monolith cannot read 286 of its own DSS6 records with missing
+      values back ("no data"); this crate reads all of them completely. Monolith's high-level
+      writer (`TimeSeriesContainer`/`HecDss.put`) moves 153 dense starts (a day that C's
+      `ztsOffset()` takes as a period end at 00:00, and 2 March 00:00 in leap years) before
+      calling heclib; the writer here stores what heclib's own store (`ztsStoreRegArgs()` ->
+      `zsrtsc6`, as `Heclib.zsrtsx`) stores. The public fixtures `p76_*` hold these cases (`fixtures/public/README.md`).
   - A `~1DAY` pathname reads the stored `IR-YEAR` blocks (§6.3).
   - Verified against 19,451 of 19,451 records (stamps included) in six corpus files with
     offsets and time zones, and against HEC-written 1DAY (480-minute offset) and 1HOUR
@@ -1263,7 +1299,11 @@ the counters, the link, the publication, the retirement and the cleared marker; 
 with nothing to write flushes nothing. `SyncMode::None` never flushes. All three
 make the same writes in the same order and set the same marker, so the killed-process
 matrix finds the same states in each. Every step that must be atomic is one `write`
-inside one 512-byte record. No power-loss claim is made in any mode.
+inside one 512-byte record. No power-loss claim is made in any mode. On macOS both
+flush calls are `fcntl(F_FULLFSYNC)` (`dss7.md`, macOS note after the flush-policy table).
+`create_dss6` builds the new file under a unique temporary name and publishes it without
+replacing anything, or refuses (`WriteError::Unpublishable`) when that cannot be done
+safely, as DSS7 creation does (`dss7.md` §6, "New files").
 
 **Differences from HEC's stores** (deliberate): relocation instead of in-place rewrites
 (`KIUNUS` 0, `KDEAD` by HEC's relocation formula, `zowrit6.f` line 82); `KILNDA`/`KBLNDA`

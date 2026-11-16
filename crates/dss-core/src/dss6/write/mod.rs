@@ -51,14 +51,13 @@ mod pd;
 mod rts;
 
 use std::fs::{File, OpenOptions};
-use std::io::Write as _;
 use std::path::Path;
 
 pub use crate::dss7::write::{
     sync_path, BlockOutcome, BlockReport, FaultPoint, RtsInput, RtsValues, SyncMode, WriteError,
     WriteOptions, WriteReport, WriteStep,
 };
-pub use crate::dss7::write::{PatternInput, PdArrays, PdInput};
+pub use crate::dss7::write::{BatchReport, PatternInput, PdArrays, PdInput};
 pub use check::{check_file6, CheckReport};
 pub use location::{write_location6, write_location6_to, MAX_SUPPLEMENTAL_BYTES6};
 pub use path::{irregular_e_part6, regular_e_part6, MAX_UNITS_TYPE_CHARS};
@@ -168,35 +167,11 @@ pub fn create_dss6_with(path: &Path, sync: SyncMode) -> Result<(), WriteError> {
     let (date, time) = engine::when();
     let words = engine::new_file_words(&date, &time);
     let bytes = io::words_to_file_bytes(&words);
-    if path.exists() {
-        return Err(WriteError::AlreadyExists(path.to_path_buf()));
-    }
-    // Written in full to a temporary file beside the target, then linked to the target
-    // name (which fails if the name exists): an interrupted create leaves no partial file
-    // at `path`.
-    let name = path
-        .file_name()
-        .map(|n| n.to_string_lossy().into_owned())
-        .unwrap_or_default();
-    let tmp = path.with_file_name(format!(".{name}.{}.dss6-create", std::process::id()));
-    let result = (|| -> Result<(), WriteError> {
-        let mut f = OpenOptions::new().write(true).create_new(true).open(&tmp)?;
-        f.write_all(&bytes)?;
-        if sync.at_end() {
-            crate::dss7::write::count_flush();
-            f.sync_all()?;
-        }
-        drop(f);
-        match std::fs::hard_link(&tmp, path) {
-            Ok(()) => Ok(()),
-            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
-                Err(WriteError::AlreadyExists(path.to_path_buf()))
-            }
-            Err(e) => Err(e.into()),
-        }
-    })();
-    let _ = std::fs::remove_file(&tmp);
-    result
+    // Written in full under a unique temporary name this call creates exclusively, then
+    // published by a hard link that fails if `path` exists (`crate::publish`): an
+    // interrupted create leaves no partial file at `path`, and no file this call did not
+    // create is ever removed.
+    crate::publish::create_file(path, "dss6-create", &bytes, sync.at_end())
 }
 
 /// Store a regular-interval series in the existing DSS6 file at `path`.
@@ -233,7 +208,19 @@ pub fn validate_rts6_input(input: &RtsInput) -> Result<(), WriteError> {
 /// `pathname` starting at `start`: `INCTIM` from the start, as `zsrtsi6.f` places values
 /// (lines 447-459, `zmovbk6.f`). Validates like a write.
 pub fn value_times6(pathname: &[u8], start: i64, n: usize) -> Result<Vec<i64>, WriteError> {
-    rts::value_times(pathname, start, n)
+    rts::value_times(pathname, start, n, 0)
+}
+
+/// [`value_times6`] for a series whose first `first_valid` values are missing:
+/// the stamps values `first_valid..n` read back at; refused where HEC's trimmed read would move
+/// a kept value.
+pub fn value_times6_from(
+    pathname: &[u8],
+    start: i64,
+    n: usize,
+    first_valid: usize,
+) -> Result<Vec<i64>, WriteError> {
+    rts::value_times(pathname, start, n, first_valid)
 }
 
 /// Store an irregular-interval series in the existing DSS6 file at `path`.
@@ -290,6 +277,109 @@ pub fn write_pd6_to(
 /// Validate a paired-data input for DSS6 without touching any file.
 pub fn validate_pd6_input(input: &PdInput) -> Result<(), WriteError> {
     pd::plan(input).map(|_| ())
+}
+
+// ---------------------------------------------------------------------------------
+// P76: batches (many records, one lock, one end-of-call flush).
+// ---------------------------------------------------------------------------------
+
+/// One record of a DSS6 batch write: the input of [`write_rts6`], [`write_its6`] or
+/// [`write_pd6`].
+#[derive(Debug, Clone)]
+pub enum BatchItem6<'a> {
+    Rts(RtsInput<'a>),
+    Its(ItsInput<'a>),
+    Pd(PdInput<'a>),
+}
+
+/// Store many records in the existing DSS6 file at `path` with one open, one lock and one
+/// end-of-call flush: the DSS6 counterpart of
+/// [`crate::dss7::write::write_batch`], with the same contract. Each record is written
+/// exactly as its own [`write_rts6`], [`write_its6`] or [`write_pd6`] call writes it
+/// (same steps, same in-progress markers); the HEC lock is tested once and held until
+/// the last record, and [`SyncMode::End`] flushes once, after it. Every record is
+/// validated before anything is written.
+pub fn write_batch6(
+    path: &Path,
+    items: &[BatchItem6],
+    opts: &WriteOptions,
+) -> Result<BatchReport, WriteError> {
+    if items.is_empty() {
+        return Ok(BatchReport::default());
+    }
+    let file = OpenOptions::new().read(true).write(true).open(path)?;
+    write_batch6_to(&file, items, opts)
+}
+
+/// Same as [`write_batch6`] on an already open read-write handle.
+pub fn write_batch6_to(
+    file: &File,
+    items: &[BatchItem6],
+    opts: &WriteOptions,
+) -> Result<BatchReport, WriteError> {
+    enum Planned {
+        Rts(rts::Plan),
+        Its(its::Plan),
+        Pd(pd::Pd6Plan),
+    }
+    let mut planned = Vec::with_capacity(items.len());
+    for (i, item) in items.iter().enumerate() {
+        let p = match item {
+            BatchItem6::Rts(input) => rts::plan(input).map(Planned::Rts),
+            BatchItem6::Its(input) => its::plan(input).map(Planned::Its),
+            BatchItem6::Pd(input) => pd::plan(input).map(Planned::Pd),
+        };
+        match p {
+            Ok(p) => planned.push(p),
+            Err(e) => {
+                return Ok(BatchReport {
+                    reports: Vec::new(),
+                    failed: Some((i, e)),
+                })
+            }
+        }
+    }
+    if items.is_empty() {
+        return Ok(BatchReport::default());
+    }
+    let mut session = engine::Locked::begin(file, opts)?;
+    let mut reports = Vec::with_capacity(items.len());
+    for (i, (item, p)) in items.iter().zip(&planned).enumerate() {
+        let result = if i == 0 {
+            Ok(())
+        } else {
+            session.next_record()
+        }
+        .and_then(|()| match (item, p) {
+            (BatchItem6::Rts(input), Planned::Rts(plan)) => {
+                rts::store(&mut session.eng, input, plan)
+            }
+            (BatchItem6::Its(input), Planned::Its(plan)) => {
+                its::store(&mut session.eng, input, plan)
+            }
+            (BatchItem6::Pd(_), Planned::Pd(plan)) => pd::store(&mut session.eng, plan),
+            _ => Err(WriteError::BadInput(
+                "batch plan does not match its item".into(),
+            )),
+        });
+        match result {
+            Ok(blocks) => reports.push(session.report(blocks)),
+            Err(e) => {
+                // The records before this one are complete: flush them as their own calls
+                // would have been flushed, then release the lock.
+                session.end()?;
+                return Ok(BatchReport {
+                    reports,
+                    failed: Some((i, e)),
+                });
+            }
+        }
+    }
+    session.end()?;
+    Ok(BatchReport {
+        reports,
+        failed: None,
+    })
 }
 
 // ---------------------------------------------------------------------------------

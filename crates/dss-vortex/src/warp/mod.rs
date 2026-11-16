@@ -9,6 +9,8 @@
 //! and 0.13.3 use GDAL's suggested output extent, whose origin is not on a whole multiple of the
 //! cell size, and the DSS write then rounds the origin to whole cells. This library refuses such
 //! a grid by default, and [`Align::Vortex`] returns the extent as Vortex's warp computes it.
+//! [`Align::SnapOut`] snaps that suggested extent outward to whole cells instead, and
+//! warps onto that lattice.
 //!
 //! Streaming: a [`WarpPlan`] holds the destination grid and chunk list, which depend only on the
 //! georeference, and no cell data. Each frame costs one output buffer and one chunk at a time.
@@ -93,8 +95,25 @@ pub enum Align {
     /// Refuse. This is the default: see the module's note on observed behaviour.
     #[default]
     Refuse,
-    /// Accept the extent, as Vortex's warp computes it.
+    /// Accept the extent, as Vortex's warp computes it, for matching existing Vortex output. The
+    /// cells are sampled on that unsnapped lattice; cells of the rectangle outside the source's
+    /// transformed support come out missing. The DSS write then rounds the declared origin to
+    /// whole cells, which moves the georeference of the whole array (missing mask included)
+    /// without resampling it.
     Vortex,
+    /// P76: when GDAL's suggested extent is used (no envelope stated), round its minimum
+    /// corner down and its maximum corner up to whole cells of the cell size, and warp onto that
+    /// snapped lattice, so the record's declared origin is the one the cells were sampled on.
+    /// This does not give every cell source support: corners of a reprojected footprint and the
+    /// added perimeter can still be missing, and can be more than on the unsnapped lattice. With
+    /// an envelope and a cell size, the envelope is already snapped outward and this is the same
+    /// as [`Align::Refuse`]. Cell sizes in feet follow the default's rule.
+    SnapOut,
+}
+
+/// The destination origin is on whole cells of its one cell size (the check of [`Align::Refuse`]).
+fn on_whole_cells(gt: &[f64; 6]) -> bool {
+    gt[1] == gt[5].abs() && whole_cells(gt[0], gt[1]) && whole_cells(gt[3], gt[1])
 }
 
 /// The default bound on destination cells: 2^28, about 1 GiB of cells, the same as the GRIB2
@@ -171,10 +190,10 @@ pub struct WarpEnvelope {
 pub fn cell_size_in_target_units(metres: f64, target: &CrsDef, align: Align) -> f64 {
     use crate::crs::LinearUnit;
     match (LinearUnit::of_metres(target.metres_per_unit()), align) {
-        (Some(LinearUnit::UsSurveyFoot), Align::Refuse) => {
+        (Some(LinearUnit::UsSurveyFoot), Align::Refuse | Align::SnapOut) => {
             f64::from((metres * 3937.0 / 1200.0) as f32)
         }
-        (Some(LinearUnit::InternationalFoot), Align::Refuse) => {
+        (Some(LinearUnit::InternationalFoot), Align::Refuse | Align::SnapOut) => {
             f64::from((metres * 1250.0 / 381.0) as f32)
         }
         (Some(LinearUnit::UsSurveyFoot | LinearUnit::InternationalFoot), Align::Vortex) => {
@@ -354,6 +373,10 @@ pub struct WarpPlan {
     method: Method,
     threads: usize,
     max_memory_bytes: u64,
+    /// `CHECK_WITH_INVERT_PROJ` of the destination extent (for [`WarpPlan::uncovered_cells`]).
+    check: bool,
+    /// P76: [`WarpPlan::uncovered_cells`], computed once.
+    uncovered: std::sync::OnceLock<u64>,
 }
 
 impl WarpPlan {
@@ -416,7 +439,31 @@ impl WarpPlan {
 
         let center = center_long(&source.crs, &src_gt, f64::from(src_nx), f64::from(src_ny));
         let xf = GenImg::new(&source.crs, &target, spec.datum_policy, src_gt, center)?;
-        let output = extent::create_output(&xf, src_nx, src_ny, te, cell)?;
+        let mut output = extent::create_output(&xf, src_nx, src_ny, te, cell)?;
+        if spec.align == Align::SnapOut && te.is_none() && !on_whole_cells(&output.gt) {
+            // P76: GDAL's suggested extent, snapped outward to whole cells of the cell size.
+            let c = cell
+                .or_else(|| (output.gt[1] == output.gt[5].abs()).then_some(output.gt[1]))
+                .filter(|c| c.is_finite() && *c > 0.0)
+                .ok_or_else(|| {
+                    refused(
+                        "warp output extent",
+                        "align=\"snap_out\" needs one cell size, and GDAL's suggested extent has \
+                         unequal spacing: state a cell size",
+                    )
+                })?;
+            let min_x = output.gt[0];
+            let max_y = output.gt[3];
+            let max_x = min_x + output.gt[1] * output.nx;
+            let min_y = max_y + output.gt[5] * output.ny;
+            let snapped = [
+                (min_x.min(max_x) / c).floor() * c,
+                (min_y.min(max_y) / c).floor() * c,
+                (max_x.max(min_x) / c).ceil() * c,
+                (max_y.max(min_y) / c).ceil() * c,
+            ];
+            output = extent::create_output(&xf, src_nx, src_ny, Some(snapped), Some(c))?;
+        }
         if output.gt.iter().any(|v| !v.is_finite()) {
             return Err(refused("warp output extent", "it is not finite"));
         }
@@ -444,19 +491,14 @@ impl WarpPlan {
         if destination_bytes > spec.limits.max_memory_bytes {
             return Err(over_budget(destination_bytes, spec.limits.max_memory_bytes));
         }
-        if spec.align == Align::Refuse {
-            let snapped = output.gt[1] == output.gt[5].abs()
-                && whole_cells(output.gt[0], output.gt[1])
-                && whole_cells(output.gt[3], output.gt[1]);
-            if !snapped {
-                return Err(refused(
-                    "warp output extent",
-                    "the origin is not on whole cells. Observed behaviour we did not implement: \
+        if spec.align != Align::Vortex && !on_whole_cells(&output.gt) {
+            return Err(refused(
+                "warp output extent",
+                "the origin is not on whole cells. Observed behaviour we did not implement: \
                      with no envelope or no cell size, Vortex 1.1.0 and 0.13.3 use GDAL's \
                      suggested extent, and the DSS write rounds its origin to whole cells. State \
                      an envelope and a cell size, or ask for align=\"vortex\"",
-                ));
-            }
+            ));
         }
         let xf = xf.with_destination(output.gt)?;
         let chunks_for = |working| {
@@ -492,6 +534,45 @@ impl WarpPlan {
             method: spec.method,
             threads: useful_threads(spec.threads),
             max_memory_bytes: spec.limits.max_memory_bytes,
+            check: output.check,
+            uncovered: std::sync::OnceLock::new(),
+        })
+    }
+
+    /// P76: destination cells whose centre, mapped back into the source with the transformer the
+    /// warp uses, falls outside the source grid or cannot be mapped. A geometric count of cell
+    /// centres only: a bilinear kernel near the edge, or nodata inside the source, can leave
+    /// other cells missing, and a centre inside can still have no value. Count missing cells in
+    /// the warped data for that. Computed once per plan.
+    pub fn uncovered_cells(&self) -> u64 {
+        *self.uncovered.get_or_init(|| {
+            let (src_nx, src_ny) = (self.source.nx as f64, self.source.ny as f64);
+            let mut count = 0u64;
+            let mut x = vec![0.0f64; self.nx];
+            let mut y = vec![0.0f64; self.nx];
+            let mut ok = vec![false; self.nx];
+            for row in 0..self.ny {
+                for (i, (xi, yi)) in x.iter_mut().zip(y.iter_mut()).enumerate() {
+                    *xi = i as f64 + 0.5;
+                    *yi = row as f64 + 0.5;
+                }
+                self.xf.approx(
+                    transformer::Direction::DstToSrc,
+                    self.check,
+                    &mut x,
+                    &mut y,
+                    &mut ok,
+                );
+                count += x
+                    .iter()
+                    .zip(&y)
+                    .zip(&ok)
+                    .filter(|((sx, sy), good)| {
+                        !**good || !(0.0..src_nx).contains(*sx) || !(0.0..src_ny).contains(*sy)
+                    })
+                    .count() as u64;
+            }
+            count
         })
     }
 

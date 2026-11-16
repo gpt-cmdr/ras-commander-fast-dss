@@ -313,7 +313,8 @@ pub fn placement(
     }
     let (rx, ry) = (t.origin_x / f64::from(cell), lly / f64::from(cell));
     let (x, y) = (java_round(rx), java_round(ry));
-    if align == Align::Refuse {
+    // P76: `SnapOut` snaps a warp's lattice; a grid written unwarped is placed as by default.
+    if align != Align::Vortex {
         if t.dx.abs() as f32 != t.dy.abs() as f32 {
             return Err(refuse(format!(
                 "dx {} and dy {} differ. Observed behaviour we did not implement: Vortex stores \
@@ -438,6 +439,87 @@ pub fn end_sync<T, E>(
     }
 }
 
+/// P76: diagnostics of a record written under `align="vortex"` or `"snap_out"`.
+///
+/// The cells are sampled on the grid the warp planned (or, unwarped, the source's own grid):
+/// [`AlignmentNote::sampled_transform`]. The record then declares its own lower-left corner and
+/// cell size, [`AlignmentNote::stored_lower_left`] and [`AlignmentNote::stored_cell_size`]. Under
+/// `"vortex"` the write rounds that corner to whole cells (`DssUtil.getGridInfo`): the georeference
+/// of the whole array, missing mask included, moves by [`AlignmentNote::shift_map_units`], and the
+/// values are not resampled. Missing cells come from the sampling, not from the rounding.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct AlignmentNote {
+    /// The transform the cells were sampled on, in GDAL's order (origin x, dx, 0, origin y, 0, dy).
+    pub sampled_transform: [f64; 6],
+    /// Lower-left corner of the sampled grid, in the CRS's units.
+    pub sampled_lower_left: (f64, f64),
+    /// Lower-left corner the record stores (whole cells of the stored cell size).
+    pub stored_lower_left: (f64, f64),
+    /// The cell size the record stores.
+    pub stored_cell_size: f32,
+    /// Stored less sampled lower-left corner, in the CRS's units.
+    pub shift_map_units: (f64, f64),
+    /// The same in stored cells. Non-zero only under `"vortex"`.
+    pub shift_cells: (f64, f64),
+    /// Cells the record stores as missing: the sampled array's NaN, infinite and nodata cells,
+    /// which the warp produced where it had no source value (or the source held none).
+    pub missing_cells: u64,
+    /// For a warped record, destination cells whose centre maps outside the source grid
+    /// ([`crate::warp::WarpPlan::uncovered_cells`]); `None` unwarped. A geometric count of cell
+    /// centres only: it does not describe every bilinear kernel's support or nodata inside the
+    /// source, so it is not the same as `missing_cells`.
+    pub uncovered_centres: Option<u64>,
+}
+
+/// The [`AlignmentNote`] of cells sampled on `transform` (`ny` rows), stored at `place`, with
+/// `missing_cells` missing. `uncovered_centres` is left `None` for the caller.
+pub fn alignment_note(
+    transform: &GeoTransform,
+    ny: usize,
+    place: Placement,
+    missing_cells: u64,
+) -> AlignmentNote {
+    let t = transform;
+    let lly = if t.dy < 0.0 {
+        t.origin_y + t.dy * ny as f64
+    } else {
+        t.origin_y
+    };
+    let c = f64::from(place.cell_size);
+    let stored = (
+        f64::from(place.lower_left_x) * c,
+        f64::from(place.lower_left_y) * c,
+    );
+    AlignmentNote {
+        sampled_transform: [
+            t.origin_x,
+            t.dx,
+            t.row_rotation,
+            t.origin_y,
+            t.column_rotation,
+            t.dy,
+        ],
+        sampled_lower_left: (t.origin_x, lly),
+        stored_lower_left: stored,
+        stored_cell_size: place.cell_size,
+        shift_map_units: (stored.0 - t.origin_x, stored.1 - lly),
+        shift_cells: (
+            f64::from(place.lower_left_x) - t.origin_x / c,
+            f64::from(place.lower_left_y) - lly / c,
+        ),
+        missing_cells,
+        uncovered_centres: None,
+    }
+}
+
+/// Cells [`to_stored_cells`] made missing (`GRID_NODATA`).
+pub fn stored_missing(cells: &[f32]) -> u64 {
+    cells
+        .iter()
+        .filter(|v| v.to_bits() == GRID_NODATA.to_bits())
+        .count() as u64
+}
+
 /// What one write did.
 #[derive(Debug, Clone, PartialEq)]
 pub struct WrittenRecord {
@@ -455,6 +537,8 @@ pub struct WrittenRecord {
     pub lower_left_y: i32,
     pub cell_size: f32,
     pub readers_undetected: bool,
+    /// P76: set by the gridded importer under `align="vortex"` or `"snap_out"`.
+    pub alignment: Option<AlignmentNote>,
 }
 
 fn input<'a>(
@@ -550,6 +634,7 @@ pub fn write_record(
         lower_left_y: place.lower_left_y,
         cell_size: place.cell_size,
         readers_undetected: report.readers_undetected,
+        alignment: None,
     })
 }
 

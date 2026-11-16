@@ -7,6 +7,9 @@
 mod nc_probes;
 mod nc_raw;
 
+#[path = "common/example_exe.rs"]
+mod example_exe;
+
 use nc_raw::*;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -32,30 +35,9 @@ fn hostile_fixture(name: &str) -> Vec<u8> {
     .unwrap()
 }
 
-/// `target/<profile>/examples/nc_dump`, which `cargo test` builds. Built here if this test ran alone.
+/// The `nc_dump` example, built by Cargo with this test's profile (`common/example_exe.rs`).
 fn nc_dump() -> PathBuf {
-    let test = std::env::current_exe().unwrap();
-    let profile = test.parent().unwrap().parent().unwrap();
-    let tool = profile
-        .join("examples")
-        .join(format!("nc_dump{}", std::env::consts::EXE_SUFFIX));
-    if !tool.exists() {
-        let release = profile.file_name().is_some_and(|name| name == "release");
-        let mut build = Command::new(env!("CARGO"));
-        build.args([
-            "build",
-            "--locked",
-            "-p",
-            "dss-vortex",
-            "--example",
-            "nc_dump",
-        ]);
-        if release {
-            build.arg("--release");
-        }
-        assert!(build.status().unwrap().success());
-    }
-    tool
+    example_exe::example_exe("nc_dump")
 }
 
 /// How a probe's process is run.
@@ -362,6 +344,9 @@ fn a_read_is_decided_with_the_lengths_the_reader_reports() {
 #[test]
 fn a_read_too_large_for_the_process_is_refused_quickly() {
     // 354 KB. One step decodes 32 GiB, under the limit, and it does not fit in 128 MiB.
+    // Build (or find) the probe tool first, so the time bound covers the probe only and
+    // not a cargo build that waits behind other tests (as on a busy CI host).
+    let _ = nc_dump();
     let started = std::time::Instant::now();
     run_limited_probes_at(
         "cpu",

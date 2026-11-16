@@ -6,6 +6,7 @@ written.
 
 from __future__ import annotations
 
+import os
 import shutil
 
 import numpy as np
@@ -99,3 +100,78 @@ def test_repair_missing_source_names_the_source(tmp_path):
     assert "missing.dss" in str(e.value)
     assert not dest.exists()
     assert list(tmp_path.iterdir()) == []
+
+
+# ---------------------------------------------------------------------------------------
+# An unsafe publication is refused (DssPublishError), never downgraded.
+# ---------------------------------------------------------------------------------------
+
+
+@pytest.fixture
+def publish_faults():
+    """Fault injection: only in a wheel built with ``--features test-hooks``.
+    CI's Python tests use such a test wheel and set ``FAST_DSS_TEST_HOOKS=1``, which
+    turns a missing hook into a failure instead of a skip."""
+    if not hasattr(dss._native, "_set_publish_faults"):
+        if os.environ.get("FAST_DSS_TEST_HOOKS") == "1":
+            pytest.fail("FAST_DSS_TEST_HOOKS=1 but this wheel has no fault hooks")
+        pytest.skip("release wheel: no fault-injection hooks (build with --features test-hooks)")
+
+    def install(*names):
+        dss._native._set_publish_faults(list(names))
+
+    try:
+        yield install
+    finally:
+        dss._native._set_publish_faults([])
+
+
+def test_publish_error_is_an_oserror_and_a_dss_error():
+    assert issubclass(dss.DssPublishError, OSError)
+    assert issubclass(dss.DssPublishError, dss.DssError)
+    assert dss.DssPublishError is dss.exceptions.DssPublishError
+
+
+@pytest.mark.parametrize("version", [7, 6])
+@pytest.mark.parametrize("link", ["link_unsupported", "link_permission"])
+def test_create_refuses_when_publication_is_unsafe(tmp_path, publish_faults, version, link):
+    (tmp_path / "bystander.dss").write_bytes(b"untouched")
+    dest = tmp_path / "new.dss"
+    publish_faults(link, "rename_unavailable")
+    with pytest.raises(dss.DssPublishError) as ei:
+        dss.create(dest, version=version)
+    e = ei.value
+    assert isinstance(e, OSError)
+    assert e.dest == str(dest) and e.kept_path is None
+    assert "not created" in str(e) and "copy it" in str(e)
+    assert not dest.exists()
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["bystander.dss"]  # no temp file
+    assert (tmp_path / "bystander.dss").read_bytes() == b"untouched"
+
+
+def test_repair_refuses_and_keeps_its_verified_copy(tmp_path, publish_faults):
+    src = tmp_path / "src.dss"
+    dss.create(src)
+    dss.write_timeseries(src, "/A/B/FLOW/01JAN2020/1HOUR/S/", [1.0, 2.0, 3.0],
+                         start="01JAN2020 01:00", units="CFS", data_type="INST-VAL")
+    before = src.read_bytes()
+    dest = tmp_path / "out.dss"
+    publish_faults("link_permission", "rename_permission")
+    with pytest.raises(dss.DssPublishError) as ei:
+        dss.repair(src, dest)
+    e = ei.value
+    assert not dest.exists()
+    assert src.read_bytes() == before
+    kept = e.kept_path
+    assert kept and os.path.exists(kept) and kept in str(e)
+    publish_faults()  # no faults: open the kept copy normally
+    with dss.open(kept) as f:
+        assert [p.upper() for p in f.pathnames()] == ["/A/B/FLOW/01JAN2020/1HOUR/S/"]
+
+
+def test_transient_link_failures_are_retried(tmp_path, publish_faults):
+    dest = tmp_path / "new.dss"
+    publish_faults("link_transient")
+    dss.create(dest)
+    with dss.open(dest) as f:
+        assert f.pathnames() == []

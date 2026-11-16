@@ -2,6 +2,8 @@
 
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+__version__: str
+
 def file_signature(path: str) -> Dict[str, Any]: ...
 def open(path: str, recover: bool = False) -> NativeFile: ...
 
@@ -138,7 +140,7 @@ def write_rts(
     sync: Union[bool, str] = "end",
     handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
-def rts_value_times(pathname: str, start: int, n: int) -> Any: ...
+def rts_value_times(pathname: str, start: int, n: int, first_valid: int = 0) -> Any: ...
 
 # P21: DSS7 irregular time-series writer.
 def write_its(
@@ -173,7 +175,7 @@ def write_rts6(
     sync: Union[bool, str] = "end",
     handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
-def rts6_value_times(pathname: str, start: int, n: int) -> Any: ...
+def rts6_value_times(pathname: str, start: int, n: int, first_valid: int = 0) -> Any: ...
 def write_rts_variants(
     path: str, pathname: str, start: int, values: Any, units: str, data_type: str,
     quality: Any = ..., quality_element_size: int = ..., inotes: Any = ...,
@@ -230,6 +232,20 @@ def write_pd(
     sync: Union[bool, str] = "end",
     handle: Optional[NativeFile] = None,
 ) -> Dict[str, Any]: ...
+
+# P76: many records in one write call. Items: ("rts" | "rts6", pathname, start, values,
+# units, data_type, quality, time_zone, precision); ("its", pathname, times, values, units,
+# data_type, quality, time_zone, precision, time_granularity); ("its6", pathname, times,
+# values, units, data_type, quality, mode); ("pd", the write_pd arguments from pathname to
+# time_zone). Returns (reports, None) or (reports, (index, exception)).
+def write_batch(
+    path: str,
+    version: int,
+    items: List[Tuple[Any, ...]],
+    allow_undetectable_readers: bool = True,
+    sync: Union[bool, str] = "end",
+    handle: Optional[NativeFile] = None,
+) -> Tuple[List[Dict[str, Any]], Optional[Tuple[int, BaseException]]]: ...
 
 # P24: grid writer (DSS7 and DSS6).
 def write_grid(

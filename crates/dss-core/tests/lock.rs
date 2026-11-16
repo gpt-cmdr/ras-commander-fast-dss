@@ -686,3 +686,69 @@ fn golden_dir_no_false_positives() {
         "golden: {n} files unlocked, {undetectable} readers undetectable, worst {worst:.2} ms"
     );
 }
+
+/// P76: the coalesced probe (one test per run of adjacent lock words) reports exactly what
+/// one test per word reports: `held`, holder pids and order, for every word alone (in
+/// `each_word` above), and here for random sets of held words, locks covering part of a
+/// word, and locks straddling two words, on DSS7 (new scheme) and DSS6 files.
+#[test]
+fn p76_coalesced_probe_equals_per_word_probe() {
+    use dss_core::lock::{layout_from_head, probe_layout, probe_layout_each_range};
+    let compare = |p: &Path| {
+        let f = std::fs::File::open(p).unwrap();
+        let len = f.metadata().unwrap().len();
+        let mut head = vec![0u8; 800.min(len as usize)];
+        use std::io::Read;
+        (&f).read_exact(&mut head).unwrap();
+        // DSS6 header read must stop at 276 bytes (NPERM words).
+        if &head[16..17] == b"6" {
+            head.truncate(276);
+        }
+        let layout = layout_from_head(&head, len).unwrap();
+        let a = probe_layout(&f, &layout).unwrap();
+        let b = probe_layout_each_range(&f, &layout).unwrap();
+        assert_eq!(a, b);
+        a
+    };
+    for name in ["synthetic_python7.dss", "castro.dss"] {
+        let t = TempCopy::new(name);
+        let (l, _) = expected(&t.path);
+        let mut h = Holder::spawn(&t.path, false);
+        assert!(compare(&t.path).held.is_empty());
+        // Deterministic pseudo-random subsets (xorshift), 40 rounds.
+        let mut x: u64 = 0x9E37_79B9_7F4A_7C15;
+        let mut rounds = 0;
+        while rounds < 40 {
+            let mut set = Vec::new();
+            for &(_, off, len) in &l {
+                x ^= x << 13;
+                x ^= x >> 7;
+                x ^= x << 17;
+                if x % 9 == 0 {
+                    set.push((off, len));
+                }
+            }
+            for &(off, len) in &set {
+                h.lock(off, len);
+            }
+            let r = compare(&t.path);
+            assert_eq!(r.held.len(), set.len(), "{name} round {rounds}");
+            for &(off, len) in &set {
+                h.unlock(off, len);
+            }
+            rounds += 1;
+        }
+        // Part of one word, and a lock straddling the boundary of two adjacent words.
+        for &(_, off, len) in l.iter().skip(2).step_by(7) {
+            h.lock(off + 1, 1);
+            assert_eq!(compare(&t.path).held.len(), 1);
+            h.unlock(off + 1, 1);
+            h.lock(off + u64::from(len) - 1, 2);
+            let r = compare(&t.path);
+            assert!(!r.held.is_empty() && r.held.len() <= 2);
+            h.unlock(off + u64::from(len) - 1, 2);
+        }
+        assert!(compare(&t.path).held.is_empty());
+        h.exit();
+    }
+}

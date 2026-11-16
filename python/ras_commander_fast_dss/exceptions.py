@@ -15,11 +15,16 @@ Exception                      Extra base class              Raised when
 ``DssFormatError``             (``RuntimeError``)            Not a DSS file, or damaged
                                                              structures (bad header, bad
                                                              info block, corrupt record).
-``DssUnsupportedRecordError``  (``RuntimeError``)            The record exists but is not of
+``DssUnsupportedRecordError``  ``ValueError``                The record exists but is not of
                                                              the kind the call reads (a
                                                              time series, paired data or a
                                                              grid), or uses an encoding
                                                              the reader does not decode.
+                                                             The Java path through
+                                                             hms-commander raised
+                                                             ``ValueError`` for a record of
+                                                             another kind (``ValueError``
+                                                             base added in 0.1.3).
 ``DssPathnameNotFoundError``   ``ValueError``                No record / no data for the
                                                              pathname. ``RasDss`` raised
                                                              ``ValueError("No data found
@@ -33,6 +38,12 @@ Exception                      Extra base class              Raised when
                                                              file is locked by HEC
                                                              software. Never raised by
                                                              reads.
+``DssPublishError``            ``OSError``                   ``create`` or ``repair`` could
+                                                             not publish the new file
+                                                             without risking an incomplete
+                                                             destination (no hard link and
+                                                             no no-replace rename). The
+                                                             destination was not created.
 =============================  ============================  ===============================
 
 A missing file raises the builtin :class:`FileNotFoundError` (other OS failures raise the
@@ -47,6 +58,7 @@ __all__ = [
     "DssUnsupportedRecordError",
     "DssPathnameNotFoundError",
     "DssLockedError",
+    "DssPublishError",
 ]
 
 
@@ -58,8 +70,11 @@ class DssFormatError(DssError):
     """The file is not a DSS6/DSS7 file, or a structure in it is damaged."""
 
 
-class DssUnsupportedRecordError(DssError):
-    """The record exists but its type is not decoded by this API."""
+class DssUnsupportedRecordError(DssError, ValueError):
+    """The record exists but its type is not decoded by this API.
+
+    Also a :class:`ValueError` (since 0.1.3), as the Java path raised for
+    a record of another kind; it stays a :class:`DssError` and a :class:`RuntimeError`."""
 
 
 class DssPathnameNotFoundError(DssError, ValueError):
@@ -161,3 +176,26 @@ class DssNoDataError(DssPathnameNotFoundError):
 
 
 __all__ += ["DssNoDataError", "NO_DATA_STATUS"]
+
+
+class DssPublishError(DssError, OSError):
+    """A new file could not be published without risk.
+
+    ``create`` and ``repair`` build the new file under a temporary name beside the
+    destination, then give it its name by a hard link (or, on glibc Linux, an atomic
+    no-replace rename), so that a process killed at any moment leaves the destination
+    absent or complete. When neither works (a filesystem without hard links such as FAT
+    or exFAT, a permission problem, too many links), the call refuses rather than writing
+    the destination directly: the destination is not created.
+
+    Also an :class:`OSError`, as the same condition was before. Attributes (all optional):
+
+    - ``dest``: the destination, not created;
+    - ``kept_path``: the complete temporary file when it was kept (``repair`` keeps its
+      verified copy; ``create`` removes its temporary file), else ``None``;
+    - ``link_error``: the hard link's error message, and ``link_errno`` its OS error code
+      (or ``None``).
+
+    Workaround on a filesystem without hard links: create or repair the file on one that
+    has them (such as NTFS, APFS, HFS+, ext4 or XFS) and copy it.
+    """

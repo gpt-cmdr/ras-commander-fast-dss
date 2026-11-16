@@ -1734,10 +1734,13 @@ fn validate(p: &Planned, version: u8) -> Result<(), WriteError> {
     }
 }
 
+/// One record, as its own write call on the output's handle (the handle is opened once
+/// per `grid_to_point` call instead of once per record; every record still tests, takes
+/// and releases the lock and is one transaction, as `write_rts` / `write_its` make it).
 fn store(
     p: &Planned,
     version: u8,
-    output: &Path,
+    output: &std::fs::File,
     options: &WriteOptions,
 ) -> Result<write7::WriteReport, WriteError> {
     let values = RtsValues::F32(&p.values);
@@ -1752,14 +1755,14 @@ fn store(
             );
             input.quality = p.quality.as_deref();
             if version == 6 {
-                dss_core::dss6::write::write_rts6(output, &input, options)
+                dss_core::dss6::write::write_rts6_to(output, &input, options)
             } else {
-                write7::write_rts(output, &input, options)
+                write7::write_rts_to(output, &input, options)
             }
         }
         Times::Irregular(times) => {
             if version == 6 {
-                dss_core::dss6::write::write_its6(output, &its6(p, times), options)
+                dss_core::dss6::write::write_its6_to(output, &its6(p, times), options)
             } else {
                 let mut input = ItsInput::new(
                     &p.pathname,
@@ -1769,7 +1772,7 @@ fn store(
                     p.record.data_type.as_bytes(),
                 );
                 input.quality = p.quality.as_deref();
-                write7::write_its(output, &input, options)
+                write7::write_its_to(output, &input, options)
             }
         }
     }
@@ -1915,19 +1918,34 @@ fn point_records(request: &GridToPointRequest) -> Result<GridToPointOutcome, Gri
     }
     let mut completed: Vec<PointRecord> = Vec::new();
     let mut readers_undetected = false;
+    // P76: one read+write handle for the whole call (opened at the first record).
+    let mut held: Option<std::fs::File> = None;
     for (i, mut p) in plan.into_iter().enumerate() {
         let options = WriteOptions {
             lock_policy: policy,
             sync: crate::sink_dss::record_sync(request.sync),
             fault: request.fault.filter(|(at, _)| *at == i).map(|(_, f)| f),
         };
-        match store(&p, version, &request.output, &options) {
+        let written = match &held {
+            Some(file) => store(&p, version, file, &options),
+            None => match std::fs::OpenOptions::new()
+                .read(true)
+                .write(true)
+                .open(&request.output)
+            {
+                Ok(file) => store(&p, version, held.insert(file), &options),
+                Err(e) => Err(e.into()),
+            },
+        };
+        match written {
             Ok(report) => {
                 readers_undetected |= report.readers_undetected;
                 p.record.outcome = record_outcome(report.blocks.iter().map(|b| b.outcome.as_str()));
                 completed.push(p.record);
             }
             Err(e) => {
+                // The handle is closed before the output is removed or reported.
+                drop(held.take());
                 let is_fault = matches!(e, WriteError::InjectedFault { .. });
                 // A new file with nothing in it says nothing: leave no such thing behind. A simulated
                 // crash keeps it, as a real one would.

@@ -24,8 +24,14 @@ from typing import Any, Dict, Optional, Sequence, Union
 import numpy as np
 import pandas as pd
 
-from . import _native
-from ._write import HEC_MISSING_DSS6, HEC_UNDEFINED_FLOAT, _precision, _sync_mode, _held
+from ._write import (
+    HEC_MISSING_DSS6,
+    HEC_UNDEFINED_FLOAT,
+    _held,
+    _native_write,
+    _precision,
+    _sync_mode,
+)
 
 __all__ = ["write_paired_data"]
 
@@ -245,7 +251,8 @@ def write_paired_data(
         time_zone = _text(time_zone, "time_zone")
         if version == 6:
             raise ValueError("time_zone is not written to DSS6 files; pass time_zone=None")
-    report = _native.write_pd(
+    report = _native_write(
+        "write_pd",
         str(Path(os.fspath(dss_file))),
         pathname,
         ords,

@@ -26,7 +26,7 @@ Options:
 | `--kinds ...` | A subset of `ts_regular,ts_irregular,pd,grid,catalog,small`. |
 | `--ops catalog,read,write` | Which operation groups to run. |
 | `--widths float32,float64` | Value widths of the time-series and paired-data write cases. |
-| `--write-modes ...` | Engine write modes to run (default all four, below). |
+| `--write-modes ...` | Engine write modes to run (default all six, below). |
 | `--python TOOL=PATH` | Run one tool in another interpreter, for example a venv with `numpy<2` for pydsstools. Repeatable. |
 | `--max-cpu PCT`, `--max-wait S` | Load guard: before each timed case, wait until system CPU is at most PCT. Stop after S seconds rather than time a busy machine. |
 | `--allow-unmeasured-load` | With `--max-cpu`: run even if CPU load cannot be measured. The reports then say the guard was **not applied**. Without this option the script refuses to time. |
@@ -41,7 +41,7 @@ guard uses it; without it the guard reads the OS counters on Windows and Linux.
 
 ## Tools
 
-- **engine:** `ras_commander_fast_dss`. Reads use one `DssFile` per case. Writes run in four
+- **engine:** `ras_commander_fast_dss`. Reads use one `DssFile` per case. Writes run in six
   modes, each with its own rows:
 
   | Mode | API | `sync` |
@@ -50,6 +50,11 @@ guard uses it; without it the guard reads the OS counters on Windows and Linux.
   | `engine_none` | module-level writers | `"none"`: no flush |
   | `engine_session` | one `DssFile` session holding its native handle | `"end"` |
   | `engine_session_none` | one `DssFile` session | `"none"` |
+  | `engine_batch` | one `write_batch(path, records)` call for all the records of a case (time series and paired data; grid cases are skipped) | `"end"`: one flush at the end of the call |
+  | `engine_batch_none` | one `write_batch` call | `"none"` |
+
+  The batch modes need `write_batch`, added in 0.1.3; with an older version, pass
+  `--write-modes engine,engine_none,engine_session,engine_session_none`.
 
 - **pydsstools** (`pydsstools`).
 - **hecdss**, HEC's Python wrapper of the DSS C library. It handles DSS7 only, so it is not

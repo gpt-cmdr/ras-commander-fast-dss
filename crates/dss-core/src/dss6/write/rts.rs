@@ -223,7 +223,12 @@ pub(super) fn plan(input: &RtsInput) -> Result<Plan, WriteError> {
 
 /// Stamps HEC gives the values: `INCTIM` from the standard start, then the offset
 /// (`zofset6.f` `IFLAG = 2`, lines 142-155).
-pub(super) fn value_times(pathname: &[u8], start: i64, n: usize) -> Result<Vec<i64>, WriteError> {
+pub(super) fn value_times(
+    pathname: &[u8],
+    start: i64,
+    n: usize,
+    first_valid: usize,
+) -> Result<Vec<i64>, WriteError> {
     let path = path::validate_regular(pathname)?;
     let minutes = match path.kind {
         path::Kind::Regular { minutes } => minutes,
@@ -233,13 +238,56 @@ pub(super) fn value_times(pathname: &[u8], start: i64, n: usize) -> Result<Vec<i
         return Err(bad_input(format!("n must be 1..={MAX_VALUES}")));
     }
     let (juls, istime, offset) = standard_start(start, minutes)?;
-    Ok((0..n as i64)
+    let first_valid = first_valid.min(n);
+    let standard = |k: usize| {
+        let (j, m) = inctim(minutes, k as i64, juls, istime);
+        (j * 1440 + m) * 60
+    };
+    if minutes > 1440 && offset > 0 {
+        // P76: every value read back at its own slot's C stamp
+        // (`crate::dss6::dataset::c_slot_stamp`, as this crate's reader stamps it). HEC's
+        // trimmed read stamps the kept values by chaining from the first kept slot
+        // (`ztsRegAddTimes()`); where that chain differs from the per-slot stamps, HEC moves or
+        // merges values, so such a series is refused. Leading missing values (`first_valid`)
+        // are trimmed by the reads and move HEC's chain to the first kept slot.
+        let out: Vec<i64> = (first_valid..n)
+            .map(|k| crate::dss6::dataset::c_slot_stamp(standard(k), minutes, offset))
+            .collect();
+        if out.is_empty() {
+            return Ok(out);
+        }
+        let chain =
+            crate::dss6::dataset::c_stamps(standard(first_valid), minutes, offset, out.len());
+        let e = String::from_utf8_lossy(&pathname_e_part(pathname)).into_owned();
+        if let Some(i) = out.windows(2).position(|w| w[1] <= w[0]) {
+            return Err(bad_input(format!(
+                "a {e} series starting here reads back with values {} and {} at one time, as \
+                 HEC-DSS stores and reads it; start on another day",
+                first_valid + i,
+                first_valid + i + 1
+            )));
+        }
+        if let Some(i) = out.iter().zip(&chain).position(|(a, b)| a != b) {
+            return Err(bad_input(format!(
+                "HEC-DSS would read value {} of this {e} series at another time than its own \
+                 period's stamp (the offset of the first kept value overflows a shorter \
+                 period); start on another day, or write the series to DSS7",
+                first_valid + i
+            )));
+        }
+        return Ok(out);
+    }
+    Ok((first_valid..n)
         .map(|k| {
-            let (j, m) = inctim(minutes, k, juls, istime);
+            let (j, m) = inctim(minutes, k as i64, juls, istime);
             let (j, m) = apply_offset(j, m, minutes, offset);
             (j * 1440 + m) * 60
         })
         .collect())
+}
+
+fn pathname_e_part(p: &[u8]) -> Vec<u8> {
+    p.split(|&b| b == b'/').nth(5).unwrap_or_default().to_vec()
 }
 
 /// Block values as stored: float or double bits, plus optional quality.
@@ -550,7 +598,7 @@ mod tests {
             b"INST-VAL",
         );
         assert_eq!(plan(&input).unwrap().blocks[0].ndata, 2976);
-        let t = value_times(b"/A/B/FLOW//1MON/F/", secs(2020, 2, 1, 0, 0), 3).unwrap();
+        let t = value_times(b"/A/B/FLOW//1MON/F/", secs(2020, 2, 1, 0, 0), 3, 0).unwrap();
         assert_eq!(
             t,
             vec![
