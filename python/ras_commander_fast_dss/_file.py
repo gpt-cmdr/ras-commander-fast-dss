@@ -292,8 +292,9 @@ class DssFile:
         if self.closed:
             raise ValueError("I/O operation on a closed DssFile")
         # Every per-object cache derived from the file's contents is dropped before the
-        # write, so it is rebuilt even when the write fails part way. The only one is the
-        # DSS6 dataset-location index of `_p15_ts_blocks` (up to 0.1.1 the writes
+        # write, so it is rebuilt even when the write fails part way, and again when the
+        # write returns or fails (`_session_write`). The only one is the DSS6
+        # dataset-location index of `_p15_ts_blocks` (up to 0.1.1 the writes
         # cleared a misspelled `_p15_block_index`, which no code reads).
         self.__dict__.pop("_p15_ts_index", None)
 
@@ -319,6 +320,11 @@ class DssFile:
             return write(self._path, *args, **kwargs)
         finally:
             _SESSION.reset(token)
+            # Drop the contents-derived caches again on the way out, including after a
+            # partial failure: a read made while the write ran (for example by a
+            # generator that `write_batch` consumes) can rebuild them from the file as it
+            # was before the native write.
+            self.__dict__.pop("_p15_ts_index", None)
 
     # -- file facts -------------------------------------------------------------------
 

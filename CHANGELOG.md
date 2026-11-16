@@ -26,6 +26,9 @@ before upgrading.
   - Every record is checked before anything is written. A record refused while the batch is
     written stops it: the records before it stay written, and its exception carries
     `batch_index` and `batch_reports`.
+  - `records` may be a generator, and it may read through the same `DssFile` while it is
+    consumed. Location reads after the batch see the records it wrote, also after a batch
+    that fails part way.
   - Patterns, notes and multi-word quality are written one record per call, with
     `write_timeseries`.
   - `FEATURES` gains `write_batch`. Rust: `dss7::write::write_batch[_to]` and
