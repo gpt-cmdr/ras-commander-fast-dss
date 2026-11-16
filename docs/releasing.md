@@ -47,6 +47,10 @@ The Python distribution `ras-commander-fast-dss` is the release artifact. Its ve
      the publish job. Files already on PyPI for the version must be byte-identical to the
      build; the upload skips them and adds the rest, and a final check requires every
      distribution on PyPI with the same SHA-256.
+   - Both PyPI checks cover exactly the wheels and sdist listed in `SHA256SUMS`, each still
+     matching its listed digest. The `.publish.attestation` files that Trusted Publishing
+     writes next to the distributions are ignored. Any other file in `dist/` fails the check
+     before anything is uploaded.
 8. Verify the published wheels install on Windows, Linux and macOS.
 
 Do not retag a published version or skip a failed artifact.

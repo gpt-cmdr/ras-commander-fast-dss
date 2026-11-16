@@ -86,7 +86,7 @@ jobs:
       # rerun finish an interrupted upload without uploading anything twice.
       - name: Files already on PyPI match this build
         if: ${{ vars.PUBLISH_PYPI == 'true' }}
-        run: python scripts/release_assets.py pypi-check dist
+        run: python scripts/release_assets.py pypi-check dist SHA256SUMS
       # With PYPI_API_TOKEN unset, the action uses the PyPI trusted publisher for this workflow
       # and the pypi environment.
       - name: Publish to PyPI
@@ -96,8 +96,10 @@ jobs:
           packages-dir: dist/
           skip-existing: true
           password: ${{ secrets.PYPI_API_TOKEN }}
+      # Checks exactly the distributions in SHA256SUMS: with Trusted Publishing the action has
+      # left a .publish.attestation file next to each one in dist/, which PyPI does not list.
       - name: Every distribution is on PyPI with this build's bytes
         if: ${{ vars.PUBLISH_PYPI == 'true' }}
-        run: python scripts/release_assets.py pypi-check dist --require-all
+        run: python scripts/release_assets.py pypi-check dist SHA256SUMS --require-all
 
   # crates.io publishing stays off: every crate has publish = false, and PUBLISH_CRATES is unused.

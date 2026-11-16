@@ -97,15 +97,27 @@ def _safe_resolve(path: Path) -> Path:
     return resolved
 
 
+def _trim_marker_mask(values: np.ndarray) -> np.ndarray:
+    """Values a regular-series read trims at either end, as ``ztsTrim`` does: the HEC
+    markers -901, -902 and -FLT_MAX, compared in the array's own width. NaN is *not*
+    trimmed (unlike :func:`missing_mask`); a raw NaN reads back where it was written.
+
+    The single rule shared by the read path (:func:`_trim_missing`) and the writer's
+    ``times=`` check, so the two cannot disagree about which stamps a read keeps.
+    """
+    v = np.asarray(values)
+    miss = np.zeros(v.shape, dtype=bool)
+    for m in MISSING_MARKERS:
+        miss |= v == v.dtype.type(m)
+    return miss
+
+
 def _trim_missing(times: np.ndarray, values: np.ndarray, regular: bool):
     """Drop leading and trailing missing values (regular data only), as ``ztsTrim``
     does: -901, -902 and -FLT_MAX are trimmed, NaN is not."""
     if not regular or len(values) == 0:
         return times, values
-    v = np.asarray(values)
-    miss = np.zeros(len(v), dtype=bool)
-    for m in MISSING_MARKERS:
-        miss |= v == v.dtype.type(m)
+    miss = _trim_marker_mask(values)
     keep = np.flatnonzero(~miss)
     if len(keep) == 0:
         return times[:0], values[:0]

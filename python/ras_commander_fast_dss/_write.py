@@ -634,14 +634,21 @@ def _check_regular_times(value_times, pathname: str, t: np.ndarray, vals: Any) -
 
     ``value_times`` is ``_native.rts_value_times`` or ``rts6_value_times``: the stamps the
     stored record reads back at, from ``t[0]``. Reads trim leading missing values, which can
-    move calendar stamps, so the stamps are taken for the values from the first non-missing
-    one (``first_valid``), and only those are compared. Raises ``ValueError`` (also from the
-    native check, where HEC-DSS would store or read values at other times). Returns ``t[0]``.
+    move calendar stamps, so the stamps are taken for the values from the first one a read
+    keeps (``first_valid``), and only those are compared. Raises ``ValueError`` (also from
+    the native check, where HEC-DSS would store or read values at other times). Returns
+    ``t[0]``.
+
+    "Kept" uses the read path's own trim rule (HEC markers only, in the values' dtype), not
+    :func:`missing_mask`: with ``raw=True`` a NaN is stored as NaN and a read keeps it, so
+    it is a kept value here too. Counting it as missing would predict stamps for a later
+    first value and could accept times that move finite values.
+    Without ``raw`` NaN has already become a HEC marker, so no raw flag is needed.
     """
-    from ._file import missing_mask
+    from ._file import _trim_marker_mask
 
     n = len(t)
-    valid = ~missing_mask(np.asarray(vals))
+    valid = ~_trim_marker_mask(np.asarray(vals))
     first_valid = int(np.argmax(valid)) if valid.any() else n
     expected = value_times(pathname, int(t[0]), n, first_valid=first_valid)
     kept = t[first_valid:]

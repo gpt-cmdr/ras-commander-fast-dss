@@ -1,7 +1,7 @@
 """Retry-safe attachment of release artifacts, and the PyPI identity check (release.yml).
 
     python scripts/release_assets.py attach <tag> <dist dir> <SHA256SUMS>
-    python scripts/release_assets.py pypi-check <dist dir> [--require-all]
+    python scripts/release_assets.py pypi-check <dist dir> <SHA256SUMS> [--require-all]
 
 ``attach`` compares the GitHub Release's existing assets with the files to attach, by name and
 SHA-256, before anything is uploaded:
@@ -21,6 +21,12 @@ and checked against ``SHA256SUMS``.
 distributions. Any file there with other bytes, or any file there that this run did not build,
 fails the job, so a later ``skip-existing`` upload only skips byte-identical files. With
 ``--require-all`` every local distribution must be on PyPI with the same SHA-256.
+
+The distributions are exactly the wheels and sdist listed in ``SHA256SUMS``, and each must
+still hash to its listed digest. The PyPI publish action writes a
+``<distribution>.publish.attestation`` file next to each distribution it uploads with Trusted
+Publishing; PyPI does not list those as files of the release, so they are ignored. Any other
+file in the dist folder is refused, so nothing unlisted can reach the upload.
 """
 from __future__ import annotations
 
@@ -102,11 +108,7 @@ def attach(release, files: list[Path], sums: Path) -> None:
         print("uploading: " + ", ".join(p.name for p in upload))
         release.upload(upload)
     # Read back every asset and check it against SHA256SUMS.
-    want = {}
-    for line in sums.read_text(encoding="utf-8").splitlines():
-        if line.strip():
-            digest, name = line.split(None, 1)
-            want[name.strip().lstrip("*")] = digest
+    want = read_sums(sums)
     names = {a["name"] for a in release.assets()}
     expected = {p.name for p in files}
     if names != expected:
@@ -132,6 +134,51 @@ def pypi_files(name: str, version: str, opener=urllib.request.urlopen) -> dict[s
     return {f["filename"]: f["digests"]["sha256"] for f in data.get("urls", [])}
 
 
+DIST_SUFFIXES = (".whl", ".tar.gz")
+ATTESTATION_SUFFIX = ".publish.attestation"
+
+
+def read_sums(sums: Path) -> dict[str, str]:
+    """Filename -> SHA-256 from a ``sha256sum`` manifest."""
+    want = {}
+    for line in sums.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            digest, name = line.split(None, 1)
+            want[name.strip().lstrip("*")] = digest.lower()
+    return want
+
+
+def local_distributions(dist: Path, sums: Path) -> dict[str, str]:
+    """The distributions to check against PyPI: filename -> SHA-256, from ``SHA256SUMS``.
+
+    Every listed file must be a wheel or sdist in ``dist`` with the listed digest. Every file in
+    ``dist`` must be listed, or be the publish action's attestation for a listed distribution
+    (ignored). Exits on any other case, before PyPI is contacted.
+    """
+    want = read_sums(sums)
+    problems = []
+    if not want:
+        problems.append(f"{sums}: lists no distributions")
+    for name, digest in sorted(want.items()):
+        path = dist / name
+        if not name.endswith(DIST_SUFFIXES) or Path(name).name != name:
+            problems.append(f"{name}: listed in {sums.name} but not a wheel or sdist")
+        elif not path.is_file():
+            problems.append(f"{name}: listed in {sums.name} but not in {dist}")
+        elif sha256(path) != digest:
+            problems.append(f"{name}: local bytes ({sha256(path)}) differ from {sums.name} ({digest})")
+    for p in sorted(dist.iterdir()):
+        if p.name in want:
+            continue
+        if p.is_file() and p.name.endswith(ATTESTATION_SUFFIX) \
+                and p.name[: -len(ATTESTATION_SUFFIX)] in want:
+            continue  # written by the PyPI publish action; not a distribution
+        problems.append(f"{p.name}: in {dist} but not a distribution listed in {sums.name}")
+    if problems:
+        sys.exit("PyPI check failed:\n  " + "\n  ".join(problems))
+    return want
+
+
 def check_pypi(local: dict[str, str], remote: dict[str, str] | None, require_all: bool) -> list[str]:
     remote = remote or {}
     problems = []
@@ -150,13 +197,16 @@ def main(argv: list[str]) -> None:
         tag, dist, sums = argv[1], Path(argv[2]), Path(argv[3])
         files = sorted(p for p in dist.iterdir() if p.is_file()) + [sums]
         attach(GhRelease(tag), files, sums)
-    elif len(argv) >= 2 and argv[0] == "pypi-check":
+    elif len(argv) >= 3 and argv[0] == "pypi-check" and not argv[2].startswith("--"):
         import tomllib  # Python 3.11+; the release job runs 3.13
 
-        dist = Path(argv[1])
-        require_all = "--require-all" in argv
+        dist, sums = Path(argv[1]), Path(argv[2])
+        flags = argv[3:]
+        if any(f != "--require-all" for f in flags):
+            sys.exit(__doc__)
+        require_all = "--require-all" in flags
         project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
-        local = {p.name: sha256(p) for p in sorted(dist.iterdir()) if p.is_file()}
+        local = local_distributions(dist, sums)
         for attempt in range(6 if require_all else 1):
             problems = check_pypi(local, pypi_files(project["name"], project["version"]), require_all)
             # Wait only for files that are still missing; a mismatch never resolves.

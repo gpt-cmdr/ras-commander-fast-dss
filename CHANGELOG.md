@@ -73,8 +73,9 @@ before upgrading.
 
   Such series are now refused with `ValueError` before anything is written. Leading missing
   values are taken into account, because HEC trims them when reading, which can move
-  calendar times. Data already written is unchanged; writes with `start=` store what HEC's
-  library stores.
+  calendar times. Only HEC missing markers count as missing here, as when reading: a NaN
+  written with `raw=True` is stored and read back as a value, so its time is checked too.
+  Data already written is unchanged; writes with `start=` store what HEC's library stores.
 - **Behaviour change (fix): DSS6 calendar series read at HEC's times.** Reading a DSS6 weekly,
   monthly, semi-monthly, tri-monthly or yearly series stored with a time offset now gives, for
   every value, the time HEC's current library gives, however many values are missing. Up to
