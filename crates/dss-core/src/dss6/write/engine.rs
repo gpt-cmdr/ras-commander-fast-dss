@@ -986,11 +986,27 @@ impl<'a> Engine<'a> {
         Ok(out)
     }
 
+    /// Reconcile an interrupted write before this write (dss6.md §9.3). First, with nothing
+    /// written yet, a physical tail past `KFSIZE` is either shown to be unreferenced or the
+    /// write is refused ([`Engine::tail_plan`], [`WriteError::UnprovenTail`]; address-root qualification
+    /// 1 F2). Then the marker ([`Engine::reconcile_marker`], which writes only below
+    /// `KFSIZE` and names no new address), then the cut ([`Engine::cut_tail`]). Returns
+    /// whether there was anything to reconcile.
+    pub fn reconcile(&mut self) -> Result<bool, WriteError> {
+        let tail = self.tail_plan()?;
+        let marked = self.reconcile_marker()?;
+        let cut = match tail {
+            Some(keep) => self.cut_tail(keep)?,
+            None => false,
+        };
+        Ok(marked || cut)
+    }
+
     /// Repair a file whose marker shows an interrupted native write (dss6.md §9.3): retire
     /// the old copy of a rewrite whose new copy was published, rebuild `KNRECS`,
     /// `KHUSED`, `KBINS` and `KBOVER` from the bins, and clear the marker. Never clears a
-    /// bin or moves a pointer. Returns whether there was anything to reconcile.
-    pub fn reconcile(&mut self) -> Result<bool, WriteError> {
+    /// bin or moves a pointer. Returns whether the marker was set.
+    fn reconcile_marker(&mut self) -> Result<bool, WriteError> {
         let new = i64::from(self.h[K_MARK_NEW]);
         let old = i64::from(self.h[K_MARK_OLD]);
         if new == 0 && old == 0 {
@@ -1029,6 +1045,234 @@ impl<'a> Engine<'a> {
         self.write_header(&h)?;
         self.sync()?;
         Ok(true)
+    }
+
+    /// DSS6 physical-tail recovery and address-root qualification (dss6.md §9.3, "Physical tail"): what to do
+    /// with bytes past the record holding `KFSIZE`, decided before anything is written.
+    ///
+    /// - No such bytes (a 508-byte short final record, dss6.md §1.3, included): `Ok(None)`.
+    /// - Every persisted address and range of the file lies below `KFSIZE`
+    ///   ([`Engine::addresses_below_kfsize`]): `Ok(Some(bytes))`, the length to cut the
+    ///   file to ([`Engine::cut_tail`]).
+    /// - Otherwise [`WriteError::UnprovenTail`]: the write is refused with the file
+    ///   unchanged. HEC software allocates at `KFSIZE` (`znwrit6.f` lines 36 and 154-186,
+    ///   `znwbin6.f` lines 39-85), so a store would overwrite whatever an address there still
+    ///   names; cutting would delete it. The tail is never adopted (`KFSIZE` is never
+    ///   raised over it).
+    ///
+    /// A native store writes its record area and end-of-file record at `KFSIZE` (Data,
+    /// EndOfFile) before the one-`write` Allocation header publishes the new `KFSIZE`, and
+    /// every pointer it writes (Chain, Counters, Link, Publish) follows that header, so a
+    /// tail an interrupted native store leaves passes the check. HEC's flush intends the
+    /// same order (`zbdump6.f` lines 46-88, then 117-135) but also flushes mid-write, which
+    /// is why the check covers every root rather than trusting the order.
+    fn tail_plan(&self) -> Result<Option<u64>, WriteError> {
+        let kfs = self.kfsize();
+        let keep = rec_word(kfs).0 as u64 * crate::dss6::source::RECORD_BYTES;
+        let len = self.io.len()?;
+        if len <= keep {
+            return Ok(None);
+        }
+        match self.addresses_below_kfsize() {
+            Ok(()) => Ok(Some(keep)),
+            Err(reason) => Err(WriteError::UnprovenTail(format!(
+                "the file is {len} bytes but its header (KFSIZE {kfs}) implies {keep}, and \
+                 the {} bytes past that cannot be shown unused: {reason}",
+                len - keep
+            ))),
+        }
+    }
+
+    /// Cut a tail [`Engine::tail_plan`] accepted: -9630 at `KFSIZE` and zeros to the end of
+    /// its record (one `write`), then the length cut to `keep` bytes. Both touch only words
+    /// at or past `KFSIZE`, which nothing references, so a second kill anywhere leaves
+    /// committed records intact and a state the next write repeats. `KFSIZE` is unchanged.
+    fn cut_tail(&mut self, keep: u64) -> Result<bool, WriteError> {
+        let kfs = self.kfsize();
+        let (_, w) = rec_word(kfs);
+        let mut eof = vec![0i32; (WORDS_PER_RECORD - w + 1) as usize];
+        eof[0] = EOF_FLAG;
+        self.io.write_words(kfs, &eof)?;
+        self.sync()?;
+        self.io.truncate(keep)?;
+        self.sync()?;
+        Ok(true)
+    }
+
+    /// Whether the tail past `KFSIZE` would be cut by the next native write
+    /// (`Ok(Some(_))`), refused (`Err`, with the reason) or there is none (`Ok(None)`).
+    /// Read-only; for [`super::check_file6`].
+    pub(super) fn tail_verdict(&self) -> Result<Option<u64>, WriteError> {
+        self.tail_plan()
+    }
+
+    /// Every address and range the file persists lies below `KFSIZE`; `Err` names the
+    /// first that does not, or what could not be followed. The roots, from the permanent
+    /// section's layout (`zinit6.f:ZINIT6` lines 446-560, 0-based header words):
+    ///
+    /// - `KTAGBK` (13): the tag-hash block, `NTAGBK = NBSIZE = 127` words (`zinit6.f`
+    ///   lines 283, 481-483), chained through its last word (`ztagpa6.f` lines 81-114,
+    ///   `ztagfi6.f` lines 131-140; a link `<= 0` ends the chain);
+    /// - `KAFBIN` (19), `KANBIN` (20): the first and the next bin;
+    /// - `KCOMPI` (42), `KCOMPN` (43): the file's compression information, `KCOMPN` words
+    ///   at `KCOMPI` (`zgetci6.f` lines 41-70, `zsetci6.f` lines 229-245); it holds
+    ///   parameters, not addresses;
+    /// - `KRES` (55-68): words 67/68 are this writer's marker (info-block addresses);
+    ///   words 55-66 are "unused" (`zinit6.f` line 100) and must be zero, so a structure a
+    ///   later HEC version keeps there is not missed;
+    /// - the hash table after the permanent section (`NPERM + 1 ..= NPERM + KHASH`,
+    ///   `KTABLE = 1`; other tables are refused by [`Engine::new`]);
+    /// - every bin reachable from the table and through overflow words (126), every bin of
+    ///   the bin-block chain (word 127 of a block's last bin, `znwbin6.f` lines 67-82),
+    ///   every entry of those bins whatever its status, each entry's info block, and its
+    ///   internal header, compression header, user header and data (with `KIUNUS` slack).
+    ///
+    /// The other permanent-section words are counts, dates, flags, text (the `KTAGS`
+    /// scheme, refused when set by [`Engine::new`]; the password) or sizes. A tag-hash
+    /// chain that revisits a block, and a bin-block chain longer than the file could hold,
+    /// are errors. Overflow links are not tested for cycles: a bin reached again (table,
+    /// overflow word or bin-block chain) is skipped, its addresses already checked, and
+    /// more distinct bins than the file could hold is an error (overflow-chain traversal qualification).
+    fn addresses_below_kfsize(&self) -> Result<(), String> {
+        let kfs = self.kfsize();
+        // The words [a, a + n) all lie below KFSIZE.
+        let below = |a: i64, n: i64| a >= 1 && n >= 0 && a.checked_add(n).is_some_and(|e| e <= kfs);
+        let rd = |a: i64, n: usize| -> Result<Vec<i32>, String> {
+            self.io
+                .read_words(a, n)
+                .map_err(|e| format!("cannot read {n} words at {a}: {e}"))
+        };
+        let h = &self.h;
+        // Header roots.
+        let ktagbk = i64::from(h[13]);
+        if ktagbk < 0 {
+            return Err(format!("KTAGBK is {ktagbk}"));
+        }
+        let mut tag = ktagbk;
+        let mut tags = std::collections::HashSet::new();
+        while tag > 0 {
+            if !below(tag, BIN as i64) {
+                return Err(format!(
+                    "the tag-hash block at {tag} (KTAGBK chain) reaches KFSIZE"
+                ));
+            }
+            if !tags.insert(tag) || tags.len() as i64 > kfs / BIN as i64 + 1 {
+                return Err(format!("the tag-hash block chain revisits {tag}"));
+            }
+            tag = i64::from(rd(tag + BIN as i64 - 1, 1)?[0]);
+        }
+        let (kcompi, kcompn) = (i64::from(h[42]), i64::from(h[43]));
+        if kcompn < 0 || kcompi < 0 {
+            return Err(format!("KCOMPI {kcompi}, KCOMPN {kcompn}"));
+        }
+        if (kcompn > 0 && !below(kcompi, kcompn))
+            || (kcompn == 0 && kcompi > 0 && !below(kcompi, 1))
+        {
+            return Err(format!(
+                "the compression information ({kcompn} words at KCOMPI {kcompi}) reaches KFSIZE"
+            ));
+        }
+        if let Some(i) = (55..K_MARK_OLD).find(|&i| h[i] != 0) {
+            return Err(format!(
+                "header word {i} (in KRES, unused by HEC) is {}: an unknown structure",
+                h[i]
+            ));
+        }
+        for i in [K_MARK_OLD, K_MARK_NEW] {
+            let a = i64::from(h[i]);
+            if a != 0 && !below(a, 3) {
+                return Err(format!("the in-progress marker (word {i}) names {a}"));
+            }
+        }
+        let kafbin = i64::from(h[K_AFBIN]);
+        let kbnblk = i64::from(h[K_BNBLK]);
+        let bin = BIN as i64;
+        if !below(i64::from(h[K_ANBIN]), 1) {
+            return Err(format!("KANBIN {} reaches KFSIZE", h[K_ANBIN]));
+        }
+        let max_bins = (kfs / bin + 2) as usize;
+        let khash = h[K_HASH] as usize;
+        let table = rd(NPERM as i64 + 1, khash)?;
+        let mut todo: Vec<i64> = table
+            .iter()
+            .filter(|&&a| a != 0)
+            .map(|&a| i64::from(a))
+            .collect();
+        let mut block = kafbin;
+        let mut blocks = 0usize;
+        while block != 0 {
+            blocks += 1;
+            if blocks > max_bins {
+                return Err("the bin-block chain does not end".into());
+            }
+            if !below(block, kbnblk * bin) {
+                return Err(format!("the bin block at {block} reaches KFSIZE"));
+            }
+            todo.extend((0..kbnblk).map(|k| block + k * bin));
+            block = i64::from(rd(block + kbnblk * bin - 1, 1)?[0]);
+        }
+        let mut seen = std::collections::HashSet::new();
+        while let Some(a) = todo.pop() {
+            if !seen.insert(a) {
+                continue;
+            }
+            if seen.len() > max_bins {
+                return Err("more bins than the file holds".into());
+            }
+            if a < kafbin || rec_word(a).1 != 1 || !below(a, bin) {
+                return Err(format!("a bin address {a} is not a bin below KFSIZE"));
+            }
+            let b = rd(a, BIN)?;
+            todo.extend(
+                b[BIN - 2..]
+                    .iter()
+                    .filter(|&&p| p != 0)
+                    .map(|&p| i64::from(p)),
+            );
+            let mut j = 1usize;
+            while j <= BIN - 2 {
+                let st = b[j - 1];
+                if st == 0 || st == -1 {
+                    break;
+                }
+                if !(-1000..=1000).contains(&st) {
+                    return Err(format!("bin {a} word {j}: status {st}"));
+                }
+                let np = b[j] as usize;
+                if !(1..=392).contains(&np) {
+                    return Err(format!("bin {a} word {j}: pathname length {np}"));
+                }
+                let nbw = path_words(np);
+                if j + nbw + NLBIN - 1 > BIN {
+                    return Err(format!("bin {a} word {j}: entry passes the end of the bin"));
+                }
+                let ia = i64::from(b[j + 1 + nbw]);
+                let ni = NINFO + nbw;
+                if !below(ia, ni as i64) {
+                    return Err(format!("the info block at {ia} (bin {a}) reaches KFSIZE"));
+                }
+                let info = rd(ia, ni)?;
+                if info[0] != INFO_FLAG {
+                    return Err(format!("no info block at {ia} (bin {a})"));
+                }
+                let f = |k: usize| i64::from(info[3 + nbw + k]);
+                for (what, addr, n) in [
+                    ("internal header", f(I_AIHE), f(I_NIHE)),
+                    ("compression header", f(I_ACHE), f(I_NCHE)),
+                    ("user header", f(I_AUHE), f(I_NUHE)),
+                    ("data", f(I_ADAT), f(I_NDAT) + f(I_UNUS).max(0)),
+                ] {
+                    if n != 0 && !below(addr, n) {
+                        return Err(format!(
+                            "the {what} of the record at info {ia} ({n} words at {addr}) \
+                             reaches KFSIZE"
+                        ));
+                    }
+                }
+                j += nbw + NLBIN;
+            }
+        }
+        Ok(())
     }
 
     /// `KNRECS` = live entries in the bin blocks (what `zcatfi6` counts), `KHUSED` =

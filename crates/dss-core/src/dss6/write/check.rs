@@ -49,7 +49,19 @@ pub fn check_file6(path: &Path) -> Result<CheckReport, WriteError> {
     }
     let len = io.len()?;
     let expect = (kfs as u64).div_ceil(127) * 512;
-    if len != expect {
+    // PR78 review 2 R2-1: bytes past the record holding KFSIZE are a tail an interrupted
+    // store left (the next native write cuts it when nothing references it, dss6.md §9.3);
+    // a shorter file (a 508-byte final record, dss6.md §1.3) is a note.
+    if len > expect {
+        r.problems.push(format!(
+            "file is {len} bytes, KFSIZE implies {expect}: tail past KFSIZE"
+        ));
+        // Unproven-tail refusal: what the next native write does with it.
+        r.notes.push(match eng.tail_verdict() {
+            Ok(_) => "the tail is unreferenced: the next native write cuts it".into(),
+            Err(e) => format!("native writes refuse this file: {e}"),
+        });
+    } else if len != expect {
         r.notes
             .push(format!("file is {len} bytes, KFSIZE implies {expect}"));
     }

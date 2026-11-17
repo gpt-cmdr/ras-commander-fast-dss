@@ -64,6 +64,7 @@ mod ident;
 pyo3::import_exception!(ras_commander_fast_dss.exceptions, DssError);
 pyo3::import_exception!(ras_commander_fast_dss.exceptions, DssFormatError);
 pyo3::import_exception!(ras_commander_fast_dss.exceptions, DssUnsupportedRecordError);
+pyo3::import_exception!(ras_commander_fast_dss.exceptions, DssUnprovenTailError);
 pyo3::import_exception!(ras_commander_fast_dss.exceptions, DssPathnameNotFoundError);
 // P29: HEC DSS6 "no data" (a DssPathnameNotFoundError subclass).
 pyo3::import_exception!(ras_commander_fast_dss.exceptions, DssNoDataError);
@@ -3171,6 +3172,11 @@ fn write_err(py: Python<'_>, path: &str, e: dss7::write::WriteError) -> PyErr {
         E::BadPathname(_) | E::BadInput(_) => PyValueError::new_err(ctx(path, &e)),
         E::Unsupported(_) => DssUnsupportedRecordError::new_err(ctx(path, &e)),
         E::Corrupt(_) => DssFormatError::new_err(ctx(path, &e)),
+        E::UnprovenTail(_) => {
+            let err = DssUnprovenTailError::new_err(ctx(path, &e));
+            let _ = err.value(py).setattr("path", path);
+            err
+        }
         E::InjectedFault { .. } | E::Internal(_) => DssError::new_err(ctx(path, &e)),
     }
 }

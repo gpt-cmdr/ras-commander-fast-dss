@@ -1,7 +1,7 @@
 {
   "schema": "ras-commander-fast-dss-extraction/1",
-  "source_commit": "d47f3d0350f118231be292e3a1d521aa4a1d1eb6",
-  "history": "fresh: the public repository starts from this curated snapshot; no private history is carried over",
+  "source_commit": "a0fc87c4a250a30c738558e0578a76e516fc298a",
+  "history": "fresh public history from curated snapshots; selective post-extraction fixes and optimizations are recorded below; private history is not imported",
   "engine_version": "0.1.3",
   "numerical_methods_changed": false,
   "included_trees": [
@@ -24,19 +24,23 @@
   "excluded_trees": [
     "private development records, agent instructions and development tools (not published)"
   ],
-  "unchanged_files": 945,
+  "unchanged_files": 946,
   "changed_files": {
     ".gitattributes": {
       "source_sha256": "6423ff6d0c7d21cf6af7b35bda56a0420172ae13116eeb2d15c620647a1baa93",
       "sha256": "fa135a73885b3d6be11247935441c3d2aa359a51d9d507b7d807804f788514e9"
     },
     ".github/workflows/ci.yml": {
-      "source_sha256": "82912fccbc841a1a3ac465fa5ed25a3e171cd5a2e48eb62fd090f2b80744c9ed",
+      "source_sha256": "502885d26aaeff7c45611f528e4530af1caa4a13fb03600e2405053649bd3f8d",
       "sha256": "90b3286ed5d766969b8ecc0429d85ec723faeac0bc97d55c877ae36f6395a1b0"
     },
     ".gitignore": {
       "source_sha256": "cb1c909236453f65c5d8650ed02742dc314dac8c7abad2a9103da6e95506be7f",
       "sha256": "fe815975b01897e9b5c6d88cb737048f2fe0f0fd8d00bf61a45b7270ff32cbb8"
+    },
+    "AGENTS.md": {
+      "source_sha256": "a04331aa406ec21be6f9152d7c378b1f10643032dcc80c8e3ae2e8384f3b9e3c",
+      "sha256": "577c1c4f6ce166da69daed7c8d8be108b8534416bca53a923a65246a9e351f33"
     },
     "Cargo.lock": {
       "source_sha256": "ab43c551109188b581f5fd14e60e09c17938343208d5965e20ed0dc3eeddcdba",
@@ -151,16 +155,16 @@
       "sha256": "b83f1c24d8b5e5d6dd14483ef9fd7f9334e52742d7d782a366c42945d2bdefbe"
     },
     "crates/dss-core/src/dss6/write/engine.rs": {
-      "source_sha256": "a7383a644aa6fe8d86da8ad3b921f6429b827e93fa7118ebcf8556b6222a123f",
-      "sha256": "87c4477e4a7b94a915931356bc834a6120d1bcce94ca1ada73dc0f13e524e930"
+      "source_sha256": "bd5e1061c42f2c7daf81744f5454ec4195e3a28c7880df2a9dbb41716df563bd",
+      "sha256": "e4e0fe4c513cade0539ba9961d7945a76544cad5f1a9717a13f31e15a7476843"
     },
     "crates/dss-core/src/dss6/write/grid.rs": {
       "source_sha256": "d1810e0fde2d7dfed4660a01b492b420ebe67a7296eab29bc1de23cff86db00a",
       "sha256": "2a083804f70df0c70d21e5aec1aae0551c3efef8232da67b22dc8fdded3c473e"
     },
     "crates/dss-core/src/dss6/write/io.rs": {
-      "source_sha256": "c672f9b661367a33a13e161562b9b1a7f1265b2b2f456c114585e577b9d5e2f6",
-      "sha256": "614cd8c38f047488325de7d71ba78bb574cc88134c766ef0e646b4262671baab"
+      "source_sha256": "20f0598d0f81b1df178d529d7b469013cd8036f29445ee78f998c52b904643e0",
+      "sha256": "92db6fd01d78359751438f23464284cbaf1aa9c796b7e74e06fe1faa3785a4f6"
     },
     "crates/dss-core/src/dss6/write/its.rs": {
       "source_sha256": "ae7447d24c24b7af7fcf74b35b3e42b70baec403edc7e474217498e77926c663",
@@ -239,8 +243,8 @@
       "sha256": "a5abcd5643a025099812ee8f6c6a265e051a7973ad4f492a93aeca7c5f0f9e02"
     },
     "crates/dss-core/src/dss7/write/engine.rs": {
-      "source_sha256": "128aedae8b09c03e8ed47795880cf050f071ca148b118b1b022a425a60e5af91",
-      "sha256": "0d2dd769929fac681f9e2024ce72aab4aa3232554e2f4faac5f9cfeba697a58c"
+      "source_sha256": "f3b032b512feca979fb1e616e798e11e1f44ae0a68f8dd4528b6a2eebb138824",
+      "sha256": "8b09409f026addb56314048be37094f116e66cd13e3ae6f64ed3925e996d9bce"
     },
     "crates/dss-core/src/dss7/write/engine/batch.rs": {
       "source_sha256": "f2a65c0467127eb2da55ea838ba0a128fd77e2a4c57e9c83957f52baec4202db",
@@ -275,8 +279,8 @@
       "sha256": "c597e241c892b5d610ff185e61d9b16b89557b380fce479f9c30a6b94abcdc8b"
     },
     "crates/dss-core/src/dss7/write/mod.rs": {
-      "source_sha256": "27883352e7d60c86fca0539e9147560fd71e66d1f0243b917ba32bbe71a0544b",
-      "sha256": "9a3ef4b269850d09127dc4afa16376babfd858c16acb570b7aec3062c2553a99"
+      "source_sha256": "6152fc7cd57c052878fd3578871acfb324dbd8faadfaa2c92a0cd272faa60686",
+      "sha256": "08b3b2ac8c5edefde03ab4bb524bc480fc5dbb2b3b1de4694e035ae85df0e7a7"
     },
     "crates/dss-core/src/dss7/write/overlay.rs": {
       "source_sha256": "cc21eabae9bdb64c03840eaee90bd981b2abf76ff26e177058b2b671d324c516",
@@ -349,11 +353,6 @@
     "crates/dss-core/tests/corpus_headers.rs": {
       "source_sha256": "e6181bf26e9dcf312333c0049ee86fee5ec60e3837b0525229e29926fab185fe",
       "sha256": "f582672c772cf26a208b0c61074626cc67d85469437909a6a9eece1498f87e9d"
-    },
-    "crates/dss-core/tests/data/p59b_monolith.tsv": {
-      "source_sha256": "1a5fcc245f3bcda48a514c98a6543b7d7f324e53608ffd0a0027c62ee4a8146a",
-      "sha256": "1a5fcc245f3bcda48a514c98a6543b7d7f324e53608ffd0a0027c62ee4a8146a",
-      "change": "moved from an unpublished path"
     },
     "crates/dss-core/tests/dss6_all_missing.rs": {
       "source_sha256": "29f000d7337b83537b08efcd68b1002d5296563977554fea0c257bd26b008546",
@@ -432,8 +431,8 @@
       "sha256": "33e77320f7ba3177f4acd4f5a4c37a0a53c06f1130b1a73705308a1166f45415"
     },
     "crates/dss-core/tests/dss6_write.rs": {
-      "source_sha256": "796e97290c10b892d47019f33c1b796145171432291bef481bf3659147a4949e",
-      "sha256": "b04b26b23cd89fc72f7f13d1f71475b4162c3d044e14973912940e3ea700d844"
+      "source_sha256": "c906247b80b5073575461655098335167a5f29d47d17fe993099d1a180d999eb",
+      "sha256": "702497f02545b03130797d6d75e3f51d12532c4110417cdf72b73d81e09d72d4"
     },
     "crates/dss-core/tests/dss7_catalog.rs": {
       "source_sha256": "5d3f779bd3014d7a41a13288043378bd84e82706a05670da56921192e3dc16bd",
@@ -520,8 +519,8 @@
       "sha256": "4208e4d79e07d2d11877bf0673e829f3aaf5836b6dfeda60847c60dbd51e185c"
     },
     "crates/dss-core/tests/p64_kill.rs": {
-      "source_sha256": "4935745d82fd81611163319d7c24420594b63c4ece60022ca983316c4afbed17",
-      "sha256": "cfc689923393735bc8bb5c98ac909054a6e691ce9b3c02f278bc9cbcb56cb65c"
+      "source_sha256": "f7785b0ad8e6a603f1c277a40e28a8ea0e73ea80f15d254cba9fc373d8b20084",
+      "sha256": "54db11cd65f94d6e90814c872d1d1b3e6058d0d9e0605ffadabe6c5acc162077"
     },
     "crates/dss-core/tests/p66_held_handle_pattern.rs": {
       "source_sha256": "22277c9a6a045aa67b54d89cd6c31a9350a8dff53336c648a1c36403e2b7b8bd",
@@ -612,8 +611,8 @@
       "sha256": "d16f79f3ef154c3c959d579016ff8fd934303484b01fc16ea13237780333b925"
     },
     "crates/dss-py/src/lib.rs": {
-      "source_sha256": "bd84ae0469b32cd82965fe7424dea59c51a5afeb61782081e49637d2a3330573",
-      "sha256": "7e94d6bdcc84c45b75ab151ea2d0a40ed0d31d14dbd1ff566186d4152938780a"
+      "source_sha256": "8c7772c6953f2070ede5b8907159e7c9dcc793f3312fde6d4162213f619c1ccc",
+      "sha256": "e78bb600cd56f48778cb252e396d4b873bee007f73a2a38168291f6948fda1e2"
     },
     "crates/dss-py/src/vortex.rs": {
       "source_sha256": "d33b33e6bfead7f0df23c5326dc98e07795fa01a6da021fca63d5242709f87db",
@@ -887,16 +886,6 @@
       "source_sha256": "5639550c57403b184cf07db0a75328c76b9d5058994eaf7293ba21ab1c7d03c4",
       "sha256": "d9785b95d2f370128848fbe951c6c287a816d2d17dcf61eb8f91779ac4c16acf"
     },
-    "crates/dss-vortex/tests/data/nc_expected_refusals.json": {
-      "source_sha256": "d5a17cb8f8947ff845d87eb3345f79472c3e2f7fb56e5a976d50d80266a978c1",
-      "sha256": "d5a17cb8f8947ff845d87eb3345f79472c3e2f7fb56e5a976d50d80266a978c1",
-      "change": "moved from an unpublished path"
-    },
-    "crates/dss-vortex/tests/data/p59b_hash21.txt": {
-      "source_sha256": "fae6986f81f31c92a9e71d5624a6b3e79fc942a18805639f2bcf00c2281843e0",
-      "sha256": "fae6986f81f31c92a9e71d5624a6b3e79fc942a18805639f2bcf00c2281843e0",
-      "change": "moved from an unpublished path"
-    },
     "crates/dss-vortex/tests/grib1_reader.rs": {
       "source_sha256": "efc8a0b4e2ecdd6837555f0f1d32d562aa307d3e4d9f0c4eeadc64e7f268392e",
       "sha256": "771f6a2d95cdeacff2d475e400fd69ca59014baef6f034cacf5a12525cc496fc"
@@ -973,11 +962,6 @@
       "source_sha256": "d147c3e747f23830ced683ec8bec5224dac220b42199df8c1d02eaa383b68bb5",
       "sha256": "19dea7f88a48a544f187543a34bd1dc8736f68de7bcb106e97d1e8fcb82b12fd"
     },
-    "crates/dss-vortex/tests/p71_hostile_inputs.rs": {
-      "source_sha256": "3012420d7338d8bd7a59ee76a8e8b6387628c3e88d10d2a164ddbb376452da6c",
-      "sha256": "4595c1bfad7249a7917da6df3fbc9cb1b3c3494a61bfbbed0152bafed8d2261a",
-      "change": "renamed test file"
-    },
     "crates/dss-vortex/tests/p71_sources.rs": {
       "source_sha256": "399b7eebc6054ef641be491e3d13cf898a1dc5598fa5a4d674c67ed52954d059",
       "sha256": "ab80f5e259e8a3eaf994bcb2428a33bbb0dd1822a9dd249092ad6b6418f6a896"
@@ -1014,19 +998,9 @@
       "source_sha256": "f069ef1c65b1ba8587acaa0aee06ea3df629718c8fa1e632e9a1954da4ce41f3",
       "sha256": "825dc1d1b6ff4aab8c83fe8cd1d3e1b1021f8010b97dc1b667d81254ad121969"
     },
-    "crates/dss-vortex/tests/support/nc_job.py": {
-      "source_sha256": "ac277a34d3d7289f96ed1f910ca3cb3976f2e406392e1b9c9a1bd12a0502beee",
-      "sha256": "18ae46bb2ec824f7045714a3e22d79fd0fa56d56659c6b7c9147d0210e7b36ca",
-      "change": "moved from an unpublished path"
-    },
     "crates/dss-vortex/tests/support/sha256.rs": {
       "source_sha256": "3d0c94cf4bbbd5566be634fdbf8eb90ef66af3d69d37fe10bfa3f4c65f53001d",
       "sha256": "b636bb72640533d4124bd95101d3f4704909cf2b1af840a94668d7b937c76607"
-    },
-    "crates/dss-vortex/tests/support/zarr_job.py": {
-      "source_sha256": "ace74b4815983d78cf4ec7205bbc9871c4b334022f3008713a5a9e048543e3d2",
-      "sha256": "ace74b4815983d78cf4ec7205bbc9871c4b334022f3008713a5a9e048543e3d2",
-      "change": "moved from an unpublished path"
     },
     "crates/dss-vortex/tests/temporal_pipeline.rs": {
       "source_sha256": "7a60c29842bc8e4cf1d93fdfd74bf6891f64daf15b7683db47bd3b478569d180",
@@ -1133,8 +1107,8 @@
       "sha256": "5af1fd9625a4aed8eb529ae7e52f0dadb61483aa1985e14a5aa3c2b61071d2e1"
     },
     "docs/format/dss6.md": {
-      "source_sha256": "5f05a07606590f836ea745f89f0278649111d3bde0d6365b94dcc0338c3851e7",
-      "sha256": "3cc3de6fb24c0cfd7520983dc150ee5546eaa252e0b80cff7214e583eba7c190"
+      "source_sha256": "2c62d2be6c65ec55d359e37751452be3c97ddea3aa0711ec962fd2d127dddb24",
+      "sha256": "5bfffef6149ad59e6903bccf5898c8155d2fb6b0661d55fd5556e47ef991dfc9"
     },
     "docs/format/dss7.md": {
       "source_sha256": "eac1e43446e959ea8aed28e2f1af992eb1ce96b306309c683ec11b56f29edfc2",
@@ -1181,11 +1155,11 @@
       "sha256": "455a84da50abe4596423b2adb2a1006a11afdb6ba005a1a34f0bb4ba8138c63c"
     },
     "python/ras_commander_fast_dss/__init__.py": {
-      "source_sha256": "4f1925c7e6e9812827b77c270ad79d9657564d2f7ef14930815b5bab179b7699",
-      "sha256": "95925d9982c3abde649bfdd1c3aad969b380a4c6b365466646e82397192d92e0"
+      "source_sha256": "13a6c2d3f66d2987b2c0d8f7b75f351fd753978d50b5cdcbaef4b7a4fba2072d",
+      "sha256": "5c2c10b4fdabfa5e004e5885b57a289ad38f558d7f9a200d8d00c504aa87de4c"
     },
     "python/ras_commander_fast_dss/_file.py": {
-      "source_sha256": "94157596f53faed0f3ec69a04bf6b978d5629ea668216a0b5963b9fff5e02511",
+      "source_sha256": "b6bfe70e9339ea2e0ed1af1e2def818b3de37653915683951aeb90ad9558385b",
       "sha256": "bbd934f5b55fc41bac12f53eebb130820de0f9dec9b6c5ab62198aed4d68f3fa"
     },
     "python/ras_commander_fast_dss/_native.pyi": {
@@ -1197,24 +1171,24 @@
       "sha256": "3524371476f940967fe6ad73e74e5f57321af47ab30052b5660f5691642f1109"
     },
     "python/ras_commander_fast_dss/_write.py": {
-      "source_sha256": "e4ba27a8b33da40248fb5e2523938eaf92a66aeb0e652cf65257fcf3d5c159ac",
-      "sha256": "fdf634826e6ad648faf1a4c25e40ec4baed852aff323353398e98bde33da8b05"
+      "source_sha256": "44a79721702e8ca9ceb14958ab4d9c323c245393c0e82f001a8fafed355abbc7",
+      "sha256": "3285342699cb34820b0f02c49d39b41155bc3eec362ef1e5cd465961ae9c98c4"
     },
     "python/ras_commander_fast_dss/_write_grid.py": {
       "source_sha256": "7507ac6d7a0b0f9dbe902c52e6d3b0c74fb08b166898507218baa50e687b8bec",
       "sha256": "cdf8dfc810314d931f253498b3916f1b013fbfe3d181d1585c1648b85a6d3dbc"
     },
     "python/ras_commander_fast_dss/_write_pd.py": {
-      "source_sha256": "cb3e167b5f64ca1e3a324ff6845767b75a49bfb719b54dc13712660bf227e70a",
-      "sha256": "4297252cb0a1836c19edd38054d37000dee55bd9b610d26065f31075959263d0"
+      "source_sha256": "dc2da8081a2bd4c72b437e6ea5ee44962eb2584acdbc12e0097102818fab5ab7",
+      "sha256": "352a1a52b5f6edaf718801b4d9444178a2f44ce6f253dbc5f80c674dd179866b"
     },
     "python/ras_commander_fast_dss/_write_profile_location.py": {
       "source_sha256": "5f580d537a12dc25fbb2a4b4eb079eb917334b7590100b0abb332a096a31223a",
       "sha256": "9f09eb27fc1a81192242771072dd8ca4ee6d36dcb3c35a25b56fca210c70d674"
     },
     "python/ras_commander_fast_dss/exceptions.py": {
-      "source_sha256": "e0d4888ff4ecc308ed2f88a45be40c8b9a870b5f2ab4e511062d73cf5d0bc749",
-      "sha256": "aa50c676c2be105cafbac01505c9d0c0ec11102294c1117bd3f6530edc7141fd"
+      "source_sha256": "3ce7490069bb97d0de0bcdc675ea04d6e01a45843789f7c57ee1e6d9d32a78aa",
+      "sha256": "2768fc92cace6e8cd0c46999131696e227270702f14554e898a230414f797c9b"
     },
     "python/ras_commander_fast_dss/gridded/__init__.py": {
       "source_sha256": "81ddc3387b9dfb2a3b012463992ff154efc4c9787cd65761ff48a8eac3e1ecb0",
@@ -1333,8 +1307,8 @@
       "sha256": "4dd92dc96a1b44bd918123a47268628a377f61f67e975ebde8b84f235d32ee8a"
     },
     "tests/python/test_p64_sync_policy.py": {
-      "source_sha256": "eabf213a6ba2e79e1fdab9ba75baab77c6452404e44aca5085525806cf18bad4",
-      "sha256": "e6a2e95346c05a587127a4782cf6a29000e53b6dd1dd218883206e5d6830c7da"
+      "source_sha256": "f8dee51b2a8187cedfc4156bb4f832282350ac87f592b5948595b3394934117c",
+      "sha256": "e2ce17f54b500f11432fdbca5d4814673d68ca52fa5f4150f5a6fad55bf52e5a"
     },
     "tests/python/test_p65_repair.py": {
       "source_sha256": "e008fe9d668284dc6b7b155d08444c946897334d4af7490cb7a04e77fd992663",
@@ -1345,7 +1319,7 @@
       "sha256": "ea6afe1a600ed6b41f436f939142fe1ee15264dea0184ef8e667834785efa46d"
     },
     "tests/python/test_p72_cache_invalidation.py": {
-      "source_sha256": "2a562631bcdb9762a69abb64ad98acf535bfc93400054bc2d782d7f0a4cf025e",
+      "source_sha256": "14ac3651b6cc901aec27b688eeb27543d8baaf4a712d6d13d698a3c39ae9957c",
       "sha256": "406d843d023e2eaebc01c4353dc3cda30ce0ef1c1ae36f2f161c3df91ac374e2"
     },
     "tests/python/test_p72_threads.py": {
@@ -1361,7 +1335,7 @@
       "sha256": "3130c34c8a8494e1fe0d0bf4ec6e757c44b6f87ae220fbb38209f9a282d7ffb0"
     },
     "tests/python/test_p76_calendar.py": {
-      "source_sha256": "534f7f49d9839ac4799936f6df7f06a33f476d56d96d6ecfd708415faa51ddc4",
+      "source_sha256": "223df824f490fbdd67371b4b4d221d7f9bd0db4626aca122c7e87f42de92558f",
       "sha256": "a02cb544d929c70b3296da1a47d0c0d8f24a1e451542d7171a6d1939da107551"
     },
     "tests/python/test_paired_data_grid.py": {
@@ -1444,11 +1418,16 @@
   "added_files": {
     ".github/workflows/build.yml": "07f568ea20be8d2d81854e27b01b61ced11c67c34f8737ccecd962909012cfe5",
     ".github/workflows/release.yml": "31c1012130c08fd0601c5cfb2b2a6a459e5a17090ba84212f1ce1207d5efa4e0",
-    "AGENTS.md": "577c1c4f6ce166da69daed7c8d8be108b8534416bca53a923a65246a9e351f33",
-    "CHANGELOG.md": "eba01d933ed1533150cbfe2c4da9c27643b0fc670f6ac4fa904596075f51f0fe",
+    "CHANGELOG.md": "4e2813e83ff5cc5c500543c35d420e0cbee8be0b37dc9c1cd1e266534e114944",
     "LICENSE": "7471233a7bf4de7d29aee3b05b81e6be4f4bf6dbbcabc8d9360b7a750b097513",
     "THIRD_PARTY_NOTICES.md": "77323e10c5a042585eccea688534bc51dabb822cd44fe69bec837b3f200b9020",
+    "crates/dss-core/tests/data/p59b_monolith.tsv": "1a5fcc245f3bcda48a514c98a6543b7d7f324e53608ffd0a0027c62ee4a8146a",
     "crates/dss-vortex/tests/data/README.md": "08c007d28a7beaf073243d0fde244659ff92870cd990f299e70579198718aa78",
+    "crates/dss-vortex/tests/data/nc_expected_refusals.json": "d5a17cb8f8947ff845d87eb3345f79472c3e2f7fb56e5a976d50d80266a978c1",
+    "crates/dss-vortex/tests/data/p59b_hash21.txt": "fae6986f81f31c92a9e71d5624a6b3e79fc942a18805639f2bcf00c2281843e0",
+    "crates/dss-vortex/tests/p71_hostile_inputs.rs": "4595c1bfad7249a7917da6df3fbc9cb1b3c3494a61bfbbed0152bafed8d2261a",
+    "crates/dss-vortex/tests/support/nc_job.py": "18ae46bb2ec824f7045714a3e22d79fd0fa56d56659c6b7c9147d0210e7b36ca",
+    "crates/dss-vortex/tests/support/zarr_job.py": "ace74b4815983d78cf4ec7205bbc9871c4b334022f3008713a5a9e048543e3d2",
     "docs/releasing.md": "82b7d8f51a2ed03f499c1d429f7ce43a4976e36b2aca55e051a74f2cac348a07",
     "licenses/UPSTREAM_NOTICES.json": "480c507320439219ab5455f2cfc91b2b2ceac86f09204dfbe1b6d4f2671fd565",
     "licenses/dependencies/INDEX.md": "666fbd715dbbc11317dea04a9c6217c5e2b6df5d26a81c0865951932bc704c83",
@@ -1728,11 +1707,23 @@
     "0.1.3: the release workflow (release.yml, build.yml, scripts/check_release_tag.py, scripts/release_assets.py and its test), tests/smoke_wheel.py, AGENTS.md and docs/releasing.md are public-only",
     "0.1.3: after review, the times= check for raw NaN values (python/ras_commander_fast_dss/_file.py, _write.py and tests/python/test_p76_calendar.py) was ported from private development commit b4606195b6bced9575d2cd5d629d395fe6c66862, merged into the private main line as ed45f27153364103f449f9acda006c43fc86c8a5; neither is part of source_commit; code and test assertions are identical, and comments that cite the review are reworded the same way",
     "0.1.3: after review, scripts/release_assets.py pypi-check takes SHA256SUMS and checks exactly the listed distributions, ignoring the publish action's attestation files (public-only, with its test, release.yml and docs/releasing.md); the CHANGELOG entry for the times= check is a public-only edit",
-    "0.1.3: after review, DssFile drops its DSS6 dataset-location index again when a session write ends, so a write_batch generator that reads a location cannot leave a stale index (python/ras_commander_fast_dss/_file.py and tests/python/test_p72_cache_invalidation.py), ported from private development commit 0e5e47ea45b2330ef86554fb59a47494bfc0386f, which is not part of source_commit; code and test assertions are identical, and the comments are worded as the public copies already were; the CHANGELOG line for it is a public-only edit"
+    "0.1.3: after review, DssFile drops its DSS6 dataset-location index again when a session write ends, so a write_batch generator that reads a location cannot leave a stale index (python/ras_commander_fast_dss/_file.py and tests/python/test_p72_cache_invalidation.py), ported from private development commit 0e5e47ea45b2330ef86554fb59a47494bfc0386f, which is not part of source_commit; code and test assertions are identical, and the comments are worded as the public copies already were; the CHANGELOG line for it is a public-only edit",
+    "0.1.3 finalization: selectively port DSS6 physical-tail reconciliation/refusal from private commit6813bb794df877cc37d5a7452dabeaf5ab81364c and array/fixed-buffer preparation optimization from db70932d88bd5543e1ff9670f68c1a5a8d59cb4f. Preserve public metadata/licensing/workflows and existing raw-NaN/session-cache ports; reword newly added development-review labels and use0.1.3 in public tail documentation."
   ],
   "replaced_files": [
     ".github/workflows/ci.yml",
     ".gitignore",
     "README.md"
+  ],
+  "previous_source_commit": "d47f3d0350f118231be292e3a1d521aa4a1d1eb6",
+  "selective_ports": [
+    {
+      "source_commit": "6813bb794df877cc37d5a7452dabeaf5ab81364c",
+      "purpose": "DSS6 physical-tail reconciliation and typed refusal with complete regression tests"
+    },
+    {
+      "source_commit": "db70932d88bd5543e1ff9670f68c1a5a8d59cb4f",
+      "purpose": "array preparation and fixed-size serialization allocations"
+    }
   ]
 }

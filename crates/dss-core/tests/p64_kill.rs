@@ -972,6 +972,26 @@ fn run_write(case: &str, f: &Path, o: &WriteOptions) -> Result<(), WriteError> {
         }
         // P76: a batch; its repair is the same batch again.
         "batch7" | "batch6" => batch(v, f, o),
+        // DSS6 physical-tail recovery: a long write (three hourly blocks of ~750 words each)...
+        "tail6_long" => hourly(
+            6,
+            f,
+            b"/T/LONG/FLOW//1HOUR/S/",
+            t(2021, 5, 20, 3600),
+            &ramp(24 * 45, 50.0),
+            o,
+        ),
+        // ...interrupted, then followed by a shorter write: one small irregular record,
+        // or a batch of a small irregular and a small paired-data record.
+        "tail6_short" => irregular(
+            6,
+            f,
+            b"/Z/SHORT/STAGE//IR-MONTH/S/",
+            &[t(2021, 7, 2, 0), t(2021, 7, 3, 0)],
+            &[1.25, 2.5],
+            o,
+        ),
+        "tail6_short_batch" => short_batch6(f, o),
         // The copy-out repair, killed like a write (it writes only `dest`), in the mode
         // under test (`repair_dss7_with`).
         "repair7" => repair_dss7_with(f, &copy_dest(f), o.sync).map(|_| ()),
@@ -1057,6 +1077,9 @@ fn allowed_after_kill6(problems: &[String]) -> bool {
             || p.starts_with("KBINS is")
             || p.starts_with("KHUSED is")
             || p.starts_with("KBOVER is")
+            // DSS6 physical-tail recovery: a store killed before its Allocation header leaves
+            // bytes past KFSIZE; the next native write cuts them.
+            || p.ends_with("tail past KFSIZE")
     })
 }
 
@@ -1101,6 +1124,17 @@ fn assert_clean(v: u8, f: &Path, what: &str, want_listed: Option<&BTreeSet<Vec<u
     if v == 6 {
         let c = check_file6(f).unwrap();
         assert!(c.is_clean(), "{what}: {:?}", c.problems);
+        // DSS6 physical-tail recovery: the reader's catalog has no anomaly either (an extra
+        // physical tail is `file is N bytes, header implies M`).
+        let file = Dss6File::open(f).unwrap();
+        let cat = file.catalog().unwrap();
+        assert!(cat.anomalies.is_empty(), "{what}: {:?}", cat.anomalies);
+        let len = std::fs::metadata(f).unwrap().len();
+        assert_eq!(
+            Some(len),
+            file.header().expected_file_bytes(),
+            "{what}: physical size"
+        );
     } else {
         let mut file = Dss7File::open(f).unwrap();
         let cat = file.catalog().unwrap();
@@ -4563,4 +4597,653 @@ fn r24_brute_force_sweep_finds_nothing_reachable_outside_the_ledger() {
     }
     assert!(n > 20, "{n}");
     eprintln!("SWEEP TOTAL {n} files: {total:?}");
+}
+
+// ---------------------------------------------------------------------------------
+// DSS6 physical-tail recovery: an unreferenced DSS6 physical tail. A store that is killed after
+// its record area reaches the file (Data, EndOfFile) but before the Allocation header
+// leaves bytes past KFSIZE and no marker. Before the fix, a later shorter write left part
+// of them, and the reader's catalog reported `file is N bytes, header implies M`. The
+// next native write now cuts the tail once it has shown that nothing references it
+// (`Engine::tail_plan`, `Engine::cut_tail`, dss6.md §9.3); a tail it cannot show unused
+// refuses the write with the file unchanged (address-root qualification).
+// ---------------------------------------------------------------------------------
+
+/// The batch of `tail6_short_batch`: a small irregular and a small paired-data record.
+fn short_batch6(f: &Path, o: &WriteOptions) -> Result<(), WriteError> {
+    let times = [t(2021, 7, 5, 0), t(2021, 7, 6, 0)];
+    let irr = [3.5f32, 4.5];
+    let ord = [0.0f32, 1.0];
+    let vals = [5.0f32, 6.0];
+    let its = ItsInput6 {
+        pathname: b"/Z/SHORTB/STAGE//IR-MONTH/S/",
+        times: &times,
+        values: RtsValues::F32(&irr),
+        quality: None,
+        units: b"FT",
+        data_type: b"INST-VAL",
+        mode: ItsMode::Replace,
+    };
+    let pd = PdInput::new(
+        b"/Z/SHORTPD/STAGE-FLOW///S/",
+        PdArrays::F32 {
+            ordinates: &ord,
+            values: &vals,
+        },
+        1,
+        b"FT",
+        b"LINEAR",
+        b"CFS",
+        b"LINEAR",
+    );
+    let items = [w6::BatchItem6::Its(its), w6::BatchItem6::Pd(pd)];
+    let held = HELD.with(|h| match h.borrow().as_ref() {
+        Some((p, file)) if p == f => Some(file.try_clone().unwrap()),
+        _ => None,
+    });
+    if held.is_some() {
+        HELD_WRITES.with(|c| c.set(c.get() + 1));
+        HELD_TOTAL.fetch_add(1, Ordering::SeqCst);
+    } else {
+        PATH_WRITES.with(|c| c.set(c.get() + 1));
+    }
+    let r = match &held {
+        Some(file) => w6::write_batch6_to(file, &items, o),
+        None => w6::write_batch6(f, &items, o),
+    }?;
+    match r.failed {
+        Some((_, e)) => Err(e),
+        None => Ok(()),
+    }
+}
+
+/// Byte offset of DSS6 word address `a` (127 words per 512-byte record, `zgetrw6.f`).
+fn byte6(a: i64) -> u64 {
+    ((a as u64 - 1) / 127) * 512 + ((a as u64 - 1) % 127) * 4
+}
+
+fn word6(f: &Path, a: i64) -> i64 {
+    let mut h = std::fs::File::open(f).unwrap();
+    let mut b = [0u8; 4];
+    h.seek(SeekFrom::Start(byte6(a))).unwrap();
+    h.read_exact(&mut b).unwrap();
+    i64::from(i32::from_le_bytes(b))
+}
+
+fn set_word6(f: &Path, a: i64, x: i64) {
+    let mut h = std::fs::OpenOptions::new().write(true).open(f).unwrap();
+    h.seek(SeekFrom::Start(byte6(a))).unwrap();
+    h.write_all(&(x as i32).to_le_bytes()).unwrap();
+}
+
+/// Bytes past the record holding KFSIZE (0 when there is no tail).
+fn tail6(f: &Path) -> u64 {
+    let len = std::fs::metadata(f).unwrap().len();
+    let want = Dss6File::open(f)
+        .unwrap()
+        .header()
+        .expected_file_bytes()
+        .unwrap();
+    len.saturating_sub(want)
+}
+
+fn tail_full() -> bool {
+    std::env::var_os("P64_TAIL_FULL").is_some()
+}
+
+/// The killed long writes of the tail matrix, and the shorter writes that follow them.
+const TAIL_KILLED: [&str; 2] = ["tail6_long", "batch6"];
+const TAIL_SHORT: [&str; 2] = ["tail6_short", "tail6_short_batch"];
+
+/// What the file must hold after the killed `long` write and a completed `short` one:
+/// each record of the base as before; each record `long` writes as before or as `long`
+/// wrote it; each record `short` writes as `short` wrote it; the catalog listing exactly
+/// the records that read; a clean structure, catalog and physical size.
+fn check_tail_repaired(f: &Path, what: &str, long: &Expect, short: &Expect) {
+    assert_clean(6, f, what, None);
+    let mut known = long.known.clone();
+    known.extend(short.known.clone());
+    let now = snapshot(6, f, &known);
+    for k in known.keys() {
+        let got = now.get(k);
+        if short.targets.contains(k) {
+            assert_eq!(got, short.want.get(k), "{what}: short record {k:?}");
+        } else if long.targets.contains(k) {
+            assert!(
+                got == long.before.get(k) || got == long.want.get(k),
+                "{what}: {k:?} is neither old nor new"
+            );
+        } else {
+            assert_eq!(got, long.before.get(k), "{what}: prior record {k:?}");
+        }
+    }
+    let listed6: BTreeSet<Vec<u8>> = listed(6, f).into_keys().collect();
+    let read: BTreeSet<Vec<u8>> = now.into_keys().collect();
+    assert_eq!(listed6, read, "{what}: catalog listing");
+}
+
+/// The next write after a kill: `short` in the default mode.
+fn write_short(short: &str, f: &Path) {
+    retry_locked(short, || {
+        session(6, f, || run_write(short, f, &WriteOptions::default()))
+    });
+}
+
+#[derive(Default)]
+struct TailCounts {
+    /// Kills that left a tail, per (case, mode).
+    tails: BTreeMap<String, usize>,
+    /// Shorter writes that started on a file with a tail and so had to cut it.
+    cut: usize,
+}
+
+fn check_tail_case(
+    long: &str,
+    dir: &Path,
+    sync: SyncMode,
+    second: bool,
+    counts: &mut Counts,
+    tc: &mut TailCounts,
+) {
+    let held = if held_mode() { "_held" } else { "" };
+    let tag = format!("tail_{}{held}", sync.as_str());
+    let base = dir.join(format!("{long}_{tag}_base.dss"));
+    make_base(long, &base);
+    assert_clean(6, &base, &format!("{long} base"), None);
+    let keep = std::env::var_os("DSS_P64_KILL_OUT").map(PathBuf::from);
+    let reference = |w: &str| {
+        let r = dir.join(format!("{long}_{tag}_ref_{w}.dss"));
+        std::fs::copy(&base, &r).unwrap();
+        run_write(w, &r, &WriteOptions::default()).unwrap();
+        assert_clean(6, &r, &format!("{w} reference"), None);
+        if let Some(k) = &keep {
+            std::fs::create_dir_all(k).unwrap();
+            std::fs::copy(&r, k.join(r.file_name().unwrap())).unwrap();
+        }
+        r
+    };
+    if let Some(k) = &keep {
+        std::fs::create_dir_all(k).unwrap();
+        std::fs::copy(&base, k.join(base.file_name().unwrap())).unwrap();
+    }
+    let x_long = expect(long, &base, &reference(long));
+    let x_short: BTreeMap<&str, Expect> = TAIL_SHORT
+        .iter()
+        .map(|&w| (w, expect(w, &base, &reference(w))))
+        .collect();
+    let mut at = 0usize;
+    loop {
+        let f = dir.join(format!("{long}_{tag}_{at}.dss"));
+        std::fs::copy(&base, &f).unwrap();
+        let point = match kill_at_fine(long, &f, at, sync) {
+            Outcome::Done(n) => {
+                assert_eq!(n, at, "{long}: barrier count");
+                let _ = std::fs::remove_file(&f);
+                break;
+            }
+            Outcome::Killed(p) => p,
+        };
+        open_after_kill(&f);
+        counts.kills += 1;
+        let what = format!("{long} {tag} kill {point}");
+        counts.phase(long, &tag, &point, "killed payload", || {
+            check_killed_payload(6, &f, &what, &x_long)
+        });
+        counts.phase(long, &tag, &point, "killed structure", || {
+            check_killed_structure6(&f, &what)
+        });
+        let has_tail = tail6(&f) > 0;
+        if has_tail {
+            *tc.tails.entry(format!("{long} {tag}")).or_default() += 1;
+        }
+        if let Some(k) = &keep {
+            if has_tail {
+                std::fs::create_dir_all(k).unwrap();
+                std::fs::copy(&f, k.join(format!("{long}_{tag}_{at}_killed.dss"))).unwrap();
+            }
+        }
+        for short in TAIL_SHORT {
+            let xs = &x_short[short];
+            let g = dir.join(format!("{long}_{tag}_{at}_{short}.dss"));
+            std::fs::copy(&f, &g).unwrap();
+            if has_tail {
+                tc.cut += 1;
+            }
+            let label = format!("{short} repaired");
+            counts.phase(long, &tag, &point, &format!("{label} write"), || {
+                write_short(short, &g)
+            });
+            counts.phase(long, &tag, &point, &label, || {
+                check_tail_repaired(&g, &format!("{what} {label}"), &x_long, xs)
+            });
+            if let Some(k) = &keep {
+                if has_tail {
+                    let name = format!("{long}_{tag}_{at}_{short}_repaired.dss");
+                    std::fs::copy(&g, k.join(name)).unwrap();
+                }
+            }
+            let _ = std::fs::remove_file(&g);
+            // A second kill inside the shorter write, at every one of its barriers: inside
+            // the cut of the tail (end-of-file record, flush, truncation, flush) and in its
+            // own stores, in the mode under test. Then a clean shorter write.
+            // Bounded by default (CI runs this file in debug): every barrier for the first
+            // three tail kills of each case and mode, the four barriers of the cut itself for
+            // the others. `P64_TAIL_FULL=1` takes every barrier for every tail kill.
+            let tail_index = tc.tails.get(&format!("{long} {tag}")).copied().unwrap_or(0);
+            let all_barriers = tail_full() || tail_index <= 3;
+            if second && has_tail {
+                let mut at2 = 0usize;
+                loop {
+                    if !all_barriers && at2 >= 4 {
+                        break;
+                    }
+                    let h = dir.join(format!("{long}_{tag}_{at}_{short}_{at2}.dss"));
+                    std::fs::copy(&f, &h).unwrap();
+                    let done = match kill_at_fine(short, &h, at2, sync) {
+                        Outcome::Done(_) => true,
+                        Outcome::Killed(_) => {
+                            counts.second_kills += 1;
+                            open_after_kill(&h);
+                            false
+                        }
+                    };
+                    let label = format!("{short} second kill {at2}, repaired");
+                    counts.phase(long, &tag, &point, &format!("{label} write"), || {
+                        write_short(short, &h)
+                    });
+                    counts.phase(long, &tag, &point, &label, || {
+                        check_tail_repaired(&h, &format!("{what} {label}"), &x_long, xs)
+                    });
+                    if let Some(k) = &keep {
+                        // The state between the end-of-file record and the truncation.
+                        if at2 == 2 {
+                            let name =
+                                format!("{long}_{tag}_{at}_{short}_second{at2}_repaired.dss");
+                            std::fs::copy(&h, k.join(name)).unwrap();
+                        }
+                    }
+                    let _ = std::fs::remove_file(&h);
+                    if done {
+                        break;
+                    }
+                    at2 += 1;
+                }
+            }
+        }
+        let _ = std::fs::remove_file(&f);
+        at += 1;
+    }
+    eprintln!("{long} {tag}: {at} kill points");
+}
+
+/// The killed long write in every flush mode, repaired by each shorter write (the
+/// default mode), with second kills inside the shorter write in the mode under test.
+/// `P64_HELD=1` runs every write through a held `DssFile`-style handle (session).
+#[test]
+fn dss6_tail_cut_after_a_kill_before_allocation() {
+    let d = tmp("tail6");
+    let mut counts = Counts::default();
+    let mut tc = TailCounts::default();
+    for long in TAIL_KILLED {
+        for m in MODES {
+            check_tail_case(long, &d, m.0, true, &mut counts, &mut tc);
+        }
+    }
+    report(&counts, "dss6 tail");
+    eprintln!(
+        "P64 dss6 tail: kills leaving a tail {:?}; {} shorter writes started on a tail",
+        tc.tails, tc.cut
+    );
+    assert!(counts.failures.is_empty(), "{:?}", counts.failures);
+    // The window is reached in every mode of every case.
+    let held = if held_mode() { "_held" } else { "" };
+    for long in TAIL_KILLED {
+        for m in MODES {
+            let key = format!("{long} tail_{}{held}", m.0.as_str());
+            assert!(
+                tc.tails.get(&key).copied().unwrap_or(0) > 0,
+                "{key}: {:?}",
+                tc.tails
+            );
+        }
+    }
+    let _ = std::fs::remove_dir_all(&d);
+}
+
+/// Persisted address-root coverage: an unreferenced tail is cut only when every persisted address
+/// root and range lies below KFSIZE; otherwise every native write is refused with
+/// `WriteError::UnprovenTail` before anything is written (marker reconciliation
+/// included), and the file stays byte for byte as it was. The cases are the reviewer's
+/// probes (`pr81-review/probes3`, `tag-chain`) and their neighbours.
+///
+/// Word addresses below are 1-based (header word `i`, 0-based, is address `i + 1`):
+/// KFSIZE 6, KTAGBK 14, KAFBIN 20, KCOMPI 43, KCOMPN 44, KRES 56..69 (marker 68/69).
+fn unproven_case(case: &str, f: &Path) {
+    make_base("tail6_short", f);
+    let kfs = word6(f, 6);
+    let grow = |f: &Path, words: i64| {
+        let h = std::fs::OpenOptions::new().write(true).open(f).unwrap();
+        h.set_len(byte6(kfs + words)).unwrap();
+    };
+    // The first entry of the first bin, and its info block (the /K/ records).
+    let afbin = word6(f, 20);
+    let np = word6(f, afbin + 1);
+    let nbw = (np - 1) / 4 + 1;
+    let info = word6(f, afbin + 2 + nbw);
+    let adat_field = info + 3 + nbw + 2; // KIADAT; KINDAT follows
+    match case {
+        // A direct header root in the tail (reviewer: KTAGBK, KCOMPI).
+        "ktagbk_in_tail" => {
+            grow(f, 1270 + 127);
+            set_word6(f, kfs + 1270, -8642);
+            set_word6(f, 14, kfs + 1270);
+        }
+        "kcompi_in_tail" => {
+            grow(f, 1270 + 127);
+            set_word6(f, 43, kfs + 1270);
+            set_word6(f, 44, 4);
+        }
+        // A range that starts below KFSIZE and crosses it.
+        "kcompi_crosses_kfsize" => {
+            grow(f, 400);
+            set_word6(f, 43, kfs - 2);
+            set_word6(f, 44, 8);
+        }
+        "data_crosses_kfsize" => {
+            grow(f, 400);
+            set_word6(f, adat_field, kfs - 10);
+        }
+        // A root below KFSIZE whose chained block lies in the tail (reviewer: tag-chain).
+        "tag_chain_into_tail" => {
+            // A 127-word tag-hash block that ends below KFSIZE, as the last words of the
+            // file: KFSIZE moves past it.
+            let root = kfs;
+            let new_kfs = root + 127;
+            let target = new_kfs + 1270;
+            let h = std::fs::OpenOptions::new().write(true).open(f).unwrap();
+            h.set_len(byte6(target + 127)).unwrap();
+            drop(h);
+            for i in 0..127 {
+                set_word6(f, root + i, 0);
+                set_word6(f, target + i, 0);
+            }
+            set_word6(f, root, -8642);
+            set_word6(f, root + 1, 42);
+            set_word6(f, root + 126, target);
+            set_word6(f, target, -8642);
+            set_word6(f, 14, root);
+            set_word6(f, 6, new_kfs);
+            set_word6(f, new_kfs, -9630);
+        }
+        // A live record's data copied to KFSIZE and repointed there (reviewer: the HEC
+        // fallback probe; HEC Monolith reads it), with the marker set too, so a refusal
+        // after marker reconciliation would change the file.
+        "live_data_in_tail" => {
+            let ndat = word6(f, adat_field + 1);
+            let adat = word6(f, adat_field);
+            let data: Vec<i64> = (0..ndat).map(|i| word6(f, adat + i)).collect();
+            grow(f, ndat + 127);
+            for (i, &x) in data.iter().enumerate() {
+                set_word6(f, kfs + i as i64, x);
+            }
+            set_word6(f, adat_field, kfs);
+            set_word6(f, 69, info);
+        }
+        // An overflow word of an unused bin pointing into the tail.
+        "overflow_into_tail" => {
+            grow(f, 40 * 127);
+            let bnblk = word6(f, 17);
+            let last_bin = afbin + (bnblk - 1) * 127;
+            assert_eq!(word6(f, last_bin), 0, "the bin is in use");
+            set_word6(f, last_bin + 125, kfs + 127 * 30);
+        }
+        // A word HEC documents as unused, set: an unknown structure.
+        "kres_unknown" => {
+            grow(f, 400);
+            set_word6(f, 60, 1234);
+        }
+        // An entry that cannot be parsed.
+        "unparsable_entry" => {
+            grow(f, 400);
+            set_word6(f, afbin + 1, 999);
+        }
+        _ => panic!("{case}"),
+    }
+}
+
+/// One of the writes the refusal test attempts.
+type AttemptedWrite = Box<dyn Fn(&WriteOptions) -> Result<(), WriteError>>;
+
+const UNPROVEN: [&str; 9] = [
+    "ktagbk_in_tail",
+    "kcompi_in_tail",
+    "kcompi_crosses_kfsize",
+    "data_crosses_kfsize",
+    "tag_chain_into_tail",
+    "live_data_in_tail",
+    "overflow_into_tail",
+    "kres_unknown",
+    "unparsable_entry",
+];
+
+/// Every case, every flush mode, a single and a batch write, three attempts each, then an
+/// unrelated write of another kind: each raises `UnprovenTail` and the file is unchanged.
+/// With `P64_HELD=1` every write goes through a held handle.
+#[test]
+fn dss6_unproven_tail_refuses_every_write_unchanged() {
+    let d = tmp("tail6_unproven");
+    let mut failed = Vec::new();
+    for case in UNPROVEN {
+        let r = std::panic::catch_unwind(|| unproven_refused(case, &d));
+        if let Err(e) = r {
+            let m = e
+                .downcast_ref::<String>()
+                .cloned()
+                .or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string()))
+                .unwrap_or_default();
+            eprintln!("UNPROVEN-FAIL {case}: {}", m.lines().next().unwrap_or(""));
+            failed.push(case);
+        }
+    }
+    assert!(failed.is_empty(), "{failed:?}");
+    let _ = std::fs::remove_dir_all(&d);
+}
+
+fn unproven_refused(case: &str, d: &Path) {
+    {
+        let f = d.join(format!("{case}.dss"));
+        unproven_case(case, &f);
+        let before = std::fs::read(&f).unwrap();
+        // `DSS_P64_KILL_OUT`: the base and the refused file, for HEC reads.
+        let keep = std::env::var_os("DSS_P64_KILL_OUT").map(PathBuf::from);
+        if let Some(k) = &keep {
+            std::fs::create_dir_all(k).unwrap();
+            let b = k.join(format!("unproven_{case}_base.dss"));
+            let _ = std::fs::remove_file(&b);
+            make_base("tail6_short", &b);
+        }
+        let r = check_file6(&f).unwrap();
+        assert!(
+            r.notes
+                .iter()
+                .any(|n| n.starts_with("native writes refuse this file")),
+            "{case}: {:?} {:?}",
+            r.problems,
+            r.notes
+        );
+        let mut writes: Vec<(String, AttemptedWrite)> = Vec::new();
+        for short in TAIL_SHORT {
+            for m in MODES {
+                let ff = f.clone();
+                writes.push((
+                    format!("{short} {m}"),
+                    Box::new(move |_o| run_write(short, &ff, &mode(m))),
+                ));
+            }
+        }
+        let ff = f.clone();
+        writes.push((
+            "unrelated paired data".into(),
+            Box::new(move |o| paired(6, &ff, b"/Z/OTHER/STAGE-FLOW///S/", 7.0, o)),
+        ));
+        let ff = f.clone();
+        writes.push((
+            "unrelated grid".into(),
+            Box::new(move |o| {
+                grid(
+                    6,
+                    &ff,
+                    b"/SHG/Z/PRECIP/05SEP2018:0100/05SEP2018:0200/S/",
+                    3,
+                    o,
+                )
+            }),
+        ));
+        for (what, w) in &writes {
+            for attempt in 0..3 {
+                let r = session(6, &f, || w(&WriteOptions::default()));
+                match r {
+                    Err(WriteError::UnprovenTail(m)) => {
+                        assert!(m.contains("cannot be shown unused"), "{case} {what}: {m}")
+                    }
+                    other => panic!("{case} {what} attempt {attempt}: {other:?}"),
+                }
+                assert!(
+                    std::fs::read(&f).unwrap() == before,
+                    "{case} {what} attempt {attempt}: the file changed"
+                );
+            }
+        }
+        if let Some(k) = &keep {
+            std::fs::copy(&f, k.join(format!("unproven_{case}_refused.dss"))).unwrap();
+        }
+    }
+}
+
+/// The roots are walked, not just refused: a tag-hash block chain and compression
+/// information wholly below KFSIZE (here, a real HEC file with a tag-hash block,
+/// `green_river.dss`, 6-ND) let the tail be cut, and the roots and their words survive.
+#[test]
+fn dss6_tail_cut_with_roots_below_kfsize() {
+    let d = tmp("tail6_roots");
+    // A real file whose KTAGBK is set.
+    let f = d.join("green_river.dss");
+    let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/public/green_river.dss");
+    std::fs::copy(&src, &f).unwrap();
+    let ktagbk = word6(&f, 14);
+    assert!(
+        ktagbk > 0 && ktagbk < word6(&f, 6),
+        "fixture KTAGBK {ktagbk}"
+    );
+    let tag_words: Vec<i64> = (0..127).map(|i| word6(&f, ktagbk + i)).collect();
+    let len0 = std::fs::metadata(&f).unwrap().len();
+    {
+        let mut h = std::fs::OpenOptions::new().append(true).open(&f).unwrap();
+        h.write_all(&vec![0x3Cu8; 6 * 512]).unwrap();
+    }
+    assert!(tail6(&f) > 0);
+    session(6, &f, || {
+        run_write("tail6_short", &f, &WriteOptions::default())
+    })
+    .unwrap();
+    assert_eq!(tail6(&f), 0, "green_river: tail not cut");
+    assert!(std::fs::metadata(&f).unwrap().len() >= len0);
+    assert_eq!(word6(&f, 14), ktagbk);
+    let after: Vec<i64> = (0..127).map(|i| word6(&f, ktagbk + i)).collect();
+    assert_eq!(after, tag_words, "green_river: tag-hash block changed");
+    // A synthetic tag chain of two blocks and compression information, all below KFSIZE.
+    let g = d.join("chain_below.dss");
+    make_base("tail6_short", &g);
+    let kfs = word6(&g, 6);
+    let (b1, b2, ci) = (kfs, kfs + 127, kfs + 254);
+    let new_kfs = kfs + 254 + 8;
+    let h = std::fs::OpenOptions::new().write(true).open(&g).unwrap();
+    h.set_len(byte6(new_kfs + 127 * 10)).unwrap();
+    drop(h);
+    for i in 0..262 {
+        set_word6(&g, kfs + i, 0);
+    }
+    set_word6(&g, b1, -8642);
+    set_word6(&g, b1 + 126, b2);
+    set_word6(&g, b2, -8642);
+    for i in 0..8 {
+        set_word6(&g, ci + i, 100 + i);
+    }
+    set_word6(&g, 14, b1);
+    set_word6(&g, 43, ci);
+    set_word6(&g, 44, 8);
+    set_word6(&g, 6, new_kfs);
+    set_word6(&g, new_kfs, -9630);
+    for i in 1..127 {
+        set_word6(&g, new_kfs + i, 0x3C3C);
+    }
+    assert!(tail6(&g) > 0);
+    run_write("tail6_short_batch", &g, &WriteOptions::default()).unwrap();
+    assert_eq!(tail6(&g), 0, "chain below: tail not cut");
+    assert_eq!(word6(&g, b1 + 126), b2);
+    assert_eq!(
+        (0..8).map(|i| word6(&g, ci + i)).collect::<Vec<_>>(),
+        (100..108).collect::<Vec<_>>()
+    );
+    let _ = std::fs::remove_dir_all(&d);
+}
+
+/// Overflow-chain traversal regression: overflow links are not tested for
+/// cycles. An unused bin whose overflow word points to itself is reached again, skipped
+/// (its addresses already checked), and the unreferenced tail is cut, with the loop left
+/// as it was (dss6.md §9.3).
+#[test]
+fn dss6_tail_overflow_cycle_is_deduplicated() {
+    let d = tmp("tail6_overflow_loop");
+    let f = d.join("loop.dss");
+    make_base("tail6_short", &f);
+    let (bnblk, afbin) = (word6(&f, 17), word6(&f, 20));
+    let last_bin = afbin + (bnblk - 1) * 127;
+    assert_eq!(word6(&f, last_bin), 0, "the bin is in use");
+    set_word6(&f, last_bin + 125, last_bin);
+    {
+        let mut h = std::fs::OpenOptions::new().append(true).open(&f).unwrap();
+        h.write_all(&vec![0u8; 4096]).unwrap();
+    }
+    assert!(tail6(&f) > 0);
+    session(6, &f, || {
+        run_write("tail6_short", &f, &WriteOptions::default())
+    })
+    .unwrap();
+    assert_eq!(tail6(&f), 0);
+    assert_eq!(word6(&f, last_bin + 125), last_bin);
+    let _ = std::fs::remove_dir_all(&d);
+}
+
+/// A synthetic tail longer than the next store (as the retained 0.1.3 failure,
+/// `file is 214016 bytes, header implies 211968`) is cut by a shorter write in every
+/// flush mode and through a batch; the result has the length and records of the same
+/// write on the file without a tail.
+#[test]
+fn dss6_tail_cut_in_every_mode() {
+    let d = tmp("tail6_modes");
+    for m in MODES {
+        for short in TAIL_SHORT {
+            let f = d.join(format!("{short}_{}.dss", m.0.as_str()));
+            make_base(short, &f);
+            let clean = d.join(format!("{short}_{}_clean.dss", m.0.as_str()));
+            std::fs::copy(&f, &clean).unwrap();
+            {
+                let mut h = std::fs::OpenOptions::new().append(true).open(&f).unwrap();
+                h.write_all(&vec![0xA5u8; 4 * 512]).unwrap();
+            }
+            assert_eq!(tail6(&f), 4 * 512);
+            run_write(short, &f, &mode(m)).unwrap();
+            assert_clean(6, &f, &format!("{short} {m}"), None);
+            run_write(short, &clean, &mode(m)).unwrap();
+            assert_clean(6, &clean, &format!("{short} {m} no tail"), None);
+            let known: Known = listed(6, &clean);
+            assert_eq!(snapshot(6, &f, &known), snapshot(6, &clean, &known));
+            assert_eq!(
+                std::fs::metadata(&f).unwrap().len(),
+                std::fs::metadata(&clean).unwrap().len()
+            );
+        }
+    }
+    let _ = std::fs::remove_dir_all(&d);
 }

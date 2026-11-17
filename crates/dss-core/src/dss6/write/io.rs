@@ -117,6 +117,16 @@ impl<'a> Io<'a> {
         Ok(out)
     }
 
+    /// Cut the file to `bytes` (PR78 review 2 R2-1: reconciliation drops a physical tail
+    /// that no pointer references, [`super::engine::Engine::reconcile`]). Never called
+    /// while planning. Like every separate file operation of a write, it is preceded by a
+    /// write barrier, so the killed-process matrix can stop just before it.
+    pub fn truncate(&self, bytes: u64) -> io::Result<()> {
+        debug_assert!(!self.planning());
+        crate::dss7::write::write_barrier(self.block.get());
+        self.f.set_len(bytes)
+    }
+
     /// Write `words` at `addr`, one `write` call per physical record touched. A chunk that
     /// ends at word 127 of its record also writes the record's 4-byte pad (zero), so new
     /// records are whole.
@@ -132,16 +142,15 @@ impl<'a> Io<'a> {
             let in_rec = (a - 1) % WORDS_PER_RECORD; // 0-based word in record
             let room = (WORDS_PER_RECORD - in_rec) as usize;
             let take = room.min(rest.len());
-            let mut buf = Vec::with_capacity(take * 4 + 4);
-            for w in &rest[..take] {
-                buf.extend_from_slice(&w.to_le_bytes());
+            // At most 127 data words and the four-byte physical-record pad.
+            let mut buf = [0u8; 512];
+            for (slot, w) in buf[..take * 4].chunks_exact_mut(4).zip(&rest[..take]) {
+                slot.copy_from_slice(&w.to_le_bytes());
             }
-            if take == room {
-                buf.extend_from_slice(&[0u8; 4]);
-            }
+            let len = take * 4 + usize::from(take == room) * 4;
             crate::dss7::write::write_barrier(self.block.get());
             f.seek(SeekFrom::Start(byte_of(a)))?;
-            f.write_all(&buf)?;
+            f.write_all(&buf[..len])?;
             a += take as i64;
             rest = &rest[take..];
         }

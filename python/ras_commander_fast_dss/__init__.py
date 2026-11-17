@@ -41,6 +41,7 @@ from .exceptions import (
     DssLockedError,
     DssPublishError,
     DssPathnameNotFoundError,
+    DssUnprovenTailError,
     DssUnsupportedRecordError,
 )
 
@@ -72,6 +73,7 @@ __all__ = [
     "DssPathnameNotFoundError",
     "DssLockedError",
     "DssPublishError",
+    "DssUnprovenTailError",
     "FEATURES",
 ]
 
@@ -117,7 +119,9 @@ __all__ = [
 #: 0.1.1). ``"none"`` does not flush. ``True`` means ``"end"`` and ``False`` means ``"none"``.
 #: ``create``, ``repair``, ``gridded.grid_to_point`` and every gridded writer take it too. All
 #: three keep the ordering of completed writes and of the recovery marker under process death.
-#: No power-loss claim for any mode; ``repair`` is the path for a damaged DSS7 file.
+#: No power-loss claim for any mode; ``repair`` is the path for a damaged DSS7 file (DSS7
+#: only: DSS6 has no ``repair``, and the next native write reconciles an interrupted DSS6
+#: write automatically).
 #: ``gridded_threads_all_cores``: ``gridded.import_gridded``, ``import_arrays`` and
 #: ``import_zarr`` default to ``threads=None``, every core available to the process
 #: (``1`` up to 0.1.1). For any count the written records have equal values,
@@ -130,6 +134,9 @@ __all__ = [
 #: ``write_batch``: :func:`write_batch` and :meth:`DssFile.write_batch` store many time-series
 #: and paired-data records with one open, one lock and one end-of-call flush; each record is
 #: written by the same transaction as its own call.
+#: ``dss6_tail_reconcile``: a DSS6 write checks every stored address before cutting
+#: bytes past ``KFSIZE``. An unproven tail raises :class:`DssUnprovenTailError`
+#: without changing the file (0.1.3).
 FEATURES = frozenset(
     {
         "grid_srs_monolith_parity",
@@ -166,6 +173,9 @@ FEATURES = frozenset(
         "write_ts_dss6_irregular_pattern_opt_in",
         # P76: ``write_batch`` / ``DssFile.write_batch``: many records, one lock, one flush.
         "write_batch",
+        # 0.1.3: a DSS6 tail past KFSIZE is cut when shown unused, else the write
+        # raises ``DssUnprovenTailError`` with the file unchanged.
+        "dss6_tail_reconcile",
     }
 )
 

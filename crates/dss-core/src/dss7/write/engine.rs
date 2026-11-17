@@ -594,9 +594,9 @@ impl<'a> Engine<'a> {
             return Ok(());
         }
         super::write_barrier(self.block_index);
-        let mut buf = Vec::with_capacity(800);
-        for x in &words {
-            buf.extend_from_slice(&x.to_le_bytes());
+        let mut buf = [0u8; 800];
+        for (slot, x) in buf.chunks_exact_mut(8).zip(&words) {
+            slot.copy_from_slice(&x.to_le_bytes());
         }
         let mut f = self.file;
         f.seek(SeekFrom::Start(0))?;
