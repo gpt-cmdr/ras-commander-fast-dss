@@ -1303,8 +1303,8 @@ does this before it writes anything, the marker step above included:
 
 - **No tail.** If the file is not longer than `ceil(KFSIZE/127)·512` bytes, nothing
   happens. A 508-byte final record (§1.3) is not a tail.
-- **Every address below `KFSIZE`.** The write checks each address root and range the file
-  stores (listed below). If every one lies below `KFSIZE`, the write reconciles the marker
+- **Checked roots and ranges below `KFSIZE`.** The write checks the header and catalog
+  roots and record ranges listed below, plus the complete marker info/path extents. If every one lies below `KFSIZE`, the write reconciles the marker
   as above. It then writes -9630 at `KFSIZE` with zeros to the end of that record, and
   truncates the file to `ceil(KFSIZE/127)·512` bytes. This restores the bytes the
   interrupted store started from, and the write reports `reconciled_interrupted_write`.
@@ -1312,7 +1312,8 @@ does this before it writes anything, the marker step above included:
   - any address or range that reaches `KFSIZE` or lies beyond it;
   - anything that cannot be parsed;
   - a tag-hash block chain that revisits a block;
-  - a bin-block chain longer than the file could hold.
+  - a bin-block chain that revisits a block or is longer than the file could hold;
+  - an address walk that exceeds its resource budget or cannot reserve memory.
 
   Overflow links are not tested for cycles. A bin reached again, through the table, an
   overflow word or the bin-block chain, is skipped, because its addresses were already
@@ -1329,6 +1330,11 @@ does this before it writes anything, the marker step above included:
     partial copy permanent, as space `KDEAD` does not count, and HEC never does it.
   - `check_file6` reports which case applies.
 
+**Resource budget.** Each address collection (tag blocks, visited bin blocks, queued bins and visited bins)
+is limited to 262,144 entries, with fallible allocation before growth. Exceeding a limit
+or failing to reserve memory refuses recovery before any write, rather than risking
+process exhaustion. This is a recovery limit, not a DSS6 format limit.
+
 **The roots checked.** These come from the permanent-section layout (`zinit6.f:ZINIT6`
 lines 446-560; 0-based header words):
 
@@ -1338,9 +1344,9 @@ lines 446-560; 0-based header words):
 | `KAFBIN` (19), `KANBIN` (20) | The first bin and the next bin. | Below `KFSIZE`. |
 | `KCOMPI` (42), `KCOMPN` (43) | The file's compression information: `KCOMPN` words at `KCOMPI` (`zgetci6.f` lines 41-70, `zsetci6.f` lines 229-245). It holds parameters, not addresses. | The range lies below `KFSIZE`. |
 | `KRES` 55-66 | Unused, per `zinit6.f` line 100. | Must be zero. A nonzero word is an unknown structure, and the write is refused. |
-| `KRES` 67-68 | This writer's marker: two info-block addresses. | Below `KFSIZE`. |
+| `KRES` 67-68 | This writer's marker: two info-block addresses. | A valid info header and the complete info-block/pathname extent lie below `KFSIZE`, including unlinked marker records. |
 | Hash table, words `NPERM + 1` to `NPERM + KHASH` | Bin addresses (`KTABLE = 1`; other table types are refused at open). | Below `KFSIZE`. |
-| Bins | Every bin reachable from the table, through overflow words (126), and through the bin-block chain (word 127 of a block's last bin, `znwbin6.f` lines 67-82). | Every entry of those bins, whatever its status, has its info block and its internal header, compression header, user header and data ranges (including `KIUNUS` slack) below `KFSIZE`. A bin reached several ways is checked once. |
+| Bins | Every bin reachable from the table, through overflow words (126), and through the bin-block chain (word 127 of a block's last bin, `znwbin6.f` lines 67-82). | Every entry must agree with its info block on pathname length before offsets are derived. Every entry, whatever its status, has its info block and its internal header, compression header, user header and data ranges (including `KIUNUS` slack) below `KFSIZE`. A bin reached several ways is checked once. |
 
 The other permanent-section words are counts, dates, flags, sizes, the password, or the
 `KTAGS` record-tag scheme (text, refused when set). Two cases are outside this check:
@@ -1350,9 +1356,15 @@ The other permanent-section words are counts, dates, flags, sizes, the password,
 - Damage that keeps every address below `KFSIZE`. This is the normal writer's concern
   (§9.3 above).
 
-**Why a native tail always passes.** Every pointer a native store writes (Chain, Counters,
+Marker-referenced info blocks that are no longer linked from a bin are checked for their
+complete extent because reconciliation consumes their pathname. Their payload pointers
+are not followed or consumed by reconciliation; catalog-linked record ranges are proved
+separately.
+
+**Why native pointers stay below the tail.** Every pointer a native store writes (Chain, Counters,
 Link, Publish) follows its one-`write` Allocation header. So under the process-death model,
-no native pointer can reach a tail left before Allocation.
+no native pointer can reach a tail left before Allocation. Recovery can still refuse a
+large file when the address proof exceeds its resource budget.
 
 HEC's flush intends the same order: end-of-file records first, then the root record holding
 the file size (`zbdump6.f` lines 46-88), then the other records (lines 117-135). HEC also
@@ -1367,8 +1379,9 @@ reader does not. The options are:
 - read or copy its records with HEC software;
 - write new data to another file.
 
-`repair()` is DSS7-only, so there is no DSS6 copy-out repair. A refusal means another
-program left the file inconsistent. An interrupted native write never leaves this state.
+`repair()` is DSS7-only, so there is no DSS6 copy-out repair. A refusal can indicate
+inconsistent file structures or an address proof that exceeded its resource budget; the
+error message distinguishes these cases.
 
 **Interruptions.** When a cut is made, both of its steps touch only bytes past `KFSIZE`,
 which no checked address reaches. A kill between the steps leaves committed records intact,
@@ -1388,6 +1401,8 @@ and the next write repeats the cut.
   handles under `P64_HELD`.
 - `dss6_tail_cut_with_roots_below_kfsize` covers a real file with a tag-hash block
   (`green_river.dss`) and a synthetic tag chain with compression information.
+- Refusal regressions cover a marker pathname crossing `KFSIZE` and disagreement between
+  a bin entry and its info block. Unit tests exercise the resource budget with small limits.
 
 **When HEC writes first after an interrupted native write** (crash tests with
 Monolith): every store succeeds and every record reads; until the next native write the

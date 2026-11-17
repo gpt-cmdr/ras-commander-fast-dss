@@ -4989,6 +4989,77 @@ fn unproven_case(case: &str, f: &Path) {
             set_word6(f, adat_field, kfs);
             set_word6(f, 69, info);
         }
+        // The marker header fits below KFSIZE, but its pathname is controlled by
+        // bytes in the unproven tail. Before the full-extent check, reconciliation
+        // could use that pathname to retire the unrelated, unlinked old copy.
+        "marker_path_crosses_kfsize"
+        | "marker_info_crosses_kfsize"
+        | "old_marker_info_crosses_kfsize" => {
+            assert!(nbw > 1);
+            let ni = 28 + nbw;
+            let old = kfs;
+            let new = old + ni + 8;
+            let new_kfs = if case == "marker_path_crosses_kfsize" {
+                new + 4
+            } else {
+                // All pathname words fit; the remaining info fields do not.
+                new + 3 + nbw
+            };
+            let original: Vec<i64> = (0..ni).map(|i| word6(f, info + i)).collect();
+            let h = std::fs::OpenOptions::new().write(true).open(f).unwrap();
+            h.set_len(byte6(new_kfs + 400)).unwrap();
+            drop(h);
+            for (i, &x) in original.iter().enumerate() {
+                set_word6(f, old + i as i64, x);
+            }
+            set_word6(f, new, -9753);
+            set_word6(f, new + 1, 1);
+            set_word6(f, new + 2, np);
+            for i in 0..nbw {
+                set_word6(f, new + 3 + i, original[(3 + i) as usize]);
+            }
+            set_word6(f, 6, new_kfs);
+            if case == "old_marker_info_crosses_kfsize" {
+                set_word6(f, 68, new);
+                set_word6(f, 69, 0);
+            } else {
+                set_word6(f, 68, old);
+                set_word6(f, 69, new);
+            }
+            assert_eq!(word6(f, old + 1), original[1]);
+            assert!(new + 3 < new_kfs && new + ni > new_kfs);
+            if case == "marker_path_crosses_kfsize" {
+                assert!(new + 3 + nbw > new_kfs);
+            } else {
+                assert_eq!(new + 3 + nbw, new_kfs);
+            }
+        }
+        // The bin and info block disagree on pathname width. The actual info's data
+        // pointer is eight words later, where the former bin-derived proof never
+        // looked; its own data bytes live in the tail that must not be truncated.
+        "info_path_length_mismatch" => {
+            let actual_npw = nbw + 8;
+            let relocated = kfs;
+            let new_kfs = relocated + 28 + actual_npw + 16;
+            let target = new_kfs + 127;
+            let h = std::fs::OpenOptions::new().write(true).open(f).unwrap();
+            h.set_len(byte6(target + 127)).unwrap();
+            drop(h);
+            for i in 0..28 + actual_npw {
+                set_word6(f, relocated + i, 0);
+            }
+            set_word6(f, relocated, -9753);
+            set_word6(f, relocated + 1, 1);
+            set_word6(f, relocated + 2, np + 32);
+            set_word6(f, relocated + 3 + actual_npw + 2, target);
+            set_word6(f, relocated + 3 + actual_npw + 3, 1);
+            set_word6(f, target, 0x12345678);
+            set_word6(f, afbin + 2 + nbw, relocated);
+            set_word6(f, 6, new_kfs);
+            set_word6(f, new_kfs, -9630);
+            assert_ne!(word6(f, afbin + 1), word6(f, relocated + 2));
+            assert!(relocated + 28 + actual_npw <= new_kfs);
+        }
         // An overflow word of an unused bin pointing into the tail.
         "overflow_into_tail" => {
             grow(f, 40 * 127);
@@ -4996,6 +5067,14 @@ fn unproven_case(case: &str, f: &Path) {
             let last_bin = afbin + (bnblk - 1) * 127;
             assert_eq!(word6(f, last_bin), 0, "the bin is in use");
             set_word6(f, last_bin + 125, kfs + 127 * 30);
+        }
+        // Unlike an overflow cycle (safe to deduplicate), a repeated allocated
+        // bin block cannot prove a finite allocation chain and must refuse promptly.
+        "bin_block_cycle" => {
+            grow(f, 400);
+            let bnblk = word6(f, 17);
+            let last_bin = afbin + (bnblk - 1) * 127;
+            set_word6(f, last_bin + 126, afbin);
         }
         // A word HEC documents as unused, set: an unknown structure.
         "kres_unknown" => {
@@ -5014,14 +5093,19 @@ fn unproven_case(case: &str, f: &Path) {
 /// One of the writes the refusal test attempts.
 type AttemptedWrite = Box<dyn Fn(&WriteOptions) -> Result<(), WriteError>>;
 
-const UNPROVEN: [&str; 9] = [
+const UNPROVEN: [&str; 14] = [
     "ktagbk_in_tail",
     "kcompi_in_tail",
     "kcompi_crosses_kfsize",
     "data_crosses_kfsize",
     "tag_chain_into_tail",
     "live_data_in_tail",
+    "marker_path_crosses_kfsize",
+    "marker_info_crosses_kfsize",
+    "old_marker_info_crosses_kfsize",
+    "info_path_length_mismatch",
     "overflow_into_tail",
+    "bin_block_cycle",
     "kres_unknown",
     "unparsable_entry",
 ];
@@ -5063,6 +5147,10 @@ fn unproven_refused(case: &str, d: &Path) {
             make_base("tail6_short", &b);
         }
         let r = check_file6(&f).unwrap();
+        assert!(
+            std::fs::read(&f).unwrap() == before,
+            "{case}: the read-only tail check changed the file"
+        );
         assert!(
             r.notes
                 .iter()

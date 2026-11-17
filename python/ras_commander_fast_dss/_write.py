@@ -443,9 +443,9 @@ def write_timeseries(
         Either case sets ``reconciled_interrupted_write``. If such bytes exist and an
         address reaches them, or the file's structures cannot be followed, every write
         raises :class:`~ras_commander_fast_dss.exceptions.DssUnprovenTailError` before
-        anything is written, and the file is unchanged. Another program left the file
-        inconsistent: an interrupted native write never does. HEC software may still read
-        it. Read or copy its records with HEC software, or write to another file.
+        anything is written, and the file is unchanged. Recovery also refuses if its
+        address proof exceeds the resource budget or cannot reserve memory; the message
+        identifies the reason. HEC software may still read the file. Read or copy its records with HEC software, or write to another file.
 
     Pattern records (D part ``TS-...``, both versions): a regular E part stores the
     values positionally, with no ``start=`` (the only time accepted is the reader's

@@ -64,6 +64,43 @@ const INFO_FLAG: i32 = -9753;
 /// `KBNSIZ` of every file this writer modifies (127 since 6-M, `zfsize6.f` line 187).
 pub(super) const BIN: usize = 127;
 const WORDS_PER_RECORD: i64 = 127;
+/// Per-collection resource guard for the physical-tail proof. A large or malformed
+/// file must refuse recovery rather than allocate memory proportional to its size.
+const TAIL_PROOF_MAX_ADDRESSES: usize = 262_144;
+
+fn tail_proof_push(
+    queue: &mut Vec<i64>,
+    addresses: impl IntoIterator<Item = i64>,
+    limit: usize,
+) -> Result<(), String> {
+    for address in addresses {
+        if queue.len() >= limit {
+            return Err("physical-tail proof address queue limit exceeded".into());
+        }
+        queue
+            .try_reserve(1)
+            .map_err(|_| "cannot allocate physical-tail proof address queue".to_string())?;
+        queue.push(address);
+    }
+    Ok(())
+}
+
+fn tail_proof_insert(
+    seen: &mut std::collections::HashSet<i64>,
+    address: i64,
+    limit: usize,
+) -> Result<bool, String> {
+    if seen.contains(&address) {
+        return Ok(false);
+    }
+    if seen.len() >= limit {
+        return Err("physical-tail proof visited-address limit exceeded".into());
+    }
+    seen.try_reserve(1)
+        .map_err(|_| "cannot allocate physical-tail proof visited addresses".to_string())?;
+    seen.insert(address);
+    Ok(true)
+}
 /// `KVERNO` of `6-M`: all bins are 127 words from this version on (`zfsize6.f` line 187).
 const KVERNO_6M: i32 = 60_000 + 100 * b'M' as i32;
 
@@ -1051,7 +1088,7 @@ impl<'a> Engine<'a> {
     /// with bytes past the record holding `KFSIZE`, decided before anything is written.
     ///
     /// - No such bytes (a 508-byte short final record, dss6.md §1.3, included): `Ok(None)`.
-    /// - Every persisted address and range of the file lies below `KFSIZE`
+    /// - Every checked header/catalog root, record range and marker extent lies below `KFSIZE`
     ///   ([`Engine::addresses_below_kfsize`]): `Ok(Some(bytes))`, the length to cut the
     ///   file to ([`Engine::cut_tail`]).
     /// - Otherwise [`WriteError::UnprovenTail`]: the write is refused with the file
@@ -1106,8 +1143,8 @@ impl<'a> Engine<'a> {
         self.tail_plan()
     }
 
-    /// Every address and range the file persists lies below `KFSIZE`; `Err` names the
-    /// first that does not, or what could not be followed. The roots, from the permanent
+    /// Every checked header/catalog root, record range and marker info/path extent lies
+    /// below `KFSIZE`; `Err` names the first that does not, or what could not be followed. The roots, from the permanent
     /// section's layout (`zinit6.f:ZINIT6` lines 446-560, 0-based header words):
     ///
     /// - `KTAGBK` (13): the tag-hash block, `NTAGBK = NBSIZE = 127` words (`zinit6.f`
@@ -1156,7 +1193,9 @@ impl<'a> Engine<'a> {
                     "the tag-hash block at {tag} (KTAGBK chain) reaches KFSIZE"
                 ));
             }
-            if !tags.insert(tag) || tags.len() as i64 > kfs / BIN as i64 + 1 {
+            if !tail_proof_insert(&mut tags, tag, TAIL_PROOF_MAX_ADDRESSES)?
+                || tags.len() as i64 > kfs / BIN as i64 + 1
+            {
                 return Err(format!("the tag-hash block chain revisits {tag}"));
             }
             tag = i64::from(rd(tag + BIN as i64 - 1, 1)?[0]);
@@ -1180,8 +1219,25 @@ impl<'a> Engine<'a> {
         }
         for i in [K_MARK_OLD, K_MARK_NEW] {
             let a = i64::from(h[i]);
-            if a != 0 && !below(a, 3) {
+            if a == 0 {
+                continue;
+            }
+            if !below(a, 3) {
                 return Err(format!("the in-progress marker (word {i}) names {a}"));
+            }
+            let head = rd(a, 3)?;
+            let np = head[2];
+            if head[0] != INFO_FLAG || !(1..=392).contains(&np) {
+                return Err(format!(
+                    "the in-progress marker (word {i}) has no valid info block at {a}"
+                ));
+            }
+            // Allocation publishes this marker only after the complete record area.
+            // Reconciliation may consume its pathname even when no bin references it.
+            if !below(a, (NINFO + path_words(np as usize)) as i64) {
+                return Err(format!(
+                    "the in-progress marker info block at {a} (word {i}) reaches KFSIZE"
+                ));
             }
         }
         let kafbin = i64::from(h[K_AFBIN]);
@@ -1193,27 +1249,38 @@ impl<'a> Engine<'a> {
         let max_bins = (kfs / bin + 2) as usize;
         let khash = h[K_HASH] as usize;
         let table = rd(NPERM as i64 + 1, khash)?;
-        let mut todo: Vec<i64> = table
-            .iter()
-            .filter(|&&a| a != 0)
-            .map(|&a| i64::from(a))
-            .collect();
+        let mut todo = Vec::new();
+        tail_proof_push(
+            &mut todo,
+            table.iter().filter(|&&a| a != 0).map(|&a| i64::from(a)),
+            TAIL_PROOF_MAX_ADDRESSES,
+        )?;
         let mut block = kafbin;
         let mut blocks = 0usize;
+        let mut visited_blocks = std::collections::HashSet::new();
         while block != 0 {
+            if !tail_proof_insert(&mut visited_blocks, block, TAIL_PROOF_MAX_ADDRESSES)? {
+                return Err(format!("the bin-block chain revisits {block}"));
+            }
             blocks += 1;
-            if blocks > max_bins {
-                return Err("the bin-block chain does not end".into());
+            if blocks > max_bins || blocks > TAIL_PROOF_MAX_ADDRESSES {
+                return Err(
+                    "the bin-block chain does not end within the physical-tail proof limit".into(),
+                );
             }
             if !below(block, kbnblk * bin) {
                 return Err(format!("the bin block at {block} reaches KFSIZE"));
             }
-            todo.extend((0..kbnblk).map(|k| block + k * bin));
+            tail_proof_push(
+                &mut todo,
+                (0..kbnblk).map(|k| block + k * bin),
+                TAIL_PROOF_MAX_ADDRESSES,
+            )?;
             block = i64::from(rd(block + kbnblk * bin - 1, 1)?[0]);
         }
         let mut seen = std::collections::HashSet::new();
         while let Some(a) = todo.pop() {
-            if !seen.insert(a) {
+            if !tail_proof_insert(&mut seen, a, TAIL_PROOF_MAX_ADDRESSES)? {
                 continue;
             }
             if seen.len() > max_bins {
@@ -1223,12 +1290,14 @@ impl<'a> Engine<'a> {
                 return Err(format!("a bin address {a} is not a bin below KFSIZE"));
             }
             let b = rd(a, BIN)?;
-            todo.extend(
+            tail_proof_push(
+                &mut todo,
                 b[BIN - 2..]
                     .iter()
                     .filter(|&&p| p != 0)
                     .map(|&p| i64::from(p)),
-            );
+                TAIL_PROOF_MAX_ADDRESSES,
+            )?;
             let mut j = 1usize;
             while j <= BIN - 2 {
                 let st = b[j - 1];
@@ -1254,6 +1323,12 @@ impl<'a> Engine<'a> {
                 let info = rd(ia, ni)?;
                 if info[0] != INFO_FLAG {
                     return Err(format!("no info block at {ia} (bin {a})"));
+                }
+                if info[2] != np as i32 {
+                    return Err(format!(
+                        "pathname length {} at info {ia} differs from bin {a} length {np}",
+                        info[2]
+                    ));
                 }
                 let f = |k: usize| i64::from(info[3 + nbw + k]);
                 for (what, addr, n) in [
@@ -1565,6 +1640,28 @@ mod tests {
         let mut d = [0i32; 2];
         put_chars(&mut d, b"30OCT26");
         assert_eq!(&w[7..9], &d);
+    }
+
+    #[test]
+    fn tail_proof_collections_refuse_at_their_limits() {
+        let mut queue = Vec::new();
+        tail_proof_push(&mut queue, [1, 2], 3).unwrap();
+        tail_proof_push(&mut queue, [3], 3).unwrap();
+        assert!(tail_proof_push(&mut queue, [4], 3).is_err());
+        assert_eq!(queue, [1, 2, 3]);
+        queue.pop();
+        tail_proof_push(&mut queue, [4], 3).unwrap();
+        assert_eq!(queue, [1, 2, 4]);
+        assert!(tail_proof_push(&mut Vec::new(), [1], 0).is_err());
+
+        let mut seen = std::collections::HashSet::new();
+        assert!(tail_proof_insert(&mut seen, 1, 2).unwrap());
+        assert!(tail_proof_insert(&mut seen, 2, 2).unwrap());
+        // Revisited bins are skipped even at the budget, preserving cycle handling.
+        assert!(!tail_proof_insert(&mut seen, 1, 2).unwrap());
+        assert!(tail_proof_insert(&mut seen, 3, 2).is_err());
+        assert_eq!(seen.len(), 2);
+        assert!(tail_proof_insert(&mut std::collections::HashSet::new(), 1, 0).is_err());
     }
 
     #[test]

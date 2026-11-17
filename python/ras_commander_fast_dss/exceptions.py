@@ -124,10 +124,10 @@ class DssUnprovenTailError(DssFormatError):
     Raised by every native write to such a file before anything is written: the file is
     left byte for byte as it was. A store would allocate at ``KFSIZE``, over bytes that a
     pointer in the file may still name, and cutting them could delete referenced data, so
-    the writer does neither, and it never adopts them. An interrupted native write never
-    leaves this state (its tail is cut automatically by the next write); it comes from a
-    file other software left inconsistent. HEC tools may still read the file. The message
-    names what could not be shown unused. Options: read the data with HEC software, or
+    the writer does neither, and it never adopts them. Recovery also refuses if its
+    address proof exceeds the resource budget or cannot reserve memory. HEC tools may
+    still read the file. The message names what could not be shown unused or which
+    resource limit prevented the proof. Options: read the data with HEC software, or
     write to another file; ``repair()`` is DSS7-only (``dss6.md`` section 9.3).
     Attribute ``path``: the DSS file, or ``None``.
     """

@@ -156,7 +156,7 @@
     },
     "crates/dss-core/src/dss6/write/engine.rs": {
       "source_sha256": "bd5e1061c42f2c7daf81744f5454ec4195e3a28c7880df2a9dbb41716df563bd",
-      "sha256": "e4e0fe4c513cade0539ba9961d7945a76544cad5f1a9717a13f31e15a7476843"
+      "sha256": "883f9d502075505c59fdf72d81963695f1e607b8cb5548a5d2d95780b001820e"
     },
     "crates/dss-core/src/dss6/write/grid.rs": {
       "source_sha256": "d1810e0fde2d7dfed4660a01b492b420ebe67a7296eab29bc1de23cff86db00a",
@@ -520,7 +520,7 @@
     },
     "crates/dss-core/tests/p64_kill.rs": {
       "source_sha256": "f7785b0ad8e6a603f1c277a40e28a8ea0e73ea80f15d254cba9fc373d8b20084",
-      "sha256": "54db11cd65f94d6e90814c872d1d1b3e6058d0d9e0605ffadabe6c5acc162077"
+      "sha256": "bb0726be0aaeba93f17d0f31ec2cfccaf9474b01d902b77ef85e30d37fac83e0"
     },
     "crates/dss-core/tests/p66_held_handle_pattern.rs": {
       "source_sha256": "22277c9a6a045aa67b54d89cd6c31a9350a8dff53336c648a1c36403e2b7b8bd",
@@ -1108,7 +1108,7 @@
     },
     "docs/format/dss6.md": {
       "source_sha256": "2c62d2be6c65ec55d359e37751452be3c97ddea3aa0711ec962fd2d127dddb24",
-      "sha256": "5bfffef6149ad59e6903bccf5898c8155d2fb6b0661d55fd5556e47ef991dfc9"
+      "sha256": "00e9f32f9974c2931db48ed775509e484ac1a256f765d24dbf95ff66b3039b1f"
     },
     "docs/format/dss7.md": {
       "source_sha256": "eac1e43446e959ea8aed28e2f1af992eb1ce96b306309c683ec11b56f29edfc2",
@@ -1172,7 +1172,7 @@
     },
     "python/ras_commander_fast_dss/_write.py": {
       "source_sha256": "44a79721702e8ca9ceb14958ab4d9c323c245393c0e82f001a8fafed355abbc7",
-      "sha256": "3285342699cb34820b0f02c49d39b41155bc3eec362ef1e5cd465961ae9c98c4"
+      "sha256": "70d058094ad21cec6cc328dee463cb19c0117f217d6fcecbfa06cd4543aca896"
     },
     "python/ras_commander_fast_dss/_write_grid.py": {
       "source_sha256": "7507ac6d7a0b0f9dbe902c52e6d3b0c74fb08b166898507218baa50e687b8bec",
@@ -1188,7 +1188,7 @@
     },
     "python/ras_commander_fast_dss/exceptions.py": {
       "source_sha256": "3ce7490069bb97d0de0bcdc675ea04d6e01a45843789f7c57ee1e6d9d32a78aa",
-      "sha256": "2768fc92cace6e8cd0c46999131696e227270702f14554e898a230414f797c9b"
+      "sha256": "4c64bea4ed0b2801a77f9c03038a9a80364a9c0ffbdf23d37bc5899c45d5f037"
     },
     "python/ras_commander_fast_dss/gridded/__init__.py": {
       "source_sha256": "81ddc3387b9dfb2a3b012463992ff154efc4c9787cd65761ff48a8eac3e1ecb0",
@@ -1708,7 +1708,8 @@
     "0.1.3: after review, the times= check for raw NaN values (python/ras_commander_fast_dss/_file.py, _write.py and tests/python/test_p76_calendar.py) was ported from private development commit b4606195b6bced9575d2cd5d629d395fe6c66862, merged into the private main line as ed45f27153364103f449f9acda006c43fc86c8a5; neither is part of source_commit; code and test assertions are identical, and comments that cite the review are reworded the same way",
     "0.1.3: after review, scripts/release_assets.py pypi-check takes SHA256SUMS and checks exactly the listed distributions, ignoring the publish action's attestation files (public-only, with its test, release.yml and docs/releasing.md); the CHANGELOG entry for the times= check is a public-only edit",
     "0.1.3: after review, DssFile drops its DSS6 dataset-location index again when a session write ends, so a write_batch generator that reads a location cannot leave a stale index (python/ras_commander_fast_dss/_file.py and tests/python/test_p72_cache_invalidation.py), ported from private development commit 0e5e47ea45b2330ef86554fb59a47494bfc0386f, which is not part of source_commit; code and test assertions are identical, and the comments are worded as the public copies already were; the CHANGELOG line for it is a public-only edit",
-    "0.1.3 finalization: selectively port DSS6 physical-tail reconciliation/refusal from private commit6813bb794df877cc37d5a7452dabeaf5ab81364c and array/fixed-buffer preparation optimization from db70932d88bd5543e1ff9670f68c1a5a8d59cb4f. Preserve public metadata/licensing/workflows and existing raw-NaN/session-cache ports; reword newly added development-review labels and use0.1.3 in public tail documentation."
+    "0.1.3 finalization: selectively port DSS6 physical-tail reconciliation/refusal from private commit6813bb794df877cc37d5a7452dabeaf5ab81364c and array/fixed-buffer preparation optimization from db70932d88bd5543e1ff9670f68c1a5a8d59cb4f. Preserve public metadata/licensing/workflows and existing raw-NaN/session-cache ports; reword newly added development-review labels and use0.1.3 in public tail documentation.",
+    "0.1.3 public review: validate complete marker info/path extents and matching bin/info pathname lengths before tail recovery; bound proof collections with fallible allocation; add byte-preserving refusal and resource-budget regressions"
   ],
   "replaced_files": [
     ".github/workflows/ci.yml",
