@@ -661,6 +661,140 @@ def test_writes_survive_an_os_kill_during_a_write(tmp_path, v, sync, api):
         verify_after_kill(p, v, after + 1, api)
 
 
+# -- PR78 review 2 R2-1: an unreferenced DSS6 tail is cut by the next write ------------------
+
+
+def _anomalies(p):
+    with dss.open(p) as f:
+        return list(f.catalog().attrs["anomalies"])
+
+
+@pytest.mark.parametrize("api", ["module", "session"])
+@pytest.mark.parametrize("sync", ["none", "end", "step"])
+def test_dss6_unreferenced_tail_is_cut_by_the_next_write(tmp_path, sync, api):
+    """Bytes past KFSIZE that nothing references (what a store killed before its
+    allocation header leaves; the Rust kill matrix makes them at every barrier) are cut by
+    the next native write, which may be much shorter. Committed records are unchanged, the
+    catalog is clean and the write reports the reconciliation."""
+    p = new(tmp_path, f"tail{sync}{api}", 6)
+    kw = dict(start="01JAN2021 01:00", units="CFS", data_type="INST-VAL", version=6)
+    dss.write_timeseries(p, "/K/KEEP/FLOW//1HOUR/S/", np.arange(48.0), **kw)
+    times = pd.to_datetime(["2021-02-01 06:00", "2021-02-03 12:00"])
+    dss.write_timeseries(p, "/K/IRR/STAGE//IR-MONTH/S/", [1.5, 2.5], times=times,
+                         units="FT", data_type="INST-VAL", version=6)
+    size = p.stat().st_size
+    with open(p, "ab") as h:
+        h.write(b"Z" * 4096)
+    assert any("header implies" in str(a) for a in _anomalies(p))
+    with dss.open(p) as f:
+        before = f.read_timeseries("/K/KEEP/FLOW//1HOUR/S/")
+    small = dict(times=pd.to_datetime(["2021-03-02 00:00"]), units="FT",
+                 data_type="INST-VAL", version=6, sync=sync)
+    if api == "session":
+        with dss.open(p) as s:
+            rep = s.write_timeseries("/Z/SHORT/STAGE//IR-MONTH/S/", [9.0], **small)
+    else:
+        rep = dss.write_timeseries(p, "/Z/SHORT/STAGE//IR-MONTH/S/", [9.0], **small)
+    assert rep["reconciled_interrupted_write"]
+    assert not _anomalies(p)
+    assert p.stat().st_size % 512 == 0 and p.stat().st_size < size + 4096
+    with dss.open(p) as f:
+        pd.testing.assert_frame_equal(f.read_timeseries("/K/KEEP/FLOW//1HOUR/S/"), before)
+        assert list(f.read_timeseries("/Z/SHORT/STAGE//IR-MONTH/S/")["value"]) == [9.0]
+    # Nothing left to reconcile.
+    rep = dss.write_timeseries(p, "/Z/SHORT2/STAGE//IR-MONTH/S/", [8.0], **small)
+    assert not rep["reconciled_interrupted_write"]
+
+
+def _set_word6(p, addr, value):
+    """DSS6 word address ``addr`` (1-based; 127 words per 512-byte record)."""
+    off = ((addr - 1) // 127) * 512 + ((addr - 1) % 127) * 4
+    with open(p, "r+b") as h:
+        h.seek(off)
+        h.write(int(value).to_bytes(4, "little", signed=True))
+
+
+def _word6(p, addr):
+    off = ((addr - 1) // 127) * 512 + ((addr - 1) % 127) * 4
+    with open(p, "rb") as h:
+        h.seek(off)
+        return int.from_bytes(h.read(4), "little", signed=True)
+
+
+@pytest.mark.parametrize("api", ["module", "session"])
+@pytest.mark.parametrize("sync", ["none", "end", "step"])
+def test_dss6_unproven_tail_refuses_writes_unchanged(tmp_path, sync, api):
+    """Unproven-tail refusal: a tail that a stored address reaches (here the tag-hash block root,
+    header word 13, KTAGBK) is neither cut nor written over. Every write raises
+    ``DssUnprovenTailError`` (a ``DssFormatError``) before anything is written, repeatedly,
+    for single writes, batches and an unrelated record kind; the file stays byte for byte
+    as it was and still reads."""
+    p = new(tmp_path, f"unproven{sync}{api}", 6)
+    kw = dict(start="01JAN2021 01:00", units="CFS", data_type="INST-VAL", version=6)
+    dss.write_timeseries(p, "/K/KEEP/FLOW//1HOUR/S/", np.arange(48.0), **kw)
+    kfs = _word6(p, 6)
+    with open(p, "ab") as h:
+        h.write(b"\x00" * 4096)
+    _set_word6(p, 14, kfs + 254)  # KTAGBK into the tail
+    before = p.read_bytes()
+    small = dict(times=pd.to_datetime(["2021-03-02 00:00"]), units="FT",
+                 data_type="INST-VAL", version=6, sync=sync)
+    batch = [
+        {"kind": "timeseries", "pathname": "/Z/B1/STAGE//IR-MONTH/S/", "values": [1.0],
+         "times": pd.to_datetime(["2021-03-03 00:00"]), "units": "FT",
+         "data_type": "INST-VAL"},
+        {"kind": "paired_data", "pathname": "/Z/BPD/STAGE-FLOW///S/",
+         "x": [0.0, 1.0], "y": [2.0, 3.0], "x_units": "FT", "x_type": "LINEAR",
+         "y_units": "CFS", "y_type": "LINEAR"},
+    ]
+    calls = [
+        lambda t: t.write_timeseries("/Z/SHORT/STAGE//IR-MONTH/S/", [9.0], **small),
+        lambda t: t.write_batch(batch, version=6, sync=sync),
+        lambda t: t.write_paired_data("/Z/PD/STAGE-FLOW///S/", [0.0, 1.0], [4.0, 5.0],
+                                      x_units="FT", x_type="LINEAR", y_units="CFS",
+                                      y_type="LINEAR", version=6, sync=sync),
+    ]
+    for call in calls:
+        for _ in range(3):
+            with pytest.raises(dss.DssUnprovenTailError) as ei:
+                if api == "session":
+                    with dss.open(p) as s:
+                        call(s)
+                else:
+                    call(_Module(p))
+            assert isinstance(ei.value, dss.DssFormatError)
+            assert "cannot be shown unused" in str(ei.value)
+            assert "not changed" in str(ei.value)
+            assert p.read_bytes() == before
+    with dss.open(p) as f:
+        assert list(f.read_timeseries("/K/KEEP/FLOW//1HOUR/S/")["value"]) == list(np.arange(48.0))
+
+
+class _Module:
+    """The module-level writers, bound to one path (as a ``DssFile`` binds them)."""
+
+    def __init__(self, p):
+        self.p = p
+
+    def write_timeseries(self, *a, **k):
+        return dss.write_timeseries(self.p, *a, **k)
+
+    def write_batch(self, *a, **k):
+        return dss.write_batch(self.p, *a, **k)
+
+    def write_paired_data(self, *a, **k):
+        return dss.write_paired_data(self.p, *a, **k)
+
+
+def test_repair_is_dss7_only(tmp_path):
+    """``repair`` copies DSS7 files only; DSS6 reconciles on the next native write."""
+    src = new(tmp_path, "r6", 6)
+    dest = tmp_path / "r6dest.dss"
+    with pytest.raises(dss.exceptions.DssFormatError):
+        dss.repair(src, dest)
+    assert not dest.exists()
+
+
 def test_feature_flag():
     assert "write_sync_policy" in dss.FEATURES
 

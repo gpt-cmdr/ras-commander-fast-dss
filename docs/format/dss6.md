@@ -171,7 +171,7 @@ with `NDSS = NVERS = 1`, `NDATE = NTIME = NPASS = NTAG = NPROG = 2`, and `NMXPRT
 | 7 | 28 | 2 | `KCREAT` | creation date `DDMMMYY` | I |
 | 9 | 36 | 2 | `KLWDAT` | last-written date | I |
 | 11 | 44 | 2 | `KLWTIM` | last-written time `HH:MM:SS` | I |
-| 13 | 52 | 1 | `KTAGBK` | address of the tag-hash block (starts with `JTAGFL = -8642`), or 0 | W (readers ignore) |
+| 13 | 52 | 1 | `KTAGBK` | address of the tag-hash block (starts with `JTAGFL = -8642`), or 0; blocks chain through their last word | W (readers ignore; a root the tail check walks, §9.3) |
 | 14 | 56 | 1 | `KHASH` | hash table size, also the maximum hash code | R |
 | 15 | 60 | 1 | `KTABLE` | 1 = hash table, 2 = direct bins; `> 10000` means byte-swapped (§1.4) | R |
 | 16 | 64 | 1 | `KBNBLK` | bins per block | R (catalog walk) |
@@ -185,7 +185,7 @@ with `NDSS = NVERS = 1`, `NDATE = NTIME = NPASS = NTAG = NPROG = 2`, and `NMXPRT
 | 39 | 156 | 1 | `KBOVER` | overflow bins | I |
 | 40 | 160 | 1 | `KMAXPH` | maximum pathnames on one hash | I |
 | 41 | 164 | 1 | `KMAXHC` | hash code with the most pathnames | I |
-| 42 | 168 | 1 | `KCOMPI` | address of file-default compression information | W (0 in all samples) |
+| 42 | 168 | 1 | `KCOMPI` | address of file-default compression information | W (0 in the public samples except `sample_vb.dss`, 6-LA: 507, `KCOMPN` 75); a root the tail check walks (§9.3) |
 | 43 | 172 | 1 | `KCOMPN` | length of that information | W |
 | 44 | 176 | 1 | `KITSIN` | irregular-TS block growth increment (values) | W |
 | 45 | 180 | 5 | `KITSDA..KITSCE` | minimum ITS block sizes for day, month, year, decade, century | W |
@@ -804,11 +804,14 @@ Monolith exactly (30 dataset requests on that file). Writers must never write 15
       first kept slot would not reproduce, or that would read with two values at one time.
     - Checked against HEC Monolith: 7,994 dense series and 14,138 series with leading (1-3), trailing, interior and
       leading+trailing missing values, every calendar interval, day and hour, leap-year starts in
-      1904, 2000, 2016, 2020 and 2024, DSS6 and DSS7. Every series `times=` accepts reads in HEC
-      Monolith at exactly its accepted (time, value) pairs; trimmed and untrimmed reads agree in
-      every case; the only reader differences from Monolith are the February-overflow values
-      above (16 dense, 91 missing-value series) and Monolith's DSS6 weekly read dropping the
-      first value. Monolith cannot read 286 of its own DSS6 records with missing
+      1904, 2000, 2016, 2020 and 2024, DSS6 and DSS7. Subject to Monolith's documented DSS6
+      weekly read omitting the first value, every series `times=` accepts reads in HEC
+      Monolith at its accepted (time, value) pairs: every finite weekly value returned has
+      its accepted timestamp, while only the first accepted value is missing. Every other
+      series reads at exactly its accepted pairs. Trimmed and untrimmed reads agree.
+      The only reader differences are the February-overflow values above (16 dense,
+      91 missing-value series) and that weekly omission. Monolith cannot read 286 of its
+      own DSS6 records with missing
       values back ("no data"); this crate reads all of them completely. Monolith's high-level
       writer (`TimeSeriesContainer`/`HecDss.put`) moves 153 dense starts (a day that C's
       `ztsOffset()` takes as a period end at 00:00, and 2 March 00:00 in leap years) before
@@ -1283,6 +1286,123 @@ the old block names the same pathname; it rebuilds `KNRECS` (live entries of the
 moves a pointer: an empty linked bin, an orphan record copy or an unused chained bin
 block (left by a crash between Chain and Counters) is valid DSS6 and is reused or
 ignored by HEC and by the writer.
+
+**Physical tail** (DSS6 physical-tail recovery). A process killed after a
+store's Data or EndOfFile writes, but before its Allocation header, leaves three things:
+
+- the old `KFSIZE`;
+- no marker;
+- a file longer than `ceil(KFSIZE/127)·512` bytes.
+
+The extra bytes are a partial copy of the interrupted record. Committed records are intact,
+but the reader reports `file is N bytes, header implies M`. Before 0.1.3, a later, shorter
+store overwrote only part of that tail, so the anomaly stayed.
+
+From 0.1.3, every native write first looks at the tail and decides what to do with it. It
+does this before it writes anything, the marker step above included:
+
+- **No tail.** If the file is not longer than `ceil(KFSIZE/127)·512` bytes, nothing
+  happens. A 508-byte final record (§1.3) is not a tail.
+- **Checked roots and ranges below `KFSIZE`.** The write checks the header and catalog
+  roots and record ranges listed below, plus the complete marker info/path extents. If every one lies below `KFSIZE`, the write reconciles the marker
+  as above. It then writes -9630 at `KFSIZE` with zeros to the end of that record, and
+  truncates the file to `ceil(KFSIZE/127)·512` bytes. This restores the bytes the
+  interrupted store started from, and the write reports `reconciled_interrupted_write`.
+- **Anything else: the write is refused.** This covers:
+  - any address or range that reaches `KFSIZE` or lies beyond it;
+  - anything that cannot be parsed;
+  - a tag-hash block chain that revisits a block;
+  - a bin-block chain that revisits a block or is longer than the file could hold;
+  - an address walk that exceeds its resource budget or cannot reserve memory.
+
+  Overflow links are not tested for cycles. A bin reached again, through the table, an
+  overflow word or the bin-block chain, is skipped, because its addresses were already
+  checked. This deduplication bounds the traversal, and a walk that would visit more
+  distinct bins than the file could hold is refused. An overflow cycle among checked bins
+  is therefore accepted, not refused. The write raises `WriteError::UnprovenTail` (Python `DssUnprovenTailError`, a
+  `DssFormatError`) before anything is written, and the file stays byte for byte as it was.
+  The marker is not reconciled either. Every later write to the file is refused the same
+  way, so a later unrelated store cannot allocate over the bytes.
+  - The writer neither truncates nor writes over them. HEC software allocates at `KFSIZE`
+    (`znwrit6.f` lines 36 and 154-186, `znwbin6.f` lines 39-85), so a store would overwrite
+    whatever an address there still names, and cutting the bytes could delete it.
+  - The tail is never adopted (raising `KFSIZE` over it). That would make an unchecked
+    partial copy permanent, as space `KDEAD` does not count, and HEC never does it.
+  - `check_file6` reports which case applies.
+
+**Resource budget.** Each address collection (tag blocks, visited bin blocks, queued bins and visited bins)
+is limited to 262,144 entries, with fallible allocation before growth. Exceeding a limit
+or failing to reserve memory refuses recovery before any write, rather than risking
+process exhaustion. This is a recovery limit, not a DSS6 format limit.
+
+**The roots checked.** These come from the permanent-section layout (`zinit6.f:ZINIT6`
+lines 446-560; 0-based header words):
+
+| Root | What it is | Check |
+|---|---|---|
+| `KTAGBK` (13) | The tag-hash block, `NTAGBK = NBSIZE = 127` words (`zinit6.f` lines 283, 481-483). Each block's last word links to the next block; a link ≤ 0 ends the chain (`ztagpa6.f` lines 81-114, `ztagfi6.f` lines 131-140). | Every block of the chain lies below `KFSIZE`. A revisited block is refused. |
+| `KAFBIN` (19), `KANBIN` (20) | The first bin and the next bin. | Below `KFSIZE`. |
+| `KCOMPI` (42), `KCOMPN` (43) | The file's compression information: `KCOMPN` words at `KCOMPI` (`zgetci6.f` lines 41-70, `zsetci6.f` lines 229-245). It holds parameters, not addresses. | The range lies below `KFSIZE`. |
+| `KRES` 55-66 | Unused, per `zinit6.f` line 100. | Must be zero. A nonzero word is an unknown structure, and the write is refused. |
+| `KRES` 67-68 | This writer's marker: two info-block addresses. | A valid info header and the complete info-block/pathname extent lie below `KFSIZE`, including unlinked marker records. |
+| Hash table, words `NPERM + 1` to `NPERM + KHASH` | Bin addresses (`KTABLE = 1`; other table types are refused at open). | Below `KFSIZE`. |
+| Bins | Every bin reachable from the table, through overflow words (126), and through the bin-block chain (word 127 of a block's last bin, `znwbin6.f` lines 67-82). | Every entry must agree with its info block on pathname length before offsets are derived. Every entry, whatever its status, has its info block and its internal header, compression header, user header and data ranges (including `KIUNUS` slack) below `KFSIZE`. A bin reached several ways is checked once. |
+
+The other permanent-section words are counts, dates, flags, sizes, the password, or the
+`KTAGS` record-tag scheme (text, refused when set). Two cases are outside this check:
+
+- A file with no tail. A reference into the words at or after `KFSIZE` in the last record
+  is not looked for, and a store writes there as HEC does. This is pre-existing behaviour.
+- Damage that keeps every address below `KFSIZE`. This is the normal writer's concern
+  (§9.3 above).
+
+Marker-referenced info blocks that are no longer linked from a bin are checked for their
+complete extent because reconciliation consumes their pathname. Their payload pointers
+are not followed or consumed by reconciliation; catalog-linked record ranges are proved
+separately.
+
+**Why native pointers stay below the tail.** Every pointer a native store writes (Chain, Counters,
+Link, Publish) follows its one-`write` Allocation header. So under the process-death model,
+no native pointer can reach a tail left before Allocation. Recovery can still refuse a
+large file when the address proof exceeds its resource budget.
+
+HEC's flush intends the same order: end-of-file records first, then the root record holding
+the file size (`zbdump6.f` lines 46-88), then the other records (lines 117-135). HEC also
+flushes mid-write with only 6 buffers (§9.2), so a file HEC was killed in could hold an
+earlier pointer. Every root is therefore checked rather than the order trusted.
+
+**After a refusal.** The file is unchanged, and HEC software may still read it. HEC
+Monolith reads addresses somewhat past `KFSIZE` (`zgtrec6.f` lines 67-72); the native
+reader does not. The options are:
+
+- leave the file as it is;
+- read or copy its records with HEC software;
+- write new data to another file.
+
+`repair()` is DSS7-only, so there is no DSS6 copy-out repair. A refusal can indicate
+inconsistent file structures or an address proof that exceeded its resource budget; the
+error message distinguishes these cases.
+
+**Interruptions.** When a cut is made, both of its steps touch only bytes past `KFSIZE`,
+which no checked address reaches. A kill between the steps leaves committed records intact,
+and the next write repeats the cut.
+
+**Verification.** `p64_kill.rs` covers both outcomes:
+
+- `dss6_tail_cut_after_a_kill_before_allocation` kills long single-record and batch writes
+  at every separate file write, in every flush mode. Shorter writes then repair them, and
+  second kills land inside the shorter write, including inside the cut. HEC Monolith 3.3.27
+  read every record of the kept killed and repaired files as committed
+  (`packets/evidence/DSS6_TAIL/`).
+- `dss6_unproven_tail_refuses_every_write_unchanged` covers each root above, ranges that
+  cross `KFSIZE`, a tag chain into the tail, live data in the tail with the marker set, an
+  overflow word, an unknown `KRES` word and an unparsable entry. Each is tried in every
+  flush mode and with batches, three times, together with unrelated writes, and with held
+  handles under `P64_HELD`.
+- `dss6_tail_cut_with_roots_below_kfsize` covers a real file with a tag-hash block
+  (`green_river.dss`) and a synthetic tag chain with compression information.
+- Refusal regressions cover a marker pathname crossing `KFSIZE` and disagreement between
+  a bin entry and its info block. Unit tests exercise the resource budget with small limits.
 
 **When HEC writes first after an interrupted native write** (crash tests with
 Monolith): every store succeeds and every record reads; until the next native write the

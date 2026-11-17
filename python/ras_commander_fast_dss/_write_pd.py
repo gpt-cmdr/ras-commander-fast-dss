@@ -52,14 +52,15 @@ def _cast(arr: np.ndarray, dtype: Any, what: str, raw: bool, missing: float) -> 
     float overflow to infinity, integers the width cannot hold exactly, and infinities
     unless ``raw``. ``NaN`` becomes ``missing`` unless ``raw``."""
     with np.errstate(over="ignore", invalid="ignore"):
-        out = np.ascontiguousarray(arr, dtype=dtype).copy()
+        # One owned C-order snapshot, including for a transposed curve matrix.
+        out = np.array(arr, dtype=dtype, copy=True, order="C")
     if arr.dtype.kind in "iub":
         limit = 2**24 if dtype == np.float32 else 2**53
         if arr.size and ((arr > limit).any() or (arr.dtype.kind == "i" and (arr < -limit).any())):
             raise ValueError(
                 f"integer {what} do not fit {np.dtype(dtype).name} exactly; convert them first"
             )
-    elif arr.dtype.kind == "f":
+    elif arr.dtype.kind == "f" and arr.dtype != np.dtype(dtype):
         src = arr.astype(np.float64)
         bad = np.isinf(out) & np.isfinite(src)
         if bad.any():
@@ -240,7 +241,7 @@ def write_paired_data(
     missing = HEC_MISSING_DSS6 if version == 6 else HEC_UNDEFINED_FLOAT
     ords = _cast(xa, dtype, "x", raw, missing)
     # Curve-major, as HEC stores the curves: column 0, then column 1, ...
-    vals = _cast(np.ascontiguousarray(ya.T).ravel(), dtype, "y", raw, missing)
+    vals = _cast(ya.T, dtype, "y", raw, missing).ravel()
     if isinstance(independent_is_x_axis, (bool, np.bool_)):
         axis = 1 if independent_is_x_axis else 0
     elif isinstance(independent_is_x_axis, (int, np.integer)):

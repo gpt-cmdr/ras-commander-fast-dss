@@ -44,6 +44,10 @@ Exception                      Extra base class              Raised when
                                                              destination (no hard link and
                                                              no no-replace rename). The
                                                              destination was not created.
+``DssUnprovenTailError``       ``DssFormatError``            A DSS6 write refused, file
+                                                             unchanged: bytes past the
+                                                             header's file size cannot be
+                                                             shown unused (0.1.3).
 =============================  ============================  ===============================
 
 A missing file raises the builtin :class:`FileNotFoundError` (other OS failures raise the
@@ -59,6 +63,7 @@ __all__ = [
     "DssPathnameNotFoundError",
     "DssLockedError",
     "DssPublishError",
+    "DssUnprovenTailError",
 ]
 
 
@@ -110,6 +115,26 @@ class DssLockedError(DssError):
         reasons = tuple(status.get("reasons", ()))
         msg = f"DSS file is in use by HEC software ({', '.join(reasons)}): {path}"
         return cls(msg, reasons=reasons, holder_pids=status.get("holder_pids", ()), path=path)
+
+
+class DssUnprovenTailError(DssFormatError):
+    """A DSS6 write was refused because the file has bytes past the size its header
+    records (``KFSIZE``) that cannot be shown to be unused (address-root qualification).
+
+    Raised by every native write to such a file before anything is written: the file is
+    left byte for byte as it was. A store would allocate at ``KFSIZE``, over bytes that a
+    pointer in the file may still name, and cutting them could delete referenced data, so
+    the writer does neither, and it never adopts them. Recovery also refuses if its
+    address proof exceeds the resource budget or cannot reserve memory. HEC tools may
+    still read the file. The message names what could not be shown unused or which
+    resource limit prevented the proof. Options: read the data with HEC software, or
+    write to another file; ``repair()`` is DSS7-only (``dss6.md`` section 9.3).
+    Attribute ``path``: the DSS file, or ``None``.
+    """
+
+    def __init__(self, *args, path=None):
+        super().__init__(*args)
+        self.path = None if path is None else str(path)
 
 
 # -- P15 -------------------------------------------------------------------------------

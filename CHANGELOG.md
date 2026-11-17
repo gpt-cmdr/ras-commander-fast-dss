@@ -129,6 +129,15 @@ before upgrading.
 
 ### Fixed
 
+- DSS6 writes reconcile an interrupted physical tail only after checking every stored
+  address, the complete marker info blocks and matching bin/info pathname lengths.
+  The address proof uses bounded, fallible collections. An unproven tail or exhausted
+  proof budget raises `DssUnprovenTailError` without changing the file.
+- Writer preparation avoids redundant owned-array copies and same-width overflow scans;
+  paired-data curves retain their ordering. Small fixed-size serialization buffers no
+  longer allocate on the heap. Observed improvements are workload-specific; no universal
+  speedup or C-library parity is claimed.
+
 - The `times=` acceptance of calendar-interval series and the DSS6 calendar read times (above).
 - `create(version=6)` could remove a file it had not created when its fixed temporary name
   was already taken. Temporary names are now unique and created exclusively; only files the

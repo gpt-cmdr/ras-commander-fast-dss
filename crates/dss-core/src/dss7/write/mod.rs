@@ -100,6 +100,11 @@ pub enum WriteError {
     Unpublishable(Box<crate::publish::PublishRefusal>),
     /// Structures the write would modify are damaged (Python `DssFormatError`).
     Corrupt(String),
+    /// DSS6 (Unproven-tail refusal F2): the file has bytes past the size its header records
+    /// (`KFSIZE`) that cannot be shown unused, so the write is refused before anything is
+    /// written: a store would allocate over them, and cutting them could delete referenced
+    /// data. The file is unchanged (Python `DssUnprovenTailError`, a `DssFormatError`).
+    UnprovenTail(String),
     /// A store refused after planning passed: a defect in the writer, not in the file. Planning
     /// runs the same code first, so only an I/O error should reach this point.
     Internal(String),
@@ -124,6 +129,10 @@ impl fmt::Display for WriteError {
             WriteError::Unpublishable(r) => write!(f, "{r}"),
             WriteError::AlreadyExists(p) => write!(f, "file already exists: {}", p.display()),
             WriteError::Corrupt(m) => write!(f, "refusing to write to a damaged file: {m}"),
+            WriteError::UnprovenTail(m) => write!(
+                f,
+                "refusing to write: {m}; the file was not changed (see dss6.md section 9.3)"
+            ),
             WriteError::Internal(m) => write!(f, "internal writer error after planning: {m}"),
             WriteError::InjectedFault { block, step } => {
                 write!(
@@ -581,9 +590,11 @@ pub struct WriteReport {
     /// The lock guard passed although readers cannot be detected (only when the policy
     /// allows undetectable readers): callers should warn.
     pub readers_undetected: bool,
-    /// The file carried the marker of an interrupted native write, which was
-    /// reconciled before this write (bin allocation state, pending info status,
-    /// `knumberRecords`, `khashsUsed`).
+    /// The file showed an interrupted native write, which was reconciled before this
+    /// write. For DSS7, the file carried the marker (bin allocation state, pending info
+    /// status, `knumberRecords`, `khashsUsed`). For DSS6, it carried the marker (counters,
+    /// retired copy), or it had an unreferenced tail past `KFSIZE` that was cut
+    /// (`dss6.md` §9.3). DSS6 has no [`repair_dss7`] counterpart.
     pub reconciled_interrupted_write: bool,
     /// How the write lock was held (`whole_file_lockfileex`, `fcntl_setlk`, or `none`
     /// when the policy does not hold it).

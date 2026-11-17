@@ -124,6 +124,11 @@ def create(path: PathLike, version: int = 7, *, sync: Union[bool, str] = "end") 
 def repair(src: PathLike, dest: PathLike, *, sync: Union[bool, str] = "end") -> dict:
     """Copy every readable record of the DSS7 file ``src`` into a new DSS7 file ``dest``.
 
+    DSS7 only: a DSS6 ``src`` raises ``DssFormatError`` and nothing is written. DSS6 has
+    no copy-out repair. Instead, the next native write to a DSS6 file reconciles an
+    interrupted write automatically, in place (see the ``sync`` notes of
+    :func:`write_timeseries`).
+
     This is the safe path for a damaged file. Native writes reconcile an interrupted
     write exactly when the file was consistent before it; independent extra damage is
     refused only when cheap checks detect it (``docs/format/dss7.md`` §6: threat model
@@ -209,7 +214,8 @@ def _values_array(values: Any, value_type: str, raw: bool) -> np.ndarray:
     # Refuse rather than convert silently: no float overflow to inf, no
     # integer that the target type cannot hold exactly, no infinities unless raw.
     with np.errstate(over="ignore", invalid="ignore"):
-        out = np.ascontiguousarray(arr, dtype=dtype).copy()
+        # Snapshot even an already contiguous input: a batch generator may reuse it.
+        out = np.array(arr, dtype=dtype, copy=True, order="C")
     if arr.dtype.kind in "iub":
         # Explicit range test (no reliance on how a platform casts out-of-range floats):
         # integers are exact in float32 up to 2**24 and in float64 up to 2**53.
@@ -222,7 +228,7 @@ def _values_array(values: Any, value_type: str, raw: bool) -> np.ndarray:
             raise ValueError(
                 f"integer values do not fit {np.dtype(dtype).name} exactly; convert them first"
             )
-    elif arr.dtype.kind == "f":
+    elif arr.dtype.kind == "f" and arr.dtype != np.dtype(dtype):
         src = arr.astype(np.float64)
         overflow = np.isinf(out) & np.isfinite(src)
         if overflow.any():
@@ -424,6 +430,22 @@ def write_timeseries(
         returned. A normal write never repairs damage it did not cause; for a damaged
         DSS7 file the recovery path is :func:`repair`, which copies every readable record
         into a new file.
+
+        DSS6 has no :func:`repair` (it refuses DSS6 files). After a DSS6 write is
+        interrupted by process death, the next native write reconciles the file
+        automatically, in place:
+
+        - it rebuilds the header counters and clears the in-progress marker;
+        - it cuts any bytes the interrupted write left past the file size in the header,
+          once it has checked that no address the file stores reaches them
+          (``dss6.md`` §9.3, "Physical tail").
+
+        Either case sets ``reconciled_interrupted_write``. If such bytes exist and an
+        address reaches them, or the file's structures cannot be followed, every write
+        raises :class:`~ras_commander_fast_dss.exceptions.DssUnprovenTailError` before
+        anything is written, and the file is unchanged. Recovery also refuses if its
+        address proof exceeds the resource budget or cannot reserve memory; the message
+        identifies the reason. HEC software may still read the file. Read or copy its records with HEC software, or write to another file.
 
     Pattern records (D part ``TS-...``, both versions): a regular E part stores the
     values positionally, with no ``start=`` (the only time accepted is the reader's

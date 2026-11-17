@@ -472,6 +472,9 @@ fn allowed_after_crash(problems: &[String]) -> bool {
             || p.starts_with("KBINS is")
             || p.starts_with("KHUSED is")
             || p.starts_with("KBOVER is")
+            // PR78 review 2 R2-1: a store interrupted before its Allocation header leaves
+            // bytes past KFSIZE; the next native write cuts them (checked clean below).
+            || p.ends_with("tail past KFSIZE")
     })
 }
 
